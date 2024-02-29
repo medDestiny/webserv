@@ -1,10 +1,5 @@
-         
-					
- 
-server	{
+serverlocation{{server}};;;;;;;;
 
-}
-	
-       '
-
-	   ;
+{
+# this is a comment
+	};
