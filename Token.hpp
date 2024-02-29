@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 11:03:06 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/02/29 11:15:09 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/02/29 15:18:34 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ enum	Types
 	CLOSE_BR,
 	SEMICOLON,
 	SERVER,
-	LOCATION
+	LOCATION,
+	DIRECTIVE
 };
 
 class	Token

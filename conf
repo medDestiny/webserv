@@ -1,5 +1,1 @@
-serverlocation{{server}};;;;;;;;
-
-{
-# this is a comment
-	};
+server{location /html { }}
