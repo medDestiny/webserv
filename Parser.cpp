@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 11:11:05 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/01 19:00:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,54 +16,41 @@
 #include <fstream>
 #include <iostream>
 
-/* bool	CheckBrackets(std::stack<char> & brackets, std::string line) */
-/* { */
-/* 	for (size_t i = line.find_first_not_of("server", 0); line[i]; i++) */
-/* 	{ */
-/* 		switch (line[i]) */
-/* 		{ */
-/* 			case '}': */
-/* 			{ */
-/* 				if (!brackets.empty() && brackets.top() == '{') */
-/* 					brackets.pop(); */
-/* 				else */
-/* 					return (false); */
-/* 				break ; */
-/* 			} */
-/* 			case '{': */
-/* 			{ */
-/* 				if (brackets.empty() == false) */
-/* 					return (false); */
-/* 				brackets.push(line[i]); */
-/* 				break ; */
-/* 			} */
-/* 			case ' ': */
-/* 				break ; */
-/* 			case '\t': */
-/* 				break ; */
-/* 			default: */
-/* 				return (false); */
-/* 		} */
-/* 	} */
-/* 	return (true); */
-/* } */
+Listen	ParseListen(std::vector<Token> & Tokens)
+{
+	std::string	host;
+	std::string	port;
+	Listen	listen;
 
-/* bool	ParseServer(std::ifstream & configFile, std::string line, Config & config) */
-/* { */
-/* 	std::stack<char>	brackets; */
+	Tokens.erase(Tokens.begin()); // delete listen token
 
-/* 	if (line.find_first_of("{}", 0) != std::string::npos) */
-/* 		if (CheckBrackets(brackets, line) == false) */
-/* 			std::cout << "brackets: " << line << std::endl; */
+	Token	token = Tokens.front();
+	if (token.type() == DIRECTIVE)
+	{
+		size_t	separator;
 
-/* 	while (std::getline(configFile, line)) */
-/* 	{ */
-/* 		std::cout << "server :" << line << std::endl; */
-/* 		if (line.find("}", 0) != std::string::npos) */
-/* 			break ; */
-/* 	} */
-/* 	return (true); */
-/* } */
+		separator = Tokens.front().content().find(':', 0);
+		if (separator != std::string::npos)
+		{
+			/* warning: additional checks for port and host required */
+			host = token.content().substr(0, separator);
+			port = token.content().substr(separator + 1);
+		}
+		else
+			listen.setPort(token.content());
+
+		Tokens.erase(Tokens.begin()); // delete option
+
+		if (Tokens.front().type() == SEMICOLON)
+			Tokens.erase(Tokens.begin()); // delete semicolon
+		else
+			throw Parser::Error();
+	}
+	else
+		throw Parser::Error();
+
+	return (listen);
+}
 
 bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
 {
@@ -114,19 +101,14 @@ Server	ParseServer(std::vector<Token> & Tokens)
 	Server				server;
 	std::stack<Types>	brackets;
 
-	std::cout << "Server context" << std::endl;
-
 	/* Check opening bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
-	{
-		std::cout << "---> opening bracket error" << std::endl;
 		throw Parser::Error();
-	}
 	else
 		Tokens.erase(Tokens.begin());
 
 	/* Check server directives and location blocks */
-	while (!Tokens.empty())
+	while (!Tokens.empty() && Tokens.front().type() != CLOSE_BR)
 	{
 		if (Tokens.front().type() == LOCATION)
 		{
@@ -136,16 +118,57 @@ Server	ParseServer(std::vector<Token> & Tokens)
 		}
 		else
 		{
-			
+			/* add directive to the directives list */
+			if (Tokens.front().content() == "listen")
+			{
+				std::cout << "Server: listen: ";
+				/* server.setListen(ParseListen(Tokens)); */
+				Listen l = ParseListen(Tokens);
+				std::cout << l.getHost() << " : " << l.getPort() << std::endl;
+			}
+			else if (Tokens.front().content() == "server_name")
+			{
+
+			}
+			else if (Tokens.front().content() == "error_page")
+			{
+
+			}
+			else if (Tokens.front().content() == "client_max_body_size")
+			{
+
+			}
+			else if (Tokens.front().content() == "return")
+			{
+
+			}
+			else if (Tokens.front().content() == "root")
+			{
+
+			}
+			else if (Tokens.front().content() == "autoindex")
+			{
+
+			}
+			else if (Tokens.front().content() == "index")
+			{
+
+			}
+			else if (Tokens.front().content() == "upload_store")
+			{
+
+			}
+			else
+			{
+				std::cout << "Server: unknown directive: " << Tokens.front().content() << std::endl;
+				throw Parser::Error();
+			}
 		}
 	}
 
 	/* Check closing bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
-	{
-		std::cout << "---> closing bracket error" << std::endl;
 		throw Parser::Error();
-	}
 	else
 		Tokens.erase(Tokens.begin());
 
@@ -156,7 +179,6 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 {
 	while (!Tokens.empty())
 	{
-		std::cout << "Current token: " << (*Tokens.begin()).content() << std::endl;
 		if (Tokens.front().type() == SERVER)
 		{
 			Tokens.erase(Tokens.begin());
@@ -167,7 +189,7 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 			catch (Parser::Error & e)
 			{
 				/* std::cerr << e.what() << std::endl; */
-				std::cerr << "Error dyal parsing hh" << std::endl;
+				std::cerr << "Error: Parse exception" << std::endl;
 				return (false);
 			}
 		}

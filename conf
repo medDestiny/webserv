@@ -1,5 +1,9 @@
 
 
 server {
+	listen	42;
+}
 
+server {
+	listen	8080;
 }

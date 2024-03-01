@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 12:02:21 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/01 18:27:04 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,67 +14,105 @@
 # define DIRECTIVE_HPP
 
 #include <string>
+#include <set>
 
-class	Directive
+class	Listen
 {
-	virtual	~Directive(void);
-};
+	public:
+		Listen(void);
+		Listen(Listen const & src);
+		Listen	&operator=(Listen const & right);
+		~Listen(void);
+		
+		Listen(std::string host, std::string port);
 
-class	Listen : public Directive
-{
-	~Listen(void);
+		std::string	getHost(void) const;
+		std::string	getPort(void) const;
+		void		setHost(std::string host);
+		void		setPort(std::string port);
 
 	private:
 		std::string	_host;
 		std::string	_port;
 };
 
-class	ServerName : public Directive
+class	ServerName
 {
-	~ServerName(void);
+	public:
+		ServerName(void);
+		ServerName(ServerName const & src);
+		ServerName	&operator=(ServerName const & right);
+		~ServerName(void);
+
+		void	addHost(std::string host);
 
 	private:
-		
+		std::set<std::string>	_hosts;
 };
 
-class	ErrorPage : public Directive
+class	ErrorPage
 {
 	~ErrorPage(void);
+
+	private:
+		std::string	_code; // might regret later and make this int
+		std::string	_path;
 };
 
-class	ClientMaxBodySize : public Directive
+class	ClientMaxBodySize
 {
 	~ClientMaxBodySize(void);
+
+	private:
+		size_t	_size;
 };
 
-class	LimitExcept : public Directive
+class	LimitExcept
 {
 	~LimitExcept(void);
+
+	private:
+		std::set<std::string>	_methods;
 };
 
-class	Return : public Directive
+class	Return
 {
 	~Return(void);
+
+	private:
+		int	_code;
 };
 
-class	Root : public Directive
+class	Root
 {
 	~Root(void);
+
+	private:
+		std::string	_path;
 };
 
-class	AutoIndex : public Directive
+class	AutoIndex
 {
 	~AutoIndex(void);
+
+	private:
+		bool	_toggle;
 };
 
-class	Index : public Directive
+class	Index
 {
 	~Index(void);
+
+	private:
+		std::set<std::string>	_index;
 };
 
-class	UploadStore : public Directive
+class	UploadStore
 {
 	~UploadStore(void);
+
+	private:
+		std::string	_path;
 };
 
 #endif

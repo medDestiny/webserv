@@ -1,36 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Config.hpp                                         :+:      :+:    :+:   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/28 15:46:56 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 18:54:21 by mmisskin         ###   ########.fr       */
+/*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
+/*   Updated: 2024/03/01 18:59:14 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CONFIG_HPP
-# define CONFIG_HPP
-
 #include "Server.hpp"
-#include <vector>
 
-class	Config
-{
-	public:
-		Config(void);
-		Config(Config const & src);
-		Config	&operator=(Config const & right);
+void	Server::setListen(Listen listen) { _listen = listen; }
 
-		void							setAsValid(void);
-		void							addServer(Server server);
-		std::vector<Server> const &	getServers(void) const;
-		bool							isValid(void) const;
-
-	private:
-		bool				_valid;
-		std::vector<Server>	_servers;
-};
-
-#endif
+Listen const	&Server::getListen(Listen listen) const { return (_listen); }
