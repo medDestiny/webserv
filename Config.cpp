@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/02/28 16:59:35 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/01 10:00:11 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,4 +34,9 @@ void	Config::setAsValid(void)
 bool	Config::isValid(void) const
 {
 	return (_valid);
+}
+
+void	Config::addServer(Server server)
+{
+	_servers.push_back(server);
 }

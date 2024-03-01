@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:46:56 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/02/28 18:01:16 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/01 10:00:07 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ class	Config
 		Config	&operator=(Config const & right);
 
 		void	setAsValid(void);
+		void	addServer(Server server);
 		bool	isValid(void) const;
 
 	private:

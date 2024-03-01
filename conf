@@ -1,1 +1,5 @@
-server{location /html { }}
+
+
+server {
+
+}
