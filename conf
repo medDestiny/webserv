@@ -1,9 +1,17 @@
 
 
 server {
-	listen	42;
+	listen	localhost;
+	server_name	www.google.com test.net parsing.tzb;
+	error_page	404 /404.html;
+	error_page	4065 /404.html;
+
+
+
+
+	server_name	server.wa7d.a5or;
 }
 
 server {
-	listen	8080;
+	listen	42;
 }

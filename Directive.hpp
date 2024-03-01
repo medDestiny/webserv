@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 18:27:04 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/01 22:44:07 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define DIRECTIVE_HPP
 
 #include <string>
+#include <map>
 #include <set>
 
 class	Listen
@@ -44,7 +45,9 @@ class	ServerName
 		ServerName	&operator=(ServerName const & right);
 		~ServerName(void);
 
-		void	addHost(std::string host);
+		void							addHost(std::string host);
+		void							addHosts(std::set<std::string> hosts);
+		std::set<std::string> const &	getHosts(void) const;
 
 	private:
 		std::set<std::string>	_hosts;
@@ -52,16 +55,30 @@ class	ServerName
 
 class	ErrorPage
 {
-	~ErrorPage(void);
+	public:
+		ErrorPage(void);
+		ErrorPage(ErrorPage const & src);
+		ErrorPage	&operator=(ErrorPage const & right);
+		~ErrorPage(void);
+
+
+		std::map<std::string, std::string> const &	getErrorPages() const;
+		void	addErrorPage(std::pair<std::string, std::string> const & error);
 
 	private:
-		std::string	_code; // might regret later and make this int
-		std::string	_path;
+		std::map<std::string, std::string>	_errors;
 };
 
 class	ClientMaxBodySize
 {
-	~ClientMaxBodySize(void);
+	public:
+		ClientMaxBodySize(void);
+		ClientMaxBodySize(ClientMaxBodySize const & src);
+		ClientMaxBodySize	&operator=(ClientMaxBodySize const & right);
+		~ClientMaxBodySize(void);
+
+		void	setSize(size_t size);
+		size_t	getSize(void) const;
 
 	private:
 		size_t	_size;

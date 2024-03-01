@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 19:00:43 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/01 22:52:17 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,21 @@
 #include <fstream>
 #include <iostream>
 
+bool	isNumber(std::string const & num)
+{
+	for (size_t i = 0; num[i]; i++)
+	{
+		if (!std::isdigit(num[i]))
+			return (false);
+	}
+	return (true);
+}
+
 Listen	ParseListen(std::vector<Token> & Tokens)
 {
 	std::string	host;
 	std::string	port;
-	Listen	listen;
+	Listen		listen;
 
 	Tokens.erase(Tokens.begin()); // delete listen token
 
@@ -35,9 +45,22 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 			/* warning: additional checks for port and host required */
 			host = token.content().substr(0, separator);
 			port = token.content().substr(separator + 1);
+
+			if (!isNumber(port))
+				throw Parser::Error();
+
+			listen.setHost(host);
+			listen.setPort(port);
 		}
+		else if (std::isalpha(token.content()[0]) || token.content().find('.', 0) != std::string::npos)
+			listen.setHost(token.content());
 		else
+		{
+			if (!isNumber(token.content()))
+				throw Parser::Error();
+
 			listen.setPort(token.content());
+		}
 
 		Tokens.erase(Tokens.begin()); // delete option
 
@@ -50,6 +73,79 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 		throw Parser::Error();
 
 	return (listen);
+}
+
+std::set<std::string>	ParseServerName(std::vector<Token> & Tokens)
+{
+	std::set<std::string>	hosts;
+	std::string				host;
+	std::string				port;
+
+	Tokens.erase(Tokens.begin()); // delete server_name token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+		{
+			hosts.insert(Tokens.front().content());
+			Tokens.erase(Tokens.begin()); // delete host token after adding it
+		}
+		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+			Tokens.erase(Tokens.begin()); // delete semicolon
+		else
+			throw Parser::Error();
+	}
+	else
+		throw Parser::Error();
+
+	return (hosts);
+}
+
+std::pair<std::string, std::string>	ParseErrorPage(std::vector<Token> & Tokens)
+{
+	std::pair<std::string, std::string>	error;
+	std::string							code;
+	std::string							path;
+
+	Tokens.erase(Tokens.begin()); // delete error_page token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		code = Tokens.front().content();
+
+		if (!isNumber(code))
+			throw Parser::Error();
+
+		error.first = code;
+		Tokens.erase(Tokens.begin()); // delete code token
+	}
+	else
+		throw Parser::Error();
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		path = Tokens.front().content();
+		error.second = path;
+		Tokens.erase(Tokens.begin()); // delete path token
+	}
+	else
+		throw Parser::Error();
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
+
+	return (error);
+}
+
+ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
+{
+	ClientMaxBodySize	size;
+
+	Tokens.erase(Tokens.begin()); // delete client_max_body_size token
+
+	return (size);
 }
 
 bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
@@ -110,6 +206,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 	/* Check server directives and location blocks */
 	while (!Tokens.empty() && Tokens.front().type() != CLOSE_BR)
 	{
+		/* std::cout << "Curr token ---> " << Tokens.front().content() << std::endl; */
 		if (Tokens.front().type() == LOCATION)
 		{
 			Tokens.erase(Tokens.begin());
@@ -120,23 +217,14 @@ Server	ParseServer(std::vector<Token> & Tokens)
 		{
 			/* add directive to the directives list */
 			if (Tokens.front().content() == "listen")
-			{
-				std::cout << "Server: listen: ";
-				/* server.setListen(ParseListen(Tokens)); */
-				Listen l = ParseListen(Tokens);
-				std::cout << l.getHost() << " : " << l.getPort() << std::endl;
-			}
+				server.setListen(ParseListen(Tokens));
 			else if (Tokens.front().content() == "server_name")
-			{
-
-			}
+				server.addServerName(ParseServerName(Tokens));
 			else if (Tokens.front().content() == "error_page")
-			{
-
-			}
+				server.addErrorPage(ParseErrorPage(Tokens));
 			else if (Tokens.front().content() == "client_max_body_size")
 			{
-
+				server.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
 			}
 			else if (Tokens.front().content() == "return")
 			{
@@ -206,7 +294,8 @@ size_t	TokenizeString(std::vector<Token> & Tokens, std::string const line, size_
 {
 	size_t	len;
 
-	if (line.substr(pos, std::strlen("server")) == "server")			// Add the 'server' block Token
+	if (line.find("server_name", 0) == std::string::npos
+		&&line.substr(pos, std::strlen("server")) == "server")			// Add the 'server' block Token
 	{
 		Tokens.push_back(Token(SERVER, "server"));
 		return (std::strlen("server"));
