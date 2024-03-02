@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 22:52:17 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/02 11:40:35 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "Token.hpp"
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 bool	isNumber(std::string const & num)
 {
@@ -78,8 +79,6 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 std::set<std::string>	ParseServerName(std::vector<Token> & Tokens)
 {
 	std::set<std::string>	hosts;
-	std::string				host;
-	std::string				port;
 
 	Tokens.erase(Tokens.begin()); // delete server_name token
 
@@ -141,11 +140,181 @@ std::pair<std::string, std::string>	ParseErrorPage(std::vector<Token> & Tokens)
 
 ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
 {
-	ClientMaxBodySize	size;
+	ClientMaxBodySize	max_size;
 
 	Tokens.erase(Tokens.begin()); // delete client_max_body_size token
 
-	return (size);
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		std::string	token = Tokens.front().content();
+		size_t		unit = token.find_first_not_of("0123456789", 0);
+
+		if (unit == std::string::npos) // case of a size without a unit (client... 1024;)
+			throw Parser::Error();
+
+		std::stringstream	ss;
+		size_t				size;
+
+		ss << token.substr(0, unit);
+		if (!(ss >> size) || ss.peek() != EOF)
+			throw Parser::Error();
+		token = token.substr(unit);
+
+		/* Convert the size to bytes */
+		if (token == "k" || token == "K")
+			size *= 1024;
+		else if (token == "m" || token == "M")
+			size *= 1048576;
+		else if (token == "g" || token == "G")
+			size *= 1073741824;
+		else
+			throw Parser::Error();
+
+		max_size.setSize(size);
+		Tokens.erase(Tokens.begin()); // delete client_max_body_size unit token
+	}
+	else
+		throw Parser::Error();
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
+
+	return (max_size);
+}
+
+Return	ParseReturn(std::vector<Token> & Tokens)
+{
+	Return	_return;
+
+	Tokens.erase(Tokens.begin()); // delete return token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		std::stringstream	ss;
+		int					code;
+
+		ss << Tokens.front().content();
+		if (!(ss >> code) || ss.peek() != EOF)
+			throw Parser::Error();
+
+		/* warning: some additionnal checks on the code validity needed */
+
+		_return.setCode(code);
+		Tokens.erase(Tokens.begin()); // delete return code token
+	}
+	else
+		throw Parser::Error();
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
+
+	return (_return);
+}
+
+Root	ParseRoot(std::vector<Token> & Tokens)
+{
+	Root	root;
+
+	Tokens.erase(Tokens.begin()); // delete root token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		/* warning: some additionnal checks on the path validity needed */
+
+		root.setPath(Tokens.front().content());
+		Tokens.erase(Tokens.begin()); // delete root path token
+	}
+	else
+		throw Parser::Error();
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
+
+	return (root);
+}
+
+AutoIndex	ParseAutoIndex(std::vector<Token> & Tokens)
+{
+	AutoIndex	autoindex;
+
+	Tokens.erase(Tokens.begin()); // delete autoindex token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		std::string	option = Tokens.front().content();
+
+		if (option == "on")
+			autoindex.setToggle(true);
+		else if (option == "off")
+			autoindex.setToggle(false);
+		else
+			throw Parser::Error();
+
+		Tokens.erase(Tokens.begin()); // delete option token
+	}
+	else
+		throw Parser::Error();
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
+
+	return (autoindex);
+}
+
+std::set<std::string>	ParseIndex(std::vector<Token> & Tokens)
+{
+	std::set<std::string>	indexes;
+
+	Tokens.erase(Tokens.begin()); // delete index token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+		{
+			indexes.insert(Tokens.front().content());
+			Tokens.erase(Tokens.begin()); // delete each index token after adding it
+		}
+		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+			Tokens.erase(Tokens.begin()); // delete semicolon
+		else
+			throw Parser::Error();
+	}
+	else
+		throw Parser::Error();
+
+	return (indexes);
+}
+
+UploadStore	ParseUploadStore(std::vector<Token> & Tokens)
+{
+	UploadStore	upload;
+
+	Tokens.erase(Tokens.begin()); // delete upload_store token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		/* warning: some additionnal checks on the path validity needed */
+
+		upload.setPath(Tokens.front().content());
+		Tokens.erase(Tokens.begin()); // delete upload path token
+	}
+	else
+		throw Parser::Error();
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
+
+	return (upload);
 }
 
 bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
@@ -223,29 +392,17 @@ Server	ParseServer(std::vector<Token> & Tokens)
 			else if (Tokens.front().content() == "error_page")
 				server.addErrorPage(ParseErrorPage(Tokens));
 			else if (Tokens.front().content() == "client_max_body_size")
-			{
 				server.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
-			}
 			else if (Tokens.front().content() == "return")
-			{
-
-			}
+				server.setReturn(ParseReturn(Tokens));
 			else if (Tokens.front().content() == "root")
-			{
-
-			}
+				server.setRoot(ParseRoot(Tokens));
 			else if (Tokens.front().content() == "autoindex")
-			{
-
-			}
+				server.setAutoIndex(ParseAutoIndex(Tokens));
 			else if (Tokens.front().content() == "index")
-			{
-
-			}
+				server.addIndex(ParseIndex(Tokens));
 			else if (Tokens.front().content() == "upload_store")
-			{
-
-			}
+				server.setUploadPath(ParseUploadStore(Tokens));
 			else
 			{
 				std::cout << "Server: unknown directive: " << Tokens.front().content() << std::endl;

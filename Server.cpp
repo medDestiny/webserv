@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 22:50:31 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/02 11:38:46 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,4 +28,27 @@ ErrorPage const &	Server::getErrorPage(void) const { return (_error_page); }
 
 void						Server::setClientMaxBodySize(ClientMaxBodySize const & size) { _client_max_body_size = size; }
 
-ClientMaxBodySize const &	Server::getClientMaxBodySize(ClientMaxBodySize const & size) { return (_client_max_body_size); }
+ClientMaxBodySize const &	Server::getClientMaxBodySize(void) const { return (_client_max_body_size); }
+
+
+void				Server::setReturn(Return const & _return) { this->_return = _return; }
+
+Return const &		Server::getReturn(void) const { return (_return); }
+
+void				Server::setRoot(Root const & root) { _root = root; }
+
+Root const &		Server::getRoot(void) const { return (_root); }
+
+void				Server::setAutoIndex(AutoIndex const & autoindex) { _autoindex = autoindex; }
+
+AutoIndex const &	Server::getAutoIndex(void) const { return (_autoindex); }
+
+void				Server::setIndex(Index const & index) { _index = index; }
+
+void				Server::addIndex(std::set<std::string> const & index) { _index.addIndexes(index); }
+
+Index const &		Server::getIndex(void) const { return (_index); }
+
+void				Server::setUploadPath(UploadStore const & upload) { _upload_store = upload; }
+
+UploadStore const &	Server::getUploadPath(void) const { return (_upload_store); }

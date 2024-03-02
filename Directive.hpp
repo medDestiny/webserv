@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/01 22:44:07 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/02 11:38:18 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@
 #include <string>
 #include <map>
 #include <set>
+
+# define DEFAULT_HOST "0.0.0.0"
+# define DEFAULT_PORT "80"
+# define DEFAULT_BODY_SIZE 1048576 // 1M in bytes
+# define DEFAULT_UPLOAD_PATH "/"
 
 class	Listen
 {
@@ -94,7 +99,14 @@ class	LimitExcept
 
 class	Return
 {
-	~Return(void);
+	public:
+		Return(void);
+		Return(Return const & src);
+		Return	&operator=(Return const & right);
+		~Return(void);
+
+		int		getCode(void) const;
+		void	setCode(int code);
 
 	private:
 		int	_code;
@@ -102,7 +114,14 @@ class	Return
 
 class	Root
 {
-	~Root(void);
+	public:
+		Root(void);
+		Root(Root const & src);
+		Root	&operator=(Root const & right);
+		~Root(void);
+
+		std::string const &	getPath(void) const;
+		void				setPath(std::string const & path);
 
 	private:
 		std::string	_path;
@@ -110,7 +129,14 @@ class	Root
 
 class	AutoIndex
 {
-	~AutoIndex(void);
+	public:
+		AutoIndex(void);
+		AutoIndex(AutoIndex const & src);
+		AutoIndex	&operator=(AutoIndex const & right);
+		~AutoIndex(void);
+
+		void	setToggle(bool toggle);
+		bool	getToggle(void) const;
 
 	private:
 		bool	_toggle;
@@ -118,7 +144,15 @@ class	AutoIndex
 
 class	Index
 {
-	~Index(void);
+	public:
+		Index(void);
+		Index(Index const & src);
+		Index	&operator=(Index const & right);
+		~Index(void);
+
+		void							addIndex(std::string index);
+		void							addIndexes(std::set<std::string> indexes);
+		std::set<std::string> const &	getIndexes(void) const;
 
 	private:
 		std::set<std::string>	_index;
@@ -126,7 +160,14 @@ class	Index
 
 class	UploadStore
 {
-	~UploadStore(void);
+	public:
+		UploadStore(void);
+		UploadStore(UploadStore const & src);
+		UploadStore	&operator=(UploadStore const & right);
+		~UploadStore(void);
+
+		std::string const &	getPath(void) const;
+		void				setPath(std::string const & path);
 
 	private:
 		std::string	_path;
