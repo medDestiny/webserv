@@ -6,11 +6,13 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 11:38:46 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/02 12:10:40 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+using namespace	Conf;
 
 void	Server::setListen(Listen const & listen) { _listen = listen; }
 

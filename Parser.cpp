@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 11:40:35 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/02 12:11:41 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+using namespace	Conf;
 
 bool	isNumber(std::string const & num)
 {
