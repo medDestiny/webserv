@@ -35,11 +35,4 @@ int	main(int ac, char **av)
 
 	// config.print();
 
-	// std::set<std::pair<std::string, std::string> > h;
-
-	// h.insert( std::make_pair( "localhost", "8080" ) );
-	// h.insert( std::make_pair( "0.0.0.0", "42" ) );
-	// h.insert( std::make_pair( "127", "8080" ) );
-	// h.insert( std::make_pair( "localhost", "8080" ) );
-
 }
