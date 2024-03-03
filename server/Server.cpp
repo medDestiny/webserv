@@ -37,6 +37,7 @@ int Server::createsocket( int &listener ) {
     }
     printvalidoption( "socket" );
 
+    // std::cout << listener << std::endl;
     if ( fcntl( listener, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
         perror( "fcntl" );
@@ -115,10 +116,9 @@ void Server::createServer( void ) {
     }
     this->addpollservers();
 
-    std::vector<struct pollfd>::iterator itt = pfds.begin();
-    for ( ; itt != pfds.end(); ++itt ) {
-
-        std::cout << "pfd: " << itt->fd << std::endl;
+    while ( 1 ) {
+        
+        this->mainpoll();
     }
 }
 
@@ -139,10 +139,63 @@ void Server::addpollclients( int const &fd ) {
     struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLIN;
+    pfds.push_back( pfd );
+}
+
+void Server::addclients( int const &sockfd ) {
+
+    Client client;
+    std::map<int, Client>::iterator it;
+
+    client.setsockfd( sockfd );
+
+    if ( clients.size() == 0 ) {
+
+        std::cout << DMAGENTA << "\t-> add first client" << RESET << std::endl;
+        clients[sockfd] = client;
+    } else {
+
+        it = clients.find( sockfd );
+        if ( it == clients.end() ) {
+
+            std::cout << MAGENTA << "\t-> add more clients" << RESET << std::endl;
+            clients[sockfd] = client;
+        }
+    }
+}
+
+int Server::acceptconnections( int const &sockfd ) {
+
+    int newfd;
+
+    this->addrlen = sizeof( this->remoteaddr );
+    newfd = accept( sockfd, ( struct sockaddr * )&remoteaddr, &addrlen );
+    if ( newfd == -1 ) {
+
+        if ( errno == ECONNABORTED || errno == EAGAIN ) {
+
+            perror( "accept" );
+            return -1;
+        }
+        exit( EXIT_FAILURE );
+    } else {
+
+        if ( fcntl( sockfd, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
+
+            perror( "fcntl" );
+            exit( EXIT_FAILURE );
+        }
+        this->addpollclients( newfd );
+        this->addclients( newfd );
+        this->printConeectedaddr( newfd );
+    }
+    // printvalidoption( "accept" );
+    return 0;
 }
 
 void Server::mainpoll( void ) {
 
+    std::cout << pfds.size() << std::endl;
     std::set<int>::iterator it;
     if ( poll( pfds.data(), pfds.size(), -1 ) == -1 ) {
 
@@ -150,19 +203,21 @@ void Server::mainpoll( void ) {
         exit( EXIT_FAILURE );
     }
 
-    for ( int i = 0; i < pfds.size(); i++ ) {
+    std::cout << "hena " << std::endl;
+    for ( int i = 0; i < ( int )pfds.size(); i++ ) {
 
         it = serverfds.find( pfds[i].fd );
         if ( pfds[i].revents == POLLIN ) {
 
             if ( it != serverfds.end() ) {
-
-                // POLLIN revent in the serve side
+                if ( this->acceptconnections( pfds[i].fd ) == -1 )
+                    continue;
             } else {
 
                 // POLLIN revent int the clients side
             }
-        } else if ( pfds[i].revents == POLLOUT ) {
+        } 
+        else if ( pfds[i].revents == POLLOUT ) {
 
             if ( it != serverfds.end() ) {
 
@@ -192,4 +247,27 @@ void printvalidoption( std::string const &str ) {
 void printinvalidopt( std::string const &str ) {
 
     std::cout << RED << "\t" << str << RESET << std::endl;
+}
+
+void *Server::getinaddr( struct sockaddr *sa ) {
+
+    if ( sa->sa_family == AF_INET )
+        return &( ( struct sockaddr_in * )sa )->sin_addr;
+    return &( ( struct sockaddr_in6 * )sa )->sin6_addr;
+}
+
+void Server::printConeectedaddr ( int const &sockfd ) {
+
+    std::cout
+        << GREEN 
+        << "\t--> connection accepted: "
+        << inet_ntop(
+                        remoteaddr.ss_family, 
+                        this->getinaddr( ( struct sockaddr * )&remoteaddr ),
+                        remoteip, INET6_ADDRSTRLEN
+                    )
+        << " on "
+        << sockfd
+        << RESET
+        << std::endl;
 }

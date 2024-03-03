@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 13:26:06 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/02 21:41:09 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/03 12:49:58 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,9 @@
 #include <errno.h>
 
 #include "Colors.hpp"
-#include "../Server.hpp"
-#include "../Config.hpp"
+#include "../config/Server.hpp"
+#include "../config/Config.hpp"
+#include "../client/Client.hpp"
 
 #define SEND 1024
 #define BACKLOG 128
@@ -51,14 +52,16 @@ class Server {
         struct addrinfo *newinfo;
 
         // accept
-        // struct sockaddr_storage ramoteaddr;
-        // socklen_t addrlen;
-        // char remoteip[INET6_ADDRSTRLEN];
+        struct sockaddr_storage remoteaddr;
+        socklen_t addrlen;
+        char remoteip[INET6_ADDRSTRLEN];
         
         // // poll
         std::vector<struct pollfd> pfds;
 
         std::vector<Conf::Server> servers;
+
+        std::map<int, Client> clients;
 
 
         // members methods
@@ -68,6 +71,12 @@ class Server {
         void addpollservers( void );
         void addpollclients( int const &fd );
         void mainpoll( void );
+        int acceptconnections( int const &sockfd );
+        void addclients( int const &sockfd );
+
+        //----------- debug -----------//
+        void *getinaddr( struct sockaddr *sa );
+        void printConeectedaddr ( int const &sockfd );
     
     public:
         Server( Config const &config );

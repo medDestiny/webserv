@@ -1,25 +1,31 @@
 NAME= webserv
 
-SRC= Config.cpp \
-	 Directive.cpp \
-	 Parser.cpp \
-	 Server.cpp \
-	 Token.cpp \
+SRC= config/Config.cpp \
+	 config/Directive.cpp \
+	 config/Parser.cpp \
+	 config/Server.cpp \
+	 config/Token.cpp \
 	 main.cpp \
-	 server/Server.cpp
+	 server/Server.cpp \
+	 client/Client.cpp \
+	 response/Response.cpp \
+	 request/Request.cpp
 
 C= c++
 
 C_FLAGS= -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
 
-HEADER=	Config.hpp \
-		Directive.hpp \
-		Location.hpp \
-		Parser.hpp \
-		Server.hpp \
-		Token.hpp \
+HEADER=	config/Config.hpp \
+		config/Directive.hpp \
+		config/Location.hpp \
+		config/Parser.hpp \
+		config/Server.hpp \
+		config/Token.hpp \
 		server/Server.hpp \
-		server/Colors.hpp
+		server/Colors.hpp \
+		client/Client.hpp \
+	 	response/Response.hpp \
+	 	request/Request.hpp
 
 OBJ= $(SRC:.cpp=.o)
 
