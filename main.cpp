@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 17:54:02 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 21:26:06 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/03 18:22:41 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ int	main(int ac, char **av)
 		return (1);
 
 	Config	config = Parser::importConfig(av[1]);
-	Server serv( config );
+	/* Server serv( config ); */
 	
-	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl;
-	serv.createServer();
+	/* std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; */
+	/* serv.createServer(); */
 
 	if (!config.isValid())
 	{
@@ -33,6 +33,8 @@ int	main(int ac, char **av)
 		return (1);
 	}
 
-	// config.print();
+	Config	c1 = config;
+	config.print();
+	c1.print();
 
 }

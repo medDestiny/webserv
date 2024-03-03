@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 12:11:17 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/03 18:21:44 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,12 @@ using namespace	Conf;
 
 Config::Config(void) : _valid(false) {}
 
-Config::Config(Config const & src)
-{
-	*this = src;
-}
+Config::Config(Config const & src) { *this = src; }
 
 Config	&Config::operator=(Config const & right)
 {
 	_valid = right.isValid();
+	_servers = right.getServers();
 
 	return (*this);
 }

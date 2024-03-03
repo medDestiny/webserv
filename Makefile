@@ -6,7 +6,7 @@ SRC= Config.cpp \
 	 Server.cpp \
 	 Token.cpp \
 	 main.cpp \
-	 server/Server.cpp
+	 #server/Server.cpp
 
 C= c++
 
@@ -18,7 +18,7 @@ HEADER=	Config.hpp \
 		Parser.hpp \
 		Server.hpp \
 		Token.hpp \
-		server/Server.hpp \
+		#server/Server.hpp \
 		server/Colors.hpp
 
 OBJ= $(SRC:.cpp=.o)
