@@ -7,21 +7,26 @@ SRC= config/Config.cpp \
 	 config/Server.cpp \
 	 config/Token.cpp \
 	 main.cpp \
-	 #server/Server.cpp
+	 server/Server.cpp \
+	 client/Client.cpp \
+	 response/Response.cpp \
+	 request/Request.cpp
 
 C= c++
 
-C_FLAGS= -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
+C_FLAGS= -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
 
 HEADER=	config/Config.hpp \
 		config/Directive.hpp \
 		config/Location.hpp \
-		config/Location.hpp \
 		config/Parser.hpp \
 		config/Server.hpp \
 		config/Token.hpp \
-		#server/Server.hpp \
-		server/Colors.hpp
+		server/Server.hpp \
+		server/Colors.hpp \
+		client/Client.hpp \
+	 	response/Response.hpp \
+	 	request/Request.hpp
 
 OBJ= $(SRC:.cpp=.o)
 
