@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:46:56 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 12:11:06 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/03 17:40:20 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class	Config
 		bool							isValid(void) const;
 
 	private:
-		bool				_valid;
+		bool						_valid;
 		std::vector<Conf::Server>	_servers;
 };
 

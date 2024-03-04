@@ -1,7 +1,5 @@
-
-
 server {
-	listen	localhost;
+	listen	localhost:90;
 	server_name	www.google.com test.net parsing.tzb;
 	error_page	404 /404.html;
 	error_page	4065 /404.html;
@@ -15,7 +13,6 @@ server {
 	index	index.php index.html;
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
-}
 
 server {
 	listen	4242;
@@ -64,4 +61,3 @@ server {
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
 }
-

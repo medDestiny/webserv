@@ -6,13 +6,14 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 12:11:41 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 20:03:58 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Parser.hpp"
 #include "Config.hpp"
 #include "Token.hpp"
+#include "Location.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -45,7 +46,7 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 		separator = Tokens.front().content().find(':', 0);
 		if (separator != std::string::npos)
 		{
-			/* warning: additional checks for port and host required */
+			/* warning: additional checks for port and host may be required */
 			host = token.content().substr(0, separator);
 			port = token.content().substr(separator + 1);
 
@@ -345,22 +346,58 @@ bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
 	return (true);
 }
 
-bool	ParseLocation(std::vector<Token> & Tokens)
+std::pair<std::string, Location>	ParseLocation(Server const & server, std::vector<Token> & Tokens)
 {
-	std::stack<char>	brackets;
+	std::pair<std::string, Location>	location("", server);
+	std::stack<Types>					brackets;
 
-	std::cout << "Location context: first token: " << Tokens[0].content() << std::endl;
-	if (Tokens.size() == 0 || Tokens[0].type() != DIRECTIVE)
+	/* Check for location path */
+	if (Tokens.empty() || Tokens.front().type() != DIRECTIVE)
+		throw Parser::Error();
+	else
 	{
-		std::cout << "Location: unexpected token: " << Tokens[0].content() << std::endl;
-		return (false);
+		location.first = Tokens.front().content();
+		Tokens.erase(Tokens.begin());
 	}
-	if (Tokens.size() == 0 || Tokens[1].type() != OPEN_BR)
+
+	/* Check opening bracket */
+	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
+		throw Parser::Error();
+	else
+		Tokens.erase(Tokens.begin());
+
+
+	while (!Tokens.empty() && Tokens.front().type() != CLOSE_BR)
 	{
-		std::cout << "Location: unexpected token: " << Tokens[1].content() << std::endl;
-		return (false);
+		/* add directive to the directives list */
+		if (Tokens.front().content() == "error_page")
+			location.second.addErrorPage(ParseErrorPage(Tokens));
+		else if (Tokens.front().content() == "client_max_body_size")
+			location.second.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
+		else if (Tokens.front().content() == "return")
+			location.second.setReturn(ParseReturn(Tokens));
+		else if (Tokens.front().content() == "root")
+			location.second.setRoot(ParseRoot(Tokens));
+		else if (Tokens.front().content() == "autoindex")
+			location.second.setAutoIndex(ParseAutoIndex(Tokens));
+		else if (Tokens.front().content() == "index")
+			location.second.addIndex(ParseIndex(Tokens));
+		else if (Tokens.front().content() == "upload_store")
+			location.second.setUploadPath(ParseUploadStore(Tokens));
+		else
+		{
+			std::cout << "Location: unknown directive: " << Tokens.front().content() << std::endl;
+			throw Parser::Error();
+		}
 	}
-	return (true);
+
+	/* Check closing bracket */
+	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
+		throw Parser::Error();
+	else
+		Tokens.erase(Tokens.begin());
+
+	return (location);
 }
 
 Server	ParseServer(std::vector<Token> & Tokens)
@@ -380,9 +417,15 @@ Server	ParseServer(std::vector<Token> & Tokens)
 		/* std::cout << "Curr token ---> " << Tokens.front().content() << std::endl; */
 		if (Tokens.front().type() == LOCATION)
 		{
-			Tokens.erase(Tokens.begin());
-			if (!ParseLocation(Tokens))
-				throw Parser::Error();
+			std::pair<std::string, Location>	location;
+			std::map<std::string, Location>		locations;
+			Tokens.erase(Tokens.begin());	// delete the location token
+
+			location = ParseLocation(server, Tokens);
+			locations = server.getLocations();
+			if (locations.find(location.first) != locations.end())
+				throw Parser::Error();		// Duplicate location
+			server.addLocation(location);
 		}
 		else
 		{

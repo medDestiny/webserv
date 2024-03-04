@@ -2,6 +2,7 @@ NAME= webserv
 
 SRC= config/Config.cpp \
 	 config/Directive.cpp \
+	 config/Location.cpp \
 	 config/Parser.cpp \
 	 config/Server.cpp \
 	 config/Token.cpp \

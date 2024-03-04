@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Directive.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/03 12:22:35 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/04 21:10:53 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,8 @@ class	ClientMaxBodySize
 
 class	LimitExcept
 {
-	~LimitExcept(void);
+	public:
+	~LimitExcept(void) {}
 
 	private:
 		std::set<std::string>	_methods;
