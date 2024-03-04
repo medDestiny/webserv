@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/03 12:54:34 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 20:03:58 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,10 +346,19 @@ bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
 	return (true);
 }
 
-Location	ParseLocation(std::vector<Token> & Tokens)
+std::pair<std::string, Location>	ParseLocation(Server const & server, std::vector<Token> & Tokens)
 {
-	Location			location;
-	std::stack<Types>	brackets;
+	std::pair<std::string, Location>	location("", server);
+	std::stack<Types>					brackets;
+
+	/* Check for location path */
+	if (Tokens.empty() || Tokens.front().type() != DIRECTIVE)
+		throw Parser::Error();
+	else
+	{
+		location.first = Tokens.front().content();
+		Tokens.erase(Tokens.begin());
+	}
 
 	/* Check opening bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
@@ -357,30 +366,27 @@ Location	ParseLocation(std::vector<Token> & Tokens)
 	else
 		Tokens.erase(Tokens.begin());
 
+
 	while (!Tokens.empty() && Tokens.front().type() != CLOSE_BR)
 	{
 		/* add directive to the directives list */
-		if (Tokens.front().content() == "listen")
-			location.setListen(ParseListen(Tokens));
-		else if (Tokens.front().content() == "server_name")
-			location.addServerName(ParseServerName(Tokens));
-		else if (Tokens.front().content() == "error_page")
-			location.addErrorPage(ParseErrorPage(Tokens));
+		if (Tokens.front().content() == "error_page")
+			location.second.addErrorPage(ParseErrorPage(Tokens));
 		else if (Tokens.front().content() == "client_max_body_size")
-			location.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
+			location.second.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
 		else if (Tokens.front().content() == "return")
-			location.setReturn(ParseReturn(Tokens));
+			location.second.setReturn(ParseReturn(Tokens));
 		else if (Tokens.front().content() == "root")
-			location.setRoot(ParseRoot(Tokens));
+			location.second.setRoot(ParseRoot(Tokens));
 		else if (Tokens.front().content() == "autoindex")
-			location.setAutoIndex(ParseAutoIndex(Tokens));
+			location.second.setAutoIndex(ParseAutoIndex(Tokens));
 		else if (Tokens.front().content() == "index")
-			location.addIndex(ParseIndex(Tokens));
+			location.second.addIndex(ParseIndex(Tokens));
 		else if (Tokens.front().content() == "upload_store")
-			location.setUploadPath(ParseUploadStore(Tokens));
+			location.second.setUploadPath(ParseUploadStore(Tokens));
 		else
 		{
-			std::cout << "Server: unknown directive: " << Tokens.front().content() << std::endl;
+			std::cout << "Location: unknown directive: " << Tokens.front().content() << std::endl;
 			throw Parser::Error();
 		}
 	}
@@ -391,18 +397,6 @@ Location	ParseLocation(std::vector<Token> & Tokens)
 	else
 		Tokens.erase(Tokens.begin());
 
-
-	/* std::cout << "Location context: first token: " << Tokens[0].content() << std::endl; */
-	/* if (Tokens.size() == 0 || Tokens[0].type() != DIRECTIVE) */
-	/* { */
-	/* 	std::cout << "Location: unexpected token: " << Tokens[0].content() << std::endl; */
-	/* 	return (false); */
-	/* } */
-	/* if (Tokens.size() == 0 || Tokens[1].type() != OPEN_BR) */
-	/* { */
-	/* 	std::cout << "Location: unexpected token: " << Tokens[1].content() << std::endl; */
-	/* 	return (false); */
-	/* } */
 	return (location);
 }
 
@@ -423,8 +417,15 @@ Server	ParseServer(std::vector<Token> & Tokens)
 		/* std::cout << "Curr token ---> " << Tokens.front().content() << std::endl; */
 		if (Tokens.front().type() == LOCATION)
 		{
-			Tokens.erase(Tokens.begin());
-			ParseLocation(Tokens);
+			std::pair<std::string, Location>	location;
+			std::map<std::string, Location>		locations;
+			Tokens.erase(Tokens.begin());	// delete the location token
+
+			location = ParseLocation(server, Tokens);
+			locations = server.getLocations();
+			if (locations.find(location.first) != locations.end())
+				throw Parser::Error();		// Duplicate location
+			server.addLocation(location);
 		}
 		else
 		{

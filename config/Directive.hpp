@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 11:38:18 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 15:35:19 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,8 @@ class	ClientMaxBodySize
 
 class	LimitExcept
 {
-	~LimitExcept(void);
+	public:
+	~LimitExcept(void) {}
 
 	private:
 		std::set<std::string>	_methods;

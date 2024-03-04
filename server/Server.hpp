@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 13:26:06 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/02 21:41:09 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/04 20:51:46 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@
 #include <errno.h>
 
 #include "Colors.hpp"
-#include "../Server.hpp"
-#include "../Config.hpp"
+#include "../config/Server.hpp"
+#include "../config/Config.hpp"
 
 #define SEND 1024
 #define BACKLOG 128

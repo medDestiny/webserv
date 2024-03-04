@@ -13,4 +13,8 @@ server {
 	index	index.php index.html;
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
+
+	location / {
+		index index.test;
+	}
 }

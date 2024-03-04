@@ -6,11 +6,12 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/02 12:10:40 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 11:25:29 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Location.hpp"
 
 using namespace	Conf;
 
@@ -54,3 +55,7 @@ Index const &		Server::getIndex(void) const { return (_index); }
 void				Server::setUploadPath(UploadStore const & upload) { _upload_store = upload; }
 
 UploadStore const &	Server::getUploadPath(void) const { return (_upload_store); }
+
+void										Server::addLocation(std::pair<std::string, Location> location) { _locations.insert(location); }
+
+std::map<std::string, Location> const &		Server::getLocations(void) const { return (_locations); }

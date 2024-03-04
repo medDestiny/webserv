@@ -6,12 +6,13 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 17:54:02 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/03 18:22:41 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 20:51:57 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Config.hpp"
-#include "Parser.hpp"
+#include "config/Config.hpp"
+#include "config/Parser.hpp"
+#include "config/Location.hpp"
 #include "server/Server.hpp"
 
 #include<iostream>
@@ -33,8 +34,8 @@ int	main(int ac, char **av)
 		return (1);
 	}
 
-	Config	c1 = config;
+	/* Config	c1 = config; */
 	config.print();
-	c1.print();
+	/* c1.print(); */
 
 }

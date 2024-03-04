@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 17:52:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/03 12:13:48 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 18:59:13 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,9 +53,13 @@ namespace	Conf
 	
 			void				setUploadPath(UploadStore const & upload);
 			UploadStore const &	getUploadPath(void) const;
-	
+
+			void										addLocation(std::pair<std::string, Location> location);
+			/* Location const &							getLocation(void) const; */
+			std::map<std::string, Location> const &		getLocations(void) const;
+
 		protected:
-	
+
 			/* Server directives */
 			Listen				_listen;
 			ServerName			_server_name;
@@ -68,7 +72,7 @@ namespace	Conf
 			UploadStore			_upload_store;
 	
 		private:
-			/* std::map<std::string, Location>	_locations; */
+			std::map<std::string, Location>	_locations;
 	};
 }
 
