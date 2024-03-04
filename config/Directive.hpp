@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 15:35:19 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/04 21:10:53 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <set>
 
 # define DEFAULT_HOST "0.0.0.0"
-# define DEFAULT_PORT "80"
+# define DEFAULT_PORT "8080"
 # define DEFAULT_BODY_SIZE 1048576 // 1M in bytes
 # define DEFAULT_UPLOAD_PATH "/"
 
