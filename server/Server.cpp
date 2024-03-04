@@ -101,8 +101,12 @@ void Server::createServer( void ) {
 
             std::pair<std::string, std::string> search = std::make_pair( it->getListen().getHost(), it->getListen().getPort() );
             std::set<std::pair<std::string, std::string> >::iterator it = donehp.find( search );
-            if ( it != donehp.end() )
+            if ( it != donehp.end() ) {
+
+                printinvalidopt( "** seems like this socket already bound " + it->first + ":" + it->second );
+                std::cout << std::endl;
                 continue;
+            }
         }
 
         // create socket and bind it
@@ -148,6 +152,7 @@ void Server::addclients( int const &sockfd ) {
     std::map<int, Client>::iterator it;
 
     client.setsockfd( sockfd );
+    client.settimeout( std::time(NULL) );
 
     if ( clients.size() == 0 ) {
 
@@ -193,18 +198,25 @@ int Server::acceptconnections( int const &sockfd ) {
     return 0;
 }
 
-void Server::mainpoll( void ) {
+void Server::pollwithtimeout( void ) {
 
-    std::cout << pfds.size() << std::endl;
-    std::set<int>::iterator it;
-    if ( poll( pfds.data(), pfds.size(), -1 ) == -1 ) {
+    int status;
+
+    status = poll( pfds.data(), pfds.size(), TIMEOUT );
+    if ( status == -1 ) {
 
         perror( "poll" );
         exit( EXIT_FAILURE );
-    }
+    } else if ( !status )
+        this->checkclienttimeout();
+}
 
-    std::cout << "hena " << std::endl;
-    for ( int i = 0; i < ( int )pfds.size(); i++ ) {
+void Server::mainpoll( void ) {
+
+    std::set<int>::iterator it;
+    
+    this->pollwithtimeout();
+    for ( size_t i = 0; i < pfds.size(); i++ ) {
 
         it = serverfds.find( pfds[i].fd );
         if ( pfds[i].revents == POLLIN ) {
@@ -214,29 +226,88 @@ void Server::mainpoll( void ) {
                     continue;
             } else {
 
+                // std::cout << "hello from pollin" << std::endl;
                 // POLLIN revent int the clients side
             }
-        } 
-        else if ( pfds[i].revents == POLLOUT ) {
+        } else if ( pfds[i].revents == POLLOUT ) {
 
             if ( it != serverfds.end() ) {
 
+                // std::cout << "hello from pollout server side" << std::endl;
                 // POLLOUT revent in the server side
             } else {
 
+                // std::cout << pfds.size() << " hello from pollout" << std::endl;
                 // POLLOUT revents in the clients side
             }
         } else if ( pfds[i].revents == POLLHUP ) {
 
-            if ( it != serverfds.end() ) {
+            // std::cout << "hello from pullhup" << std::endl;
+        } else {
 
-                // POLLHUP revent in the server side
-            } else {
+            // std::cout << "hello from else" << std::endl;
+            this->checkclienttimeout();
+        }
+    }
 
-                // POLLHUP revent in the clients side
+}
+
+void Server::checkclienttimeout( void ) {
+
+    if ( !clients.empty() ) {
+
+        std::map<int, Client>::iterator it = clients.begin();
+        std::time_t now = std::time(NULL);
+        std::time_t diff;
+        std::time_t start;
+        for ( ; it != clients.end(); ++it ) {
+
+            start = it->second.gettimeout();
+            diff = now - start;
+            if ( diff >= 10 ) {
+
+                this->searchandremovepollclient( it->second.getsockfd() );
+                clients.erase( it );
+                std::cout << clients.size() << " " << pfds.size();
+                printinvalidopt( "-> client has been deleted " );
+                if ( clients.empty() )
+                    break;
+                it = clients.begin();
             }
         }
     }
+}
+
+void Server::searchandremovepollclient( int const &sockfd ) {
+
+    std::vector<struct pollfd>::iterator it = pfds.begin();
+    for ( ; it != pfds.end(); ++it )
+        if ( it->fd == sockfd )
+            break;
+    if ( it != pfds.end() ) {
+
+        close( it->fd );
+        pfds.erase( it );
+        printinvalidopt( "-> connection closed with the client TIMEOUT" );
+    }
+}
+
+void Server::removeclient( int const &sockfd ) {
+
+    std::map<int, Client>::iterator it = clients.find( sockfd );
+    if ( it != clients.end() ) {
+
+        clients.erase( it->first );
+        std::cout << MAGENTA << "\t->client has been deleted" << RESET << std::endl;
+    }
+}
+
+void Server::removepollclient( int const &index ) {
+
+    std::vector<struct pollfd>::iterator it = pfds.begin() + index;
+    close( pfds[index].fd );
+    pfds.erase( it );
+    std::cout << MAGENTA << "\t->poll client has been deleted" << RESET << std::endl;
 }
 
 void printvalidoption( std::string const &str ) {

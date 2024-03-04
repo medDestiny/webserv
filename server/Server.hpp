@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 13:26:06 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/03 12:49:58 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/04 14:56:15 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@
 
 #define SEND 1024
 #define BACKLOG 128
+#define TIMEOUT 2000
 
 class Server {
 
@@ -64,15 +65,24 @@ class Server {
         std::map<int, Client> clients;
 
 
-        // members methods
+        // socket methods
         void getInfoaddr( std::string const &host, std::string const &port );
         int createsocket( int &listener );
         void bindlistensock( int &listener, std::vector<Conf::Server>::iterator &it );
+
+        // poll methods
         void addpollservers( void );
         void addpollclients( int const &fd );
+        void removepollclient( int const &index );
+        void searchandremovepollclient( int const &sockfd );
         void mainpoll( void );
-        int acceptconnections( int const &sockfd );
+        void pollwithtimeout( void );
+        
+        // client methods
         void addclients( int const &sockfd );
+        void removeclient( int const &sockfd );
+        void checkclienttimeout( void );
+        int acceptconnections( int const &sockfd );
 
         //----------- debug -----------//
         void *getinaddr( struct sockaddr *sa );

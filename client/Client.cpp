@@ -14,7 +14,12 @@ void Client::setsockfd( int const &sockfd ) {
     this->sockfd = sockfd;
 }
 
-// void Client::initrequest( void ) {
+std::time_t Client::gettimeout( void ) const {
 
-//     this->request.
-// }
+    return this->timeout;
+}
+
+void Client::settimeout( std::time_t const &timeout ) {
+
+    this->timeout = timeout;
+}

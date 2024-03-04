@@ -13,7 +13,7 @@ SRC= config/Config.cpp \
 
 C= c++
 
-C_FLAGS= -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
+C_FLAGS= -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
 
 HEADER=	config/Config.hpp \
 		config/Directive.hpp \

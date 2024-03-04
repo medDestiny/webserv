@@ -18,7 +18,10 @@ server {
 }
 
 server {
-	listen	42;
+	listen	4242;
+}
+server {
+	listen	4242;
 }
 server {
 	listen	localhost:9090;
