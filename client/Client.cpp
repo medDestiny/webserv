@@ -23,3 +23,13 @@ void Client::settimeout( std::time_t const &timeout ) {
 
     this->timeout = timeout;
 }
+
+Conf::Server Client::getserver( void ) const {
+
+    return this->server;
+}
+
+void Client::setserver( Conf::Server const &server ) {
+
+    this->server = server;
+}

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 13:26:06 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/04 14:56:15 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/04 22:25:19 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@
 class Server {
 
     private:
-        std::set<int> serverfds;
+        std::map<int, Conf::Server> serverfds;
         std::set<std::pair<std::string, std::string> > donehp;
         int yes;
         int status;
@@ -79,10 +79,10 @@ class Server {
         void pollwithtimeout( void );
         
         // client methods
-        void addclients( int const &sockfd );
+        void addclients( int const &sockfd, Conf::Server const &server );
         void removeclient( int const &sockfd );
         void checkclienttimeout( void );
-        int acceptconnections( int const &sockfd );
+        int acceptconnections( int const &sockfd, Conf::Server server );
 
         //----------- debug -----------//
         void *getinaddr( struct sockaddr *sa );

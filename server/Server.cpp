@@ -86,7 +86,7 @@ void Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator 
         exit( EXIT_FAILURE );
     }
     printvalidoption( "listen" );
-    serverfds.insert( listener );
+    serverfds[listener] = *it;
 }
 
 void Server::createServer( void ) {
@@ -129,10 +129,11 @@ void Server::createServer( void ) {
 void Server::addpollservers( void ) {
 
     struct pollfd pfd;
-    std::set<int>::iterator it = serverfds.begin();
+    std::map<int, Conf::Server>::iterator it = serverfds.begin();
     for ( ; it != serverfds.end(); ++it ) {
 
-        pfd.fd = *it;
+        std::cout << "sockfd: " << it->first << " " << it->second.getListen().getHost() << ":" << it->second.getListen().getPort() << std::endl;
+        pfd.fd = it->first; 
         pfd.events = POLLIN;
         pfds.push_back( pfd );
     }
@@ -146,7 +147,7 @@ void Server::addpollclients( int const &fd ) {
     pfds.push_back( pfd );
 }
 
-void Server::addclients( int const &sockfd ) {
+void Server::addclients( int const &sockfd, Conf::Server const &server ) {
 
     Client client;
     std::map<int, Client>::iterator it;
@@ -158,6 +159,9 @@ void Server::addclients( int const &sockfd ) {
 
         std::cout << DMAGENTA << "\t-> add first client" << RESET << std::endl;
         clients[sockfd] = client;
+        std::map<int, Client>::iterator clientit = clients.find( sockfd );
+        if ( clientit != clients.end() )
+            clientit->second.setserver( server );
     } else {
 
         it = clients.find( sockfd );
@@ -165,11 +169,14 @@ void Server::addclients( int const &sockfd ) {
 
             std::cout << MAGENTA << "\t-> add more clients" << RESET << std::endl;
             clients[sockfd] = client;
+            std::map<int, Client>::iterator clientit = clients.find( sockfd );
+            if ( clientit != clients.end() )
+                clientit->second.setserver( server );
         }
     }
 }
 
-int Server::acceptconnections( int const &sockfd ) {
+int Server::acceptconnections( int const &sockfd, Conf::Server server ) {
 
     int newfd;
 
@@ -191,7 +198,7 @@ int Server::acceptconnections( int const &sockfd ) {
             exit( EXIT_FAILURE );
         }
         this->addpollclients( newfd );
-        this->addclients( newfd );
+        this->addclients( newfd, server );
         this->printConeectedaddr( newfd );
     }
     // printvalidoption( "accept" );
@@ -213,7 +220,7 @@ void Server::pollwithtimeout( void ) {
 
 void Server::mainpoll( void ) {
 
-    std::set<int>::iterator it;
+    std::map<int, Conf::Server>::iterator it;
     
     this->pollwithtimeout();
     for ( size_t i = 0; i < pfds.size(); i++ ) {
@@ -222,7 +229,7 @@ void Server::mainpoll( void ) {
         if ( pfds[i].revents == POLLIN ) {
 
             if ( it != serverfds.end() ) {
-                if ( this->acceptconnections( pfds[i].fd ) == -1 )
+                if ( this->acceptconnections( pfds[i].fd, it->second ) == -1 )
                     continue;
             } else {
 
