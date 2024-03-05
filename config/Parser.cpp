@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 20:03:58 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/05 21:47:45 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,9 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 	return (listen);
 }
 
-std::set<std::string>	ParseServerName(std::vector<Token> & Tokens)
+std::vector<std::string>	ParseServerName(std::vector<Token> & Tokens)
 {
-	std::set<std::string>	hosts;
+	std::vector<std::string>	hosts;
 
 	Tokens.erase(Tokens.begin()); // delete server_name token
 
@@ -89,7 +89,7 @@ std::set<std::string>	ParseServerName(std::vector<Token> & Tokens)
 	{
 		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 		{
-			hosts.insert(Tokens.front().content());
+			hosts.push_back(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete host token after adding it
 		}
 		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
@@ -202,10 +202,19 @@ Return	ParseReturn(std::vector<Token> & Tokens)
 		if (!(ss >> code) || ss.peek() != EOF)
 			throw Parser::Error();
 
-		/* warning: some additionnal checks on the code validity needed */
+		if (code != 300 && code != 301 && code != 302 && code != 303
+			&& code != 304 && code != 307 && code != 308)
+			throw Parser::Error(); // invalid redirection code
 
 		_return.setCode(code);
 		Tokens.erase(Tokens.begin()); // delete return code token
+		if (Tokens.front().type() == DIRECTIVE)
+		{
+			_return.setUrl(Tokens.front().content());
+			Tokens.erase(Tokens.begin()); // delete return url token
+		}
+		else
+			throw Parser::Error();
 	}
 	else
 		throw Parser::Error();
@@ -227,7 +236,6 @@ Root	ParseRoot(std::vector<Token> & Tokens)
 	if (Tokens.front().type() == DIRECTIVE)
 	{
 		/* warning: some additionnal checks on the path validity needed */
-
 		root.setPath(Tokens.front().content());
 		Tokens.erase(Tokens.begin()); // delete root path token
 	}
@@ -272,9 +280,9 @@ AutoIndex	ParseAutoIndex(std::vector<Token> & Tokens)
 	return (autoindex);
 }
 
-std::set<std::string>	ParseIndex(std::vector<Token> & Tokens)
+std::vector<std::string>	ParseIndex(std::vector<Token> & Tokens)
 {
-	std::set<std::string>	indexes;
+	std::vector<std::string>	indexes;
 
 	Tokens.erase(Tokens.begin()); // delete index token
 
@@ -282,7 +290,7 @@ std::set<std::string>	ParseIndex(std::vector<Token> & Tokens)
 	{
 		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 		{
-			indexes.insert(Tokens.front().content());
+			indexes.push_back(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete each index token after adding it
 		}
 		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
@@ -320,6 +328,39 @@ UploadStore	ParseUploadStore(std::vector<Token> & Tokens)
 	return (upload);
 }
 
+LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
+{
+	LimitExcept				limit_except;
+	std::set<std::string>	allowed_methods;
+
+	Tokens.erase(Tokens.begin()); // delete limit_except token
+
+	if (Tokens.front().type() == DIRECTIVE)
+	{
+		std::string	token;
+		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+		{
+			token = Tokens.front().content();
+
+			/* Detect unknown methods */
+			if (token != "GET" && token != "POST" && token != "DELETE")
+				throw Parser::Error();
+
+			allowed_methods.insert(Tokens.front().content());
+			Tokens.erase(Tokens.begin()); // delete method token after adding it
+		}
+		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+			Tokens.erase(Tokens.begin()); // delete semicolon
+		else
+			throw Parser::Error();
+	}
+	else
+		throw Parser::Error();
+
+	limit_except.setMethods(allowed_methods);
+	return (limit_except);
+}
+
 bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
 {
 	switch (token.type())
@@ -346,9 +387,33 @@ bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
 	return (true);
 }
 
-std::pair<std::string, Location>	ParseLocation(Server const & server, std::vector<Token> & Tokens)
+void	fillServerLocations(Server & server)
 {
-	std::pair<std::string, Location>	location("", server);
+	std::map<std::string, Location> locations = server.getLocations();
+
+	for (std::map<std::string, Location>::iterator it = locations.begin(); it != locations.end(); it++)
+	{
+		if (it->second.getErrorPage().empty())
+			it->second.setErrorPage(server.getErrorPage());
+		if (it->second.getRoot().empty())
+			it->second.setRoot(server.getRoot());
+		if (it->second.getClientMaxBodySize().empty())
+			it->second.setClientMaxBodySize(server.getClientMaxBodySize());
+		if (it->second.getReturn().empty())
+			it->second.setReturn(server.getReturn());
+		if (it->second.getAutoIndex().empty())
+			it->second.setAutoIndex(server.getAutoIndex());
+		if (it->second.getIndex().empty())
+			it->second.setIndex(server.getIndex());
+		if (it->second.getUploadPath().empty())
+			it->second.setUploadPath(server.getUploadPath());
+	}
+	server.setLocations(locations);
+}
+
+std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
+{
+	std::pair<std::string, Location>	location;
 	std::stack<Types>					brackets;
 
 	/* Check for location path */
@@ -384,6 +449,8 @@ std::pair<std::string, Location>	ParseLocation(Server const & server, std::vecto
 			location.second.addIndex(ParseIndex(Tokens));
 		else if (Tokens.front().content() == "upload_store")
 			location.second.setUploadPath(ParseUploadStore(Tokens));
+		else if (Tokens.front().content() == "limit_except")
+			location.second.setLimitExcept(ParseLimitExcept(Tokens));
 		else
 		{
 			std::cout << "Location: unknown directive: " << Tokens.front().content() << std::endl;
@@ -421,7 +488,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 			std::map<std::string, Location>		locations;
 			Tokens.erase(Tokens.begin());	// delete the location token
 
-			location = ParseLocation(server, Tokens);
+			location = ParseLocation(Tokens);
 			locations = server.getLocations();
 			if (locations.find(location.first) != locations.end())
 				throw Parser::Error();		// Duplicate location
@@ -455,6 +522,8 @@ Server	ParseServer(std::vector<Token> & Tokens)
 			}
 		}
 	}
+
+	fillServerLocations(server);
 
 	/* Check closing bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))

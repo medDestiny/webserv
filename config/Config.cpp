@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 11:48:12 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/05 21:05:02 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,9 @@ std::vector<Server> const &	Config::getServers(void) const
 #include<iostream>
 void	Config::print(void) const
 {
-	std::set<std::string>				hosts;
-	std::set<std::string>				indexes;
+	std::set<std::string>				methods;
+	std::vector<std::string>				hosts;
+	std::vector<std::string>				indexes;
 	std::map<std::string, std::string>	errors;
 	std::map<std::string, Location>		locations;
 
@@ -62,7 +63,7 @@ void	Config::print(void) const
 		std::cout << "Port: " << _servers[i].getListen().getPort() << std::endl;
 		std::cout << "Server names: ";
 		hosts = _servers[i].getServerName().getHosts();
-		for (std::set<std::string>::iterator it = hosts.begin(); it != hosts.end(); it++)
+		for (std::vector<std::string>::iterator it = hosts.begin(); it != hosts.end(); it++)
 		{
 			std::cout << *it << " ";
 		}
@@ -79,7 +80,7 @@ void	Config::print(void) const
 		std::cout << "Auto indexing: " << _servers[i].getAutoIndex().getToggle() << std::endl;
 		std::cout << "Indexes: ";
 		indexes = _servers[i].getIndex().getIndexes();
-		for (std::set<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
+		for (std::vector<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
 		{
 			std::cout << *it << " ";
 		}
@@ -103,12 +104,19 @@ void	Config::print(void) const
 			std::cout << "\t\t" << "Auto indexing: " << lo->second.getAutoIndex().getToggle() << std::endl;
 			std::cout << "\t\t" << "Indexes: ";
 			indexes = lo->second.getIndex().getIndexes();
-			for (std::set<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
+			for (std::vector<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
 			{
 				std::cout << "\t\t" << *it << " ";
 			}
 			std::cout << std::endl;
 			std::cout << "\t\t" << "Upload Path: " << lo->second.getUploadPath().getPath() << std::endl;
+			methods = lo->second.getLimitExcept().getMethods();
+			std::cout << "\t\tAllowed Methods: ";
+			for (std::set<std::string>::iterator m = methods.begin(); m != methods.end(); m++)
+			{
+				std::cout << "\t\t" << *m << " ";
+			}
+			std::cout << std::endl;
 		}
 	}
 }

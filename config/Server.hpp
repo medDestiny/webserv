@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 17:52:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 18:59:13 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/05 21:02:54 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ namespace	Conf
 			Listen const	&getListen(void) const;
 	
 			void				setServerName(ServerName const & server_name);
-			void				addServerName(std::set<std::string> server_names);
+			void				addServerName(std::vector<std::string> server_names);
 			ServerName const &	getServerName(void) const;
 	
 			void				setErrorPage(ErrorPage const & error_page);
@@ -48,7 +48,7 @@ namespace	Conf
 			AutoIndex const &	getAutoIndex(void) const;
 	
 			void				setIndex(Index const & index);
-			void				addIndex(std::set<std::string> const & index);
+			void				addIndex(std::vector<std::string> const & index);
 			Index const &		getIndex(void) const;
 	
 			void				setUploadPath(UploadStore const & upload);
@@ -56,6 +56,7 @@ namespace	Conf
 
 			void										addLocation(std::pair<std::string, Location> location);
 			/* Location const &							getLocation(void) const; */
+			void										setLocations(std::map<std::string, Location> const & locations);
 			std::map<std::string, Location> const &		getLocations(void) const;
 
 		protected:

@@ -3,6 +3,7 @@
 #include "../response/Response.hpp"
 #include "../request/Request.hpp"
 #include "../config/Server.hpp"
+#include "../config/Location.hpp"
 
 #include <ctime>
 
