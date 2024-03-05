@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 17:54:02 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 14:24:51 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/05 15:00:54 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ int	main(int ac, char **av)
 		return (1);
 
 	Config	config = Parser::importConfig(av[1]);
-	/* Server serv( config ); */
+	Server serv( config ); 
 	
 	if (!config.isValid())
 	{

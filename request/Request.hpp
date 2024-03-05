@@ -20,6 +20,7 @@
 #include <errno.h>
 
 #include "../server/Colors.hpp"
+#include "../config/Location.hpp"
 
 class Request {
 
