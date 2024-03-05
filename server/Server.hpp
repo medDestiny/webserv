@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 13:26:06 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:25:44 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/05 15:46:23 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,9 @@
 class Server {
 
     private:
-        std::map<int, Conf::Server> serverfds;
         std::set<std::pair<std::string, std::string> > donehp;
+        Config config;
         int yes;
-        int status;
         
         struct addrinfo hints;
         struct addrinfo *addrInfo;
@@ -58,20 +57,19 @@ class Server {
         socklen_t addrlen;
         // char remoteip[INET6_ADDRSTRLEN];
         
-        // // poll
+        // poll servers clients
         std::vector<struct pollfd> pfds;
-
         std::vector<Conf::Server> servers;
-
         std::map<int, Client> clients;
+        std::map<int, Conf::Server> serverfds;
 
-        Config config;
 
 
         // socket methods
         void getInfoaddr( std::string const &host, std::string const &port );
         int createsocket( int &listener );
         void bindlistensock( int &listener, std::vector<Conf::Server>::iterator &it );
+        int alreadyboundsock( std::vector<Conf::Server>::iterator const &server );
 
         // poll methods
         void addpollservers( void );
@@ -88,7 +86,6 @@ class Server {
         int acceptconnections( int const &sockfd, Conf::Server server );
 
         //----------- debug -----------//
-        void *getinaddr( struct sockaddr *sa );
         void printConeectedaddr ( Conf::Server const &server, int const &sockfd );
     
     public:
@@ -99,5 +96,6 @@ class Server {
 
 };
 
+//----------- debug -----------//
 void printvalidoption( std::string const &str );
 void printinvalidopt( std::string const &str );
