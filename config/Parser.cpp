@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/06 13:49:43 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/06 17:40:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,22 @@
 #include <sstream>
 
 using namespace	Conf;
+
+Parser::Error::Error(std::string error) throw() : _error(error) {}
+
+Parser::Error::~Error(void) throw() {}
+
+Parser::Error::Error(std::string error, std::string token, size_t line) throw()
+{
+	std::stringstream ss;
+	ss << line;
+	_error = error + token + " (line: " + ss.str() + ")";
+}
+
+char const	*Parser::Error::what() const throw()
+{
+	return (_error.c_str());
+}
 
 bool	isNumber(std::string const & num)
 {
@@ -51,7 +67,7 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 			port = token.content().substr(separator + 1);
 
 			if (!isNumber(port))
-				throw Parser::Error();
+				throw Parser::Error("invalid port number: ", port, 1);
 
 			listen.setHost(host);
 			listen.setPort(port);
@@ -61,7 +77,7 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 		else
 		{
 			if (!isNumber(token.content()))
-				throw Parser::Error();
+				throw Parser::Error("invalid port number: ", port, 1);
 
 			listen.setPort(token.content());
 		}
@@ -71,10 +87,10 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 		if (Tokens.front().type() == SEMICOLON)
 			Tokens.erase(Tokens.begin()); // delete semicolon
 		else
-			throw Parser::Error();
+			throw Parser::Error("missing semicolon at end of directive: ", "listen", 1);
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("unexpected token: ", Tokens.front().content(), 1);
 
 	return (listen);
 }
@@ -92,13 +108,14 @@ std::vector<std::string>	ParseServerName(std::vector<Token> & Tokens)
 			hosts.push_back(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete host token after adding it
 		}
+
 		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 			Tokens.erase(Tokens.begin()); // delete semicolon
 		else
-			throw Parser::Error();
+			throw Parser::Error("missing semicolon at end of directive: ", "server_name", 1);
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "server_name", 1);
 
 	return (hosts);
 }
@@ -122,19 +139,19 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
 	}
 	
 	if (Tokens.front().type() != DIRECTIVE)
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "error_page", 1);
 
 	while (Tokens.front().type() == DIRECTIVE)
 	{
 		code = Tokens.front().content();
 
 		if (!isNumber(code))
-			throw Parser::Error();
+			throw Parser::Error("invalid error code: ", code, 1);
 
 		/* Protect against duplicate error codes with the same path */
 		if (error_pages.getErrorPages().find(code) != error_pages.getErrorPages().end()
 			&& error_pages.getErrorPages().find(code)->second != path)
-			throw Parser::Error();
+			throw Parser::Error("conflicting error_page for error code: ", code, 1);
 
 		server.addErrorPage(std::make_pair(code, path));
 		Tokens.erase(Tokens.begin()); // delete code token
@@ -143,7 +160,7 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "error_page", 1);
 }
 
 void	ParseErrorPage(std::vector<Token> & Tokens, Location & location)
@@ -165,19 +182,19 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Location & location)
 	}
 	
 	if (Tokens.front().type() != DIRECTIVE)
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "error_page", 1);
 
 	while (Tokens.front().type() == DIRECTIVE)
 	{
 		code = Tokens.front().content();
 
 		if (!isNumber(code))
-			throw Parser::Error();
+			throw Parser::Error("invalid error code: ", code, 1);
 
 		/* Protect against duplicate error codes with the same path */
 		if (error_pages.getErrorPages().find(code) != error_pages.getErrorPages().end()
 			&& error_pages.getErrorPages().find(code)->second != path)
-			throw Parser::Error();
+			throw Parser::Error("conflicting error_page for error code: ", code, 1);
 
 		location.addErrorPage(std::make_pair(code, path));
 		Tokens.erase(Tokens.begin()); // delete code token
@@ -186,7 +203,7 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Location & location)
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "error_page", 1);
 }
 
 ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
@@ -201,14 +218,14 @@ ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
 		size_t		unit = token.find_first_not_of("0123456789", 0);
 
 		if (unit == std::string::npos) // case of a size without a unit (client... 1024;)
-			throw Parser::Error();
+			throw Parser::Error("missing unit for ", "client_max_body_size", 1);
 
 		std::stringstream	ss;
 		size_t				size;
 
 		ss << token.substr(0, unit);
 		if (!(ss >> size) || ss.peek() != EOF)
-			throw Parser::Error();
+			throw Parser::Error("invalid body size ", token, 1);
 		token = token.substr(unit);
 
 		/* Convert the size to bytes */
@@ -219,18 +236,18 @@ ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
 		else if (token == "g" || token == "G")
 			size *= 1073741824;
 		else
-			throw Parser::Error();
+			throw Parser::Error("invalid unit in ", "client_max_body_size", 1);
 
 		max_size.setSize(size);
 		Tokens.erase(Tokens.begin()); // delete client_max_body_size unit token
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "client_max_body_size", 1);
 
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "client_max_body_size", 1);
 
 	return (max_size);
 }
@@ -248,11 +265,11 @@ Return	ParseReturn(std::vector<Token> & Tokens)
 
 		ss << Tokens.front().content();
 		if (!(ss >> code) || ss.peek() != EOF)
-			throw Parser::Error();
+			throw Parser::Error("invalid return code: ", Tokens.front().content(), 1);
 
 		if (code != 300 && code != 301 && code != 302 && code != 303
 			&& code != 304 && code != 307 && code != 308)
-			throw Parser::Error(); // invalid redirection code
+			throw Parser::Error("invalid http redirection code: ", Tokens.front().content(), 1); // invalid redirection code
 
 		_return.setCode(code);
 		Tokens.erase(Tokens.begin()); // delete return code token
@@ -262,15 +279,15 @@ Return	ParseReturn(std::vector<Token> & Tokens)
 			Tokens.erase(Tokens.begin()); // delete return url token
 		}
 		else
-			throw Parser::Error();
+			throw Parser::Error("missing url for ", "return", 1);
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "return", 1);
 
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "return", 1);
 
 	return (_return);
 }
@@ -288,12 +305,12 @@ Root	ParseRoot(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete root path token
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "root", 1);
 
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "root", 1);
 
 	return (root);
 }
@@ -313,17 +330,17 @@ AutoIndex	ParseAutoIndex(std::vector<Token> & Tokens)
 		else if (option == "off")
 			autoindex.setToggle(false);
 		else
-			throw Parser::Error();
+			throw Parser::Error("invalid option: ", option, 1);
 
 		Tokens.erase(Tokens.begin()); // delete option token
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "autoindex", 1);
 
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "autoindex", 1);
 
 	return (autoindex);
 }
@@ -341,13 +358,14 @@ std::vector<std::string>	ParseIndex(std::vector<Token> & Tokens)
 			indexes.push_back(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete each index token after adding it
 		}
+
 		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 			Tokens.erase(Tokens.begin()); // delete semicolon
 		else
-			throw Parser::Error();
+			throw Parser::Error("missing semicolon at end of directive: ", "index", 1);
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "index", 1);
 
 	return (indexes);
 }
@@ -365,12 +383,12 @@ UploadStore	ParseUploadStore(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete upload path token
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "upload_store", 1);
 
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
-		throw Parser::Error();
+		throw Parser::Error("missing semicolon at end of directive: ", "upload_store", 1);
 
 	return (upload);
 }
@@ -391,18 +409,19 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 
 			/* Detect unknown methods */
 			if (token != "GET" && token != "POST" && token != "DELETE")
-				throw Parser::Error();
+				throw Parser::Error("unknow http method ", token, 1);
 
 			allowed_methods.insert(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete method token after adding it
 		}
+
 		if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 			Tokens.erase(Tokens.begin()); // delete semicolon
 		else
-			throw Parser::Error();
+			throw Parser::Error("missing semicolon at end of directive: ", "limit_except", 1);
 	}
 	else
-		throw Parser::Error();
+		throw Parser::Error("invalid number of arguments in ", "limit_except", 1);
 
 	limit_except.setMethods(allowed_methods);
 	return (limit_except);
@@ -465,7 +484,7 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 
 	/* Check for location path */
 	if (Tokens.empty() || Tokens.front().type() != DIRECTIVE)
-		throw Parser::Error();
+		throw Parser::Error("missing path for location block", "", 1);
 	else
 	{
 		location.first = Tokens.front().content();
@@ -474,7 +493,7 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 
 	/* Check opening bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
-		throw Parser::Error();
+		throw Parser::Error("missing opening bracket for ", "location", 1);
 	else
 		Tokens.erase(Tokens.begin());
 
@@ -499,15 +518,12 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 		else if (Tokens.front().content() == "limit_except")
 			location.second.setLimitExcept(ParseLimitExcept(Tokens));
 		else
-		{
-			std::cout << "Location: unknown directive: " << Tokens.front().content() << std::endl;
-			throw Parser::Error();
-		}
+			throw Parser::Error("unknown directive in location context: ", Tokens.front().content(), 1);
 	}
 
 	/* Check closing bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
-		throw Parser::Error();
+		throw Parser::Error("missing closing bracket for ", "location", 1);
 	else
 		Tokens.erase(Tokens.begin());
 
@@ -521,7 +537,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 
 	/* Check opening bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
-		throw Parser::Error();
+		throw Parser::Error("missing closing bracket for ", "server", 1);
 	else
 		Tokens.erase(Tokens.begin());
 
@@ -538,7 +554,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 			location = ParseLocation(Tokens);
 			locations = server.getLocations();
 			if (locations.find(location.first) != locations.end())
-				throw Parser::Error();		// Duplicate location
+				throw Parser::Error("duplicate location: ", location.first, 1);		// Duplicate location
 			server.addLocation(location);
 		}
 		else
@@ -563,10 +579,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 			else if (Tokens.front().content() == "upload_store")
 				server.setUploadPath(ParseUploadStore(Tokens));
 			else
-			{
-				std::cout << "Server: unknown directive: " << Tokens.front().content() << std::endl;
-				throw Parser::Error();
-			}
+				throw Parser::Error("unknown directive in server context: ", Tokens.front().content(), 1);
 		}
 	}
 
@@ -574,7 +587,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 
 	/* Check closing bracket */
 	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
-		throw Parser::Error();
+		throw Parser::Error("missing closing bracket for ", "server", 1);
 	else
 		Tokens.erase(Tokens.begin());
 
@@ -594,8 +607,8 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 			}
 			catch (Parser::Error & e)
 			{
-				/* std::cerr << e.what() << std::endl; */
-				std::cerr << "Error: Parse exception" << std::endl;
+				std::cerr << e.what() << std::endl;
+				/* std::cerr << "Error: Parse exception" << std::endl; */
 				return (false);
 			}
 		}
