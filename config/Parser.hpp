@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:43:33 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/06 16:55:10 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/06 20:10:12 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ class	Parser
 	public:
 		static Config	importConfig(char const *path);
 
-	/* Implement errors (undone) */
 	class	Error : public std::exception
 	{
 		public:

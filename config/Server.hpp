@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 17:52:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/05 21:02:54 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/06 20:10:55 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,6 @@ namespace	Conf
 			UploadStore const &	getUploadPath(void) const;
 
 			void										addLocation(std::pair<std::string, Location> location);
-			/* Location const &							getLocation(void) const; */
 			void										setLocations(std::map<std::string, Location> const & locations);
 			std::map<std::string, Location> const &		getLocations(void) const;
 

@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/06 18:55:45 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/06 20:09:59 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -427,32 +427,6 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 	return (limit_except);
 }
 
-bool	CheckBrackets(std::stack<Types> & brackets, Token const & token)
-{
-	switch (token.type())
-	{
-		case OPEN_BR:
-		{
-			if (brackets.empty())
-				brackets.push(OPEN_BR);
-			else
-				return (false);
-			break ;
-		}
-		case CLOSE_BR:
-		{
-			if (!brackets.empty() && brackets.top() == OPEN_BR)
-				brackets.pop();
-			else
-				return (false);
-			break ;
-		}
-		default:
-			return (false);
-	}
-	return (true);
-}
-
 void	fillServerLocations(Server & server)
 {
 	std::map<std::string, Location> locations = server.getLocations();
@@ -480,7 +454,6 @@ void	fillServerLocations(Server & server)
 std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 {
 	std::pair<std::string, Location>	location;
-	std::stack<Types>					brackets;
 
 	/* Check for location path */
 	if (Tokens.empty() || Tokens.front().type() != DIRECTIVE)
@@ -492,7 +465,7 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 	}
 
 	/* Check opening bracket */
-	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
+	if (Tokens.empty() || Tokens.front().type() != OPEN_BR)
 		throw Parser::Error("missing opening bracket for location " + location.first);
 	else
 		Tokens.erase(Tokens.begin());
@@ -522,7 +495,7 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 	}
 
 	/* Check closing bracket */
-	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
+	if (Tokens.empty() || Tokens.front().type() != CLOSE_BR)
 		throw Parser::Error("missing closing bracket for location " + location.first);
 	else
 		Tokens.erase(Tokens.begin());
@@ -533,10 +506,9 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 Server	ParseServer(std::vector<Token> & Tokens)
 {
 	Server				server;
-	std::stack<Types>	brackets;
 
 	/* Check opening bracket */
-	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
+	if (Tokens.empty() || Tokens.front().type() != OPEN_BR)
 		throw Parser::Error("missing opening bracket for server");
 	else
 		Tokens.erase(Tokens.begin());
@@ -585,7 +557,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 	fillServerLocations(server);
 
 	/* Check closing bracket */
-	if (Tokens.empty() || !CheckBrackets(brackets, Tokens[0]))
+	if (Tokens.empty() || Tokens.front().type() != CLOSE_BR)
 		throw Parser::Error("missing closing bracket for server");
 	else
 		Tokens.erase(Tokens.begin());
@@ -612,7 +584,9 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 		}
 		else
 		{
-			std::cout << "uknown directive in main context: " << Tokens.front().content() << std::endl;
+			std::cout << "uknown directive in main context: " 
+			<< Tokens.front().content() << " (line: "
+			<< Tokens.front().line() << ")"<< std::endl;
 			return (false);
 		}
 	}
@@ -623,9 +597,7 @@ size_t	TokenizeString(std::vector<Token> & Tokens, std::string const line, size_
 {
 	size_t	len;
 
-	std::cout << line << std::endl;
-	if (line.substr(pos, std::strlen("server_name")) == "server_name"
-		&& line.substr(pos, std::strlen("server")) == "server")			// Add the 'server' block Token
+	if (line.substr(pos, line.find_first_of(";{}\t ", pos)) == "server") // Add the 'server' block Token
 	{
 		Tokens.push_back(Token(SERVER, "server", count));
 		return (std::strlen("server"));
