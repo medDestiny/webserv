@@ -6,12 +6,13 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/05 21:05:02 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/06 13:45:26 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 #include "Location.hpp"
+#include <iostream>
 
 using namespace	Conf;
 
@@ -39,6 +40,17 @@ bool	Config::isValid(void) const
 
 void	Config::addServer(Server server)
 {
+	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		if (server.getServerName().getHosts() == it->getServerName().getHosts()
+			&& server.getListen().getHost() == it->getListen().getHost()
+			&& server.getListen().getPort() == it->getListen().getPort())
+		{
+			std::cerr << " ----------------------------------------> Duplicate server !" << std::endl;
+			return ;
+		}
+	}
+
 	_servers.push_back(server);
 }
 

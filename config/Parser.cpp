@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/05 21:47:45 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/06 13:49:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,42 +103,90 @@ std::vector<std::string>	ParseServerName(std::vector<Token> & Tokens)
 	return (hosts);
 }
 
-std::pair<std::string, std::string>	ParseErrorPage(std::vector<Token> & Tokens)
+void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
 {
-	std::pair<std::string, std::string>	error;
-	std::string							code;
-	std::string							path;
+	ErrorPage		error_pages = server.getErrorPage();
+	std::string		code;
+	std::string		path;
 
 	Tokens.erase(Tokens.begin()); // delete error_page token
 
-	if (Tokens.front().type() == DIRECTIVE)
+	for (std::vector<Token>::iterator it = Tokens.begin(); it != Tokens.end() && it + 1 != Tokens.end(); it++)
+	{
+		if ((it + 1)->type() == SEMICOLON)
+		{
+			path = it->content();
+			Tokens.erase(it); // delete path token
+			break ;
+		}
+	}
+	
+	if (Tokens.front().type() != DIRECTIVE)
+		throw Parser::Error();
+
+	while (Tokens.front().type() == DIRECTIVE)
 	{
 		code = Tokens.front().content();
 
 		if (!isNumber(code))
 			throw Parser::Error();
 
-		error.first = code;
+		/* Protect against duplicate error codes with the same path */
+		if (error_pages.getErrorPages().find(code) != error_pages.getErrorPages().end()
+			&& error_pages.getErrorPages().find(code)->second != path)
+			throw Parser::Error();
+
+		server.addErrorPage(std::make_pair(code, path));
 		Tokens.erase(Tokens.begin()); // delete code token
 	}
-	else
-		throw Parser::Error();
-
-	if (Tokens.front().type() == DIRECTIVE)
-	{
-		path = Tokens.front().content();
-		error.second = path;
-		Tokens.erase(Tokens.begin()); // delete path token
-	}
-	else
-		throw Parser::Error();
 
 	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
 		throw Parser::Error();
+}
 
-	return (error);
+void	ParseErrorPage(std::vector<Token> & Tokens, Location & location)
+{
+	ErrorPage		error_pages = location.getErrorPage();
+	std::string		code;
+	std::string		path;
+
+	Tokens.erase(Tokens.begin()); // delete error_page token
+
+	for (std::vector<Token>::iterator it = Tokens.begin(); it != Tokens.end() && it + 1 != Tokens.end(); it++)
+	{
+		if ((it + 1)->type() == SEMICOLON)
+		{
+			path = it->content();
+			Tokens.erase(it); // delete path token
+			break ;
+		}
+	}
+	
+	if (Tokens.front().type() != DIRECTIVE)
+		throw Parser::Error();
+
+	while (Tokens.front().type() == DIRECTIVE)
+	{
+		code = Tokens.front().content();
+
+		if (!isNumber(code))
+			throw Parser::Error();
+
+		/* Protect against duplicate error codes with the same path */
+		if (error_pages.getErrorPages().find(code) != error_pages.getErrorPages().end()
+			&& error_pages.getErrorPages().find(code)->second != path)
+			throw Parser::Error();
+
+		location.addErrorPage(std::make_pair(code, path));
+		Tokens.erase(Tokens.begin()); // delete code token
+	}
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error();
 }
 
 ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
@@ -313,7 +361,6 @@ UploadStore	ParseUploadStore(std::vector<Token> & Tokens)
 	if (Tokens.front().type() == DIRECTIVE)
 	{
 		/* warning: some additionnal checks on the path validity needed */
-
 		upload.setPath(Tokens.front().content());
 		Tokens.erase(Tokens.begin()); // delete upload path token
 	}
@@ -436,7 +483,7 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 	{
 		/* add directive to the directives list */
 		if (Tokens.front().content() == "error_page")
-			location.second.addErrorPage(ParseErrorPage(Tokens));
+			ParseErrorPage(Tokens, location.second);
 		else if (Tokens.front().content() == "client_max_body_size")
 			location.second.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
 		else if (Tokens.front().content() == "return")
@@ -502,7 +549,7 @@ Server	ParseServer(std::vector<Token> & Tokens)
 			else if (Tokens.front().content() == "server_name")
 				server.addServerName(ParseServerName(Tokens));
 			else if (Tokens.front().content() == "error_page")
-				server.addErrorPage(ParseErrorPage(Tokens));
+				ParseErrorPage(Tokens, server);
 			else if (Tokens.front().content() == "client_max_body_size")
 				server.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
 			else if (Tokens.front().content() == "return")
