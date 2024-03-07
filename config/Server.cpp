@@ -63,3 +63,4 @@ void										Server::addLocation(std::pair<std::string, Location> location) { _
 std::map<std::string, Location> const &		Server::getLocations(void) const { return (_locations); }
 
 void										Server::setLocations(std::map<std::string, Location> const & locations) {_locations = locations; }
+

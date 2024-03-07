@@ -41,7 +41,7 @@ void	Listen::setHost(std::string host) { _host = host; _is_set = true; }
 
 void	Listen::setPort(std::string port) { _port = port; _is_set = true; }
 
-bool	Listen::operator==(Listen const & right) const { return (_host == right.getHost() && _port == right.getPort()); }
+bool	Listen::operator==(Listen const & right) const { return (_host == right.getHost() && _port == right.getPort()); 
 
 /* ServerName member functions */
 ServerName::ServerName(void) {}

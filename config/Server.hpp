@@ -60,7 +60,7 @@ namespace	Conf
 			std::map<std::string, Location> const &		getLocations(void) const;
 
 		protected:
-
+    
 			/* Common directives for server and location */
 			ErrorPage			_error_page;
 			ClientMaxBodySize	_client_max_body_size;

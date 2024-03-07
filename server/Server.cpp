@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
+/*   Updated: 2024/03/05 15:53:37 by del-yaag         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
 
 Server::Server( Config const &config ) {
@@ -5,26 +17,27 @@ Server::Server( Config const &config ) {
     this->yes = 1;
     this->addrInfo = NULL;
     this->newinfo = NULL;
-    this->servers = config.getServers();
+    this->config = config;
+    this->servers = this->config.getServers();
 }
 
 Server::~Server( void ) { }
 
 void Server::getInfoaddr( std::string const &host, std::string const &port ) {
 
+    int status;
+
     std::memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-
-    this->status = getaddrinfo( host.c_str(), port.c_str(), &hints, &addrInfo );
-    if ( this->status == -1 ) {
+    status = getaddrinfo( host.c_str(), port.c_str(), &hints, &addrInfo );
+    if ( status == -1 ) {
 
         std::cout << "error: getaddrinfo: " << gai_strerror( status ) << std::endl;
         exit( EXIT_FAILURE );
     }
     printvalidoption( "getaddrinfo" );
-
 }
 
 int Server::createsocket( int &listener ) {
@@ -37,7 +50,6 @@ int Server::createsocket( int &listener ) {
     }
     printvalidoption( "socket" );
 
-    // std::cout << listener << std::endl;
     if ( fcntl( listener, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
         perror( "fcntl" );
@@ -89,25 +101,31 @@ void Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator 
     serverfds[listener] = *it;
 }
 
+int Server::alreadyboundsock( std::vector<Conf::Server>::iterator const &server ) {
+
+    if ( this->donehp.size() > 0 ) {
+        
+        std::pair<std::string, std::string> search = std::make_pair( server->getListen().getHost(), server->getListen().getPort() );
+        std::set<std::pair<std::string, std::string> >::iterator it = donehp.find( search );
+        if ( it != donehp.end() ) {
+
+            printinvalidopt( "** seems like this socket already bound " + it->first + ":" + it->second );
+            std::cout << std::endl;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void Server::createServer( void ) {
 
-    int listener;
+    int listener;  
 
     std::vector<Conf::Server>::iterator it = servers.begin();
     for ( ; it != servers.end(); ++it ) {
 
-        // check if the host, port is already bound
-        if ( donehp.size() > 0 ) {
-
-            std::pair<std::string, std::string> search = std::make_pair( it->getListen().getHost(), it->getListen().getPort() );
-            std::set<std::pair<std::string, std::string> >::iterator it = donehp.find( search );
-            if ( it != donehp.end() ) {
-
-                printinvalidopt( "** seems like this socket already bound " + it->first + ":" + it->second );
-                std::cout << std::endl;
-                continue;
-            }
-        }
+        if ( this->alreadyboundsock( it ) )
+            continue;
 
         // create socket and bind it
         this->getInfoaddr( it->getListen().getHost(), it->getListen().getPort() );
@@ -115,8 +133,7 @@ void Server::createServer( void ) {
 
         // add bound host, port to the container
         donehp.insert( std::make_pair( it->getListen().getHost(), it->getListen().getPort() ) );
-        std::cout << DYELLO << "\tserver: " << it->getListen().getHost() << ":" << it->getListen().getPort() << RESET << std::endl;
-        std::cout << std::endl;
+        std::cout << DYELLO << "\tserver: " << it->getListen().getHost() << ":" << it->getListen().getPort() << RESET << std::endl << std::endl;
     }
     this->addpollservers();
 
@@ -132,7 +149,6 @@ void Server::addpollservers( void ) {
     std::map<int, Conf::Server>::iterator it = serverfds.begin();
     for ( ; it != serverfds.end(); ++it ) {
 
-        std::cout << "sockfd: " << it->first << " " << it->second.getListen().getHost() << ":" << it->second.getListen().getPort() << std::endl;
         pfd.fd = it->first; 
         pfd.events = POLLIN;
         pfds.push_back( pfd );
@@ -170,8 +186,10 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
             std::cout << MAGENTA << "\t-> add more clients" << RESET << std::endl;
             clients[sockfd] = client;
             std::map<int, Client>::iterator clientit = clients.find( sockfd );
-            if ( clientit != clients.end() )
+            if ( clientit != clients.end() ) {
                 clientit->second.setserver( server );
+                clientit->second.setConfig( config );
+            }
         }
     }
 }
@@ -199,9 +217,8 @@ int Server::acceptconnections( int const &sockfd, Conf::Server server ) {
         }
         this->addpollclients( newfd );
         this->addclients( newfd, server );
-        this->printConeectedaddr( newfd );
+        this->printConeectedaddr( server, newfd );
     }
-    // printvalidoption( "accept" );
     return 0;
 }
 
@@ -221,6 +238,7 @@ void Server::pollwithtimeout( void ) {
 void Server::mainpoll( void ) {
 
     std::map<int, Conf::Server>::iterator it;
+    std::map<int, Client>::iterator itClient;
     
     this->pollwithtimeout();
     for ( size_t i = 0; i < pfds.size(); i++ ) {
@@ -233,30 +251,26 @@ void Server::mainpoll( void ) {
                     continue;
             } else {
 
-                // std::cout << "hello from pollin" << std::endl;
                 // POLLIN revent int the clients side
+                itClient = clients.find( pfds[i].fd );
+                if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
+                    pfds[i].revents = POLLOUT;
+                }
             }
         } else if ( pfds[i].revents == POLLOUT ) {
 
             if ( it != serverfds.end() ) {
 
-                // std::cout << "hello from pollout server side" << std::endl;
                 // POLLOUT revent in the server side
             } else {
 
-                // std::cout << pfds.size() << " hello from pollout" << std::endl;
                 // POLLOUT revents in the clients side
             }
         } else if ( pfds[i].revents == POLLHUP ) {
 
-            // std::cout << "hello from pullhup" << std::endl;
-        } else {
-
-            // std::cout << "hello from else" << std::endl;
+        } else
             this->checkclienttimeout();
-        }
     }
-
 }
 
 void Server::checkclienttimeout( void ) {
@@ -275,7 +289,7 @@ void Server::checkclienttimeout( void ) {
 
                 this->searchandremovepollclient( it->second.getsockfd() );
                 clients.erase( it );
-                std::cout << clients.size() << " " << pfds.size();
+                // std::cout << clients.size() << " " << pfds.size();
                 printinvalidopt( "-> client has been deleted " );
                 if ( clients.empty() )
                     break;
@@ -327,23 +341,14 @@ void printinvalidopt( std::string const &str ) {
     std::cout << RED << "\t" << str << RESET << std::endl;
 }
 
-void *Server::getinaddr( struct sockaddr *sa ) {
-
-    if ( sa->sa_family == AF_INET )
-        return &( ( struct sockaddr_in * )sa )->sin_addr;
-    return &( ( struct sockaddr_in6 * )sa )->sin6_addr;
-}
-
-void Server::printConeectedaddr ( int const &sockfd ) {
+void Server::printConeectedaddr ( Conf::Server const &server, int const &sockfd ) {
 
     std::cout
-        << GREEN 
+        << DBLUE 
         << "\t--> connection accepted: "
-        << inet_ntop(
-                        remoteaddr.ss_family, 
-                        this->getinaddr( ( struct sockaddr * )&remoteaddr ),
-                        remoteip, INET6_ADDRSTRLEN
-                    )
+        << server.getListen().getHost()
+        << ":"
+        << server.getListen().getPort()
         << " on "
         << sockfd
         << RESET

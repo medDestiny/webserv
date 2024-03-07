@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.hpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
+/*   Updated: 2024/03/05 15:54:24 by del-yaag         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include <iostream>
@@ -20,15 +32,19 @@
 #include <errno.h>
 
 #include "../server/Colors.hpp"
+#include "../config/Location.hpp"
 
 class Response {
 
     private:
         int receivedcontent;
+        int statusCode;
 
     public:
         Response( void );
         ~Response( void );
         int getreceivedcontent( void ) const;
         void setreceivedcontent( int const &receivedcontent );
+        void setStausCode( int statusCode );
+        int getStatusCode( void );
 };

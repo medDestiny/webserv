@@ -62,7 +62,7 @@ class	ServerName : public Directive
 		ServerName(ServerName const & src);
 		ServerName	&operator=(ServerName const & right);
 		~ServerName(void);
-
+    
 		void								addHost(std::string host);
 		void								addHosts(std::vector<std::string> hosts);
 		void								setHosts(std::vector<std::string> hosts);

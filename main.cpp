@@ -23,12 +23,15 @@ int	main(int ac, char **av)
 		return (1);
 
 	Config	config = Parser::importConfig(av[1]);
-	/* Server serv( config ); */
+	Server serv( config ); 
 	
 	if (!config.isValid())
+	{
+		std::cout << "ana ma3jebnich hh" << std::endl;
 		return (1);
+	}
 
-	/* std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; */
-	/* serv.createServer(); */
-	config.print();
+	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl;
+	serv.createServer();
+	// config.print();
 }
