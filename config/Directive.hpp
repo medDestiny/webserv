@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/05 21:36:39 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/07 12:17:10 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,8 @@ class	Listen : public Directive
 		void		setHost(std::string host);
 		void		setPort(std::string port);
 
+		bool		operator==(Listen const & right) const;
+
 	private:
 		std::string	_host;
 		std::string	_port;
@@ -63,6 +65,7 @@ class	ServerName : public Directive
 
 		void								addHost(std::string host);
 		void								addHosts(std::vector<std::string> hosts);
+		void								setHosts(std::vector<std::string> hosts);
 		std::vector<std::string> const &	getHosts(void) const;
 
 	private:

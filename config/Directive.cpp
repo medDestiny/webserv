@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 18:12:49 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/05 21:36:32 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/07 12:26:20 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ void	Listen::setHost(std::string host) { _host = host; _is_set = true; }
 
 void	Listen::setPort(std::string port) { _port = port; _is_set = true; }
 
+bool	Listen::operator==(Listen const & right) const { return (_host == right.getHost() && _port == right.getPort()); }
 
 /* ServerName member functions */
 ServerName::ServerName(void) {}
@@ -75,6 +76,8 @@ void	ServerName::addHosts(std::vector<std::string> hosts)
 		}
 	}
 }
+
+void								ServerName::setHosts(std::vector<std::string> hosts) { _hosts = hosts; }
 
 std::vector<std::string> const &	ServerName::getHosts(void) const { return (_hosts); }
 

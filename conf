@@ -42,10 +42,9 @@ server {
 }
 
 server {
-	server_name n z l;
-	server_name i p;
+	server_name z l;
+	server_name l;
 	#server_name l p o z n;
 
-	autoindex la;;
 	location / {}
 }

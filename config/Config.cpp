@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/07 10:53:42 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/07 12:26:47 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,25 +40,33 @@ bool	Config::isValid(void) const
 
 void	Config::addServer(Server server)
 {
+	ServerName					server_name = server.getServerName();
 	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
 	{
-		if (server.getServerName().getHosts().size() == it->getServerName().getHosts().size()
-			&& server.getListen().getHost() == it->getListen().getHost()
-			&& server.getListen().getPort() == it->getListen().getPort())
+		if (server.getListen() == it->getListen())
 		{
-			std::vector<std::string>	new_hosts = server.getServerName().getHosts();
-			std::vector<std::string>	old_hosts = it->getServerName().getHosts();
-
-			std::sort(new_hosts.begin(), new_hosts.end());
-			std::sort(old_hosts.begin(), old_hosts.end());
-			if (new_hosts == old_hosts)
+			std::vector<std::string>	hosts = it->getServerName().getHosts();
+			std::vector<std::string>	server_names = server_name.getHosts();
+			std::vector<std::string>::iterator	name;
+			for (std::vector<std::string>::iterator i = hosts.begin(); i != hosts.end(); i++)
 			{
-				std::cerr << "[warn] duplicate server on "
-						  << it->getListen().getHost() << ":"
-						  << it->getListen().getPort() 
-						  << " ignored !" << std::endl;
-				return ;
+				name = std::find(server_names.begin(), server_names.end(), *i);
+				if (name != server_names.end())
+				{
+					std::cerr << "[warn] conflicting server name \""
+							  << *i << "\""
+							  << " on "
+							  << it->getListen().getHost() << ":"
+							  << it->getListen().getPort() 
+							  << ", ignored" << std::endl;
+					hosts.erase(i);
+					server_names.erase(name);
+				}
 			}
+			if (server_names.size() == 0)
+				return ;
+			server_name.setHosts(server_names);
+			server.setServerName(server_name);
 		}
 	}
 	_servers.push_back(server);
@@ -67,6 +75,20 @@ void	Config::addServer(Server server)
 std::vector<Server> const &	Config::getServers(void) const
 {
 	return (_servers);
+}
+
+Server	Config::getServer(Conf::Server const & default_server, std::string server_name)
+{
+	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		if (it->getListen() == default_server.getListen())
+		{
+			std::vector<std::string>	hosts = it->getServerName().getHosts();
+			if (std::find(hosts.begin(), hosts.end(), server_name) != hosts.end())
+				return (*it);
+		}
+	}
+	return (default_server);
 }
 
 #include<iostream>
