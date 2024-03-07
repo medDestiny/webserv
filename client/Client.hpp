@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:47 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/07 14:09:49 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "../response/Response.hpp"
 #include "../request/Request.hpp"
 #include "../config/Server.hpp"
-#include "../server/Server.hpp"
+#include "../config/Config.hpp"
 
 #include <ctime>
 
