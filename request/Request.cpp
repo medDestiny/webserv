@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:30 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/07 14:03:40 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,7 @@ int Request::setRequestHeader( void ) {
 
 void Request::parseRequestHeader( Conf::Server & server ) {
 
+	(void)server;
     std::string requestLine;
 	std::istringstream recbuffStream(recString);
 

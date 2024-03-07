@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:33 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/07 14:09:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@
 
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
-#include "../client/Client.hpp"
 
 #define SIZE 1024
 
