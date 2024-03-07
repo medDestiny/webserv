@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/06 20:09:59 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/07 10:58:06 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,10 @@
 
 using namespace	Conf;
 
-Parser::Error::Error(std::string error) throw() : _error(error) {}
+Parser::Error::Error(std::string error) throw()
+{
+	_error = "[emerg] " + error;
+}
 
 Parser::Error::~Error(void) throw() {}
 
@@ -28,7 +31,7 @@ Parser::Error::Error(std::string error, std::string token, size_t line) throw()
 {
 	std::stringstream ss;
 	ss << line;
-	_error = error + token + " (line: " + ss.str() + ")";
+	_error = "[emerg] " + error + token + " (line: " + ss.str() + ")";
 }
 
 char const	*Parser::Error::what() const throw()

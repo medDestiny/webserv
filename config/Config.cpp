@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/06 13:45:26 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/07 10:53:42 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,15 +42,25 @@ void	Config::addServer(Server server)
 {
 	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
 	{
-		if (server.getServerName().getHosts() == it->getServerName().getHosts()
+		if (server.getServerName().getHosts().size() == it->getServerName().getHosts().size()
 			&& server.getListen().getHost() == it->getListen().getHost()
 			&& server.getListen().getPort() == it->getListen().getPort())
 		{
-			std::cerr << " ----------------------------------------> Duplicate server !" << std::endl;
-			return ;
+			std::vector<std::string>	new_hosts = server.getServerName().getHosts();
+			std::vector<std::string>	old_hosts = it->getServerName().getHosts();
+
+			std::sort(new_hosts.begin(), new_hosts.end());
+			std::sort(old_hosts.begin(), old_hosts.end());
+			if (new_hosts == old_hosts)
+			{
+				std::cerr << "[warn] duplicate server on "
+						  << it->getListen().getHost() << ":"
+						  << it->getListen().getPort() 
+						  << " ignored !" << std::endl;
+				return ;
+			}
 		}
 	}
-
 	_servers.push_back(server);
 }
 
