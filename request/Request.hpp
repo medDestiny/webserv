@@ -35,6 +35,7 @@
 
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
+#include "../client/Client.hpp"
 
 #define SIZE 1024
 
@@ -54,22 +55,22 @@ class Request {
         ~Request( void );
         int getsendedcontent( void ) const;
         void setsendedcontent( int const &sendedcontent );
-        void setRecString( std::string recString );
-        std::string getRecString( void );
-        void setMethod( std::string method );
-        std::string getMethod( void );
-        void setPath( std::string Path );
-        std::string getPath( void );
-        std::string getHeader( void );
-        void setHeader( std::string header );
-        std::string getBody( void );
-        void setBody( std::string body );
-        std::string getConnection( void );
-        void setConnection( std::string connection );
+        void setRecString( std::string const & recString );
+        std::string getRecString( void ) const ;
+        void setMethod( std::string const & method );
+        std::string getMethod( void ) const;
+        void setPath( std::string const & Path );
+        std::string getPath( void ) const;
+        std::string getHeader( void ) const;
+        void setHeader( std::string const & header );
+        std::string getBody( void ) const;
+        void setBody( std::string const & body );
+        std::string getConnection( void ) const;
+        void setConnection( std::string const & connection );
 
-        int getRequestBodySize( void );
+        int getRequestBodySize( void ) const;
         void parseRequest( void );
         int setRequestHeader( void );
-        void parseRequestHeader( void );
-        std::string getValue( std::string key );
+        void parseRequestHeader( Conf::Server & server );
+        std::string getValue( std::string const & key ) const;
 };

@@ -82,7 +82,7 @@ int Client::recieveRequest( int const &sockfd ) {
         recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
         if (this->request.setRequestHeader()) {
-            this->request.parseRequestHeader();
+            this->request.parseRequestHeader( this->server );
         }
         // if (this->request.getRequestBodySize() > maxSize) {
         //     this->response.setStausCode( 413 );

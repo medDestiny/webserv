@@ -29,61 +29,61 @@ void Request::setsendedcontent( int const &sendedcontent ) {
     this->sendedcontent = sendedcontent;
 }
 
-void Request::setRecString( std::string recString ) {
+void Request::setRecString( std::string  const & recString ) {
 
     this->recString += recString;
 }
-std::string Request::getRecString( void ) {
+std::string Request::getRecString( void ) const {
 
     return (this->recString);
 }
 
-void Request::setMethod( std::string method ) {
+void Request::setMethod( std::string  const & method ) {
 
     this->method = method;
 }
-std::string Request::getMethod( void ) {
+std::string Request::getMethod( void ) const {
 
     return (this->method);
 }
 
-void Request::setPath( std::string path ) {
+void Request::setPath( std::string  const & path ) {
 
     this->path = path;
 }
-std::string Request::getPath( void ) {
+std::string Request::getPath( void ) const {
 
     return (this->path);
 }
 
-std::string Request::getHeader( void ) {
+std::string Request::getHeader( void ) const {
 
     return (this->header);
 }
-void Request::setHeader( std::string header ) {
+void Request::setHeader( std::string  const & header ) {
 
     this->header = header;
 }
 
-std::string Request::getBody( void ) {
+std::string Request::getBody( void ) const {
 
     return (this->body);
 }
-void Request::setBody( std::string body ) {
+void Request::setBody( std::string  const & body ) {
 
     this->body = body;
 }
 
-std::string Request::getConnection( void ) {
+std::string Request::getConnection( void ) const {
 
     return (this->connection);
 }
-void Request::setConnection( std::string connection ) {
+void Request::setConnection( std::string const & connection ) {
 
     this->connection = connection;
 }
 
-int Request::getRequestBodySize( void ) {
+int Request::getRequestBodySize( void ) const {
 
     std::string subString = "\r\n\r\n";
 
@@ -113,25 +113,37 @@ int Request::setRequestHeader( void ) {
         return (0);
 }
 
-void Request::parseRequestHeader( void ) {
+void Request::parseRequestHeader( Conf::Server & server ) {
 
     std::string requestLine;
 	std::istringstream recbuffStream(recString);
 
     /*   get server   */
 
+    std::string host = getValue("host:");
     //get request line "GET / HTTP/1.1"
 	std::getline(recbuffStream, requestLine);
 
-
     //parse request line
+    std::string httpVersion;
 	std::istringstream methodStream(requestLine);
+
 	std::getline(methodStream, method, ' ');
+    // check method is valid
+
 	std::getline(methodStream, path, ' ');
+
+    std::getline(methodStream, httpVersion);
+
 	path.erase(0, 1);
+    if (path.empty()) {
+        
+    }
+
+    this->connection = getValue("Connection:");
 }
 
-std::string Request::getValue( std::string key ) {
+std::string Request::getValue( std::string const & key ) const {
 
     std::string line;
     std::istringstream recbuffStream(recString);
