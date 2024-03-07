@@ -15,8 +15,11 @@
 #include "../response/Response.hpp"
 #include "../request/Request.hpp"
 #include "../config/Server.hpp"
+#include "../config/Config.hpp"
 
 #include <ctime>
+
+class Server;
 
 class Client {
 
@@ -24,8 +27,10 @@ class Client {
         int sockfd;
         std::time_t timeout;
         Conf::Server server;
+        Config config;
         Request request;
         Response response;
+        bool endRecHeader;
 
 
     public:
@@ -37,5 +42,13 @@ class Client {
         void settimeout( std::time_t const &timeout );
         Conf::Server getserver( void ) const;
         void setserver( Conf::Server const &server );
+        Config getConfig( void );
+        void setConfig( Config config );
+        bool getEndRecHeader( void );
+        void setEndRecHeader( bool endRecHeader );
         // void initrequest( void );
+
+        int recieveRequest( int const &sockfd );
+        void sendresponse( int const &sockfd );
+
 };

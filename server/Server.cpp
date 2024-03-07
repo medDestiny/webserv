@@ -190,8 +190,10 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
             std::cout << MAGENTA << "\t-> add more clients" << RESET << std::endl;
             clients[sockfd] = client;
             std::map<int, Client>::iterator clientit = clients.find( sockfd );
-            if ( clientit != clients.end() )
+            if ( clientit != clients.end() ) {
                 clientit->second.setserver( server );
+                clientit->second.setConfig( config );
+            }
         }
     }
 }
@@ -240,6 +242,7 @@ void Server::pollwithtimeout( void ) {
 void Server::mainpoll( void ) {
 
     std::map<int, Conf::Server>::iterator it;
+    std::map<int, Client>::iterator itClient;
     
     this->pollwithtimeout();
     for ( size_t i = 0; i < pfds.size(); i++ ) {
@@ -253,6 +256,10 @@ void Server::mainpoll( void ) {
             } else {
 
                 // POLLIN revent int the clients side
+                itClient = clients.find( pfds[i].fd );
+                if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
+                    pfds[i].revents = POLLOUT;
+                }
             }
         } else if ( pfds[i].revents == POLLOUT ) {
 

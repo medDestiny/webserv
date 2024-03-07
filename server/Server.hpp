@@ -41,6 +41,8 @@
 #define BACKLOG 128
 #define TIMEOUT 2000
 
+class Client;
+
 class Server {
 
     private:
@@ -62,7 +64,6 @@ class Server {
         std::vector<Conf::Server> servers;
         std::map<int, Client> clients;
         std::map<int, Conf::Server> serverfds;
-
 
 
         // socket methods

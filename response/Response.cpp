@@ -15,6 +15,7 @@
 Response::Response( void ) {
 
     this->receivedcontent = 0;
+    this->statusCode = 200;
 }
 
 Response::~Response( void ) { }
@@ -27,4 +28,13 @@ int Response::getreceivedcontent( void ) const {
 void Response::setreceivedcontent( int const &receivedcontent ) {
 
     this->receivedcontent = receivedcontent;
+}
+
+void Response::setStausCode( int statusCode ) {
+
+    this->statusCode = statusCode;
+}
+int Response::getStatusCode( void ) {
+
+    return (this->statusCode);
 }

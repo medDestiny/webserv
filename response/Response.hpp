@@ -38,10 +38,13 @@ class Response {
 
     private:
         int receivedcontent;
+        int statusCode;
 
     public:
         Response( void );
         ~Response( void );
         int getreceivedcontent( void ) const;
         void setreceivedcontent( int const &receivedcontent );
+        void setStausCode( int statusCode );
+        int getStatusCode( void );
 };
