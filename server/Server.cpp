@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:53:37 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/07 10:47:05 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,21 +45,21 @@ int Server::createsocket( int &listener ) {
     listener = socket( newinfo->ai_family, newinfo->ai_socktype, newinfo->ai_protocol );
     if ( listener == -1 ) {
 
-        perror( "socket" );
+        std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
         return -1;
     }
     printvalidoption( "socket" );
 
     if ( fcntl( listener, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
-        perror( "fcntl" );
+        std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
         return -1;
     }
     printvalidoption( "fcntl" );
 
     if ( setsockopt( listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof( int ) ) == -1 ) {
 
-        perror( "setsockopt" );
+        std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
         return -1;
     }
     printvalidoption( "setsockopt" );
@@ -78,7 +78,7 @@ void Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator 
         if ( bind( listener, newinfo->ai_addr, newinfo->ai_addrlen ) < 0 ) {
 
             close( listener );
-            perror( "bind" );
+            std::cout << RED << "\t==> ERROR: " << strerror( errno ) << RESET << std::endl;
             continue;
         }
         printvalidoption( "bind" );
@@ -88,13 +88,17 @@ void Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator 
 
     if ( !newinfo ) {
 
-        printinvalidopt( "didn't get bound" );
+        // print the error of not bound address
+        std::string error = strerror( errno );
+        printinvalidopt(    "==> ERROR: " "socket '" + std::to_string( listener ) +
+                            "' didn't get bound with '" + it->getListen().getHost() +
+                            ":" + it->getListen().getPort() + "' because: " + error );
         exit( EXIT_FAILURE );
     }
 
     if ( listen( listener, BACKLOG ) == -1 ) {
 
-        perror( "listen" );
+        std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
         exit( EXIT_FAILURE );
     }
     printvalidoption( "listen" );
@@ -109,7 +113,7 @@ int Server::alreadyboundsock( std::vector<Conf::Server>::iterator const &server 
         std::set<std::pair<std::string, std::string> >::iterator it = donehp.find( search );
         if ( it != donehp.end() ) {
 
-            printinvalidopt( "** seems like this socket already bound " + it->first + ":" + it->second );
+            printinvalidopt( "==> Seems like this address is already bound " + it->first + ":" + it->second );
             std::cout << std::endl;
             return 1;
         }
@@ -202,7 +206,7 @@ int Server::acceptconnections( int const &sockfd, Conf::Server server ) {
 
         if ( errno == ECONNABORTED || errno == EAGAIN ) {
 
-            perror( "accept" );
+            std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
             return -1;
         }
         exit( EXIT_FAILURE );
@@ -210,7 +214,7 @@ int Server::acceptconnections( int const &sockfd, Conf::Server server ) {
 
         if ( fcntl( sockfd, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
-            perror( "fcntl" );
+            std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
             exit( EXIT_FAILURE );
         }
         this->addpollclients( newfd );
@@ -227,7 +231,7 @@ void Server::pollwithtimeout( void ) {
     status = poll( pfds.data(), pfds.size(), TIMEOUT );
     if ( status == -1 ) {
 
-        perror( "poll" );
+        std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
         exit( EXIT_FAILURE );
     } else if ( !status )
         this->checkclienttimeout();

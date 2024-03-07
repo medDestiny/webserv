@@ -19,10 +19,10 @@ server {
 	listen	9090;
 }
 server {
-	listen	4242;
+	listen	9090;
 }
 server {
-	listen	localhost:9090;
+	listen	127.0.0.1;
 	server_name	www.google.com test.net parsing.tzb;
 	error_page	404 /404.html;
 	error_page	4065 /404.html;
@@ -43,7 +43,7 @@ server {
 }
 
 server {
-	listen	localhost;
+	listen	localhost:9050;
 	server_name	www.google.com test.net parsing.tzb;
 	error_page	404 /404.html;
 	error_page	4065 /404.html;
