@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:46:56 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/03 17:40:20 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/07 11:08:31 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,14 +25,20 @@ class	Config
 
 		void	print(void) const;		// for debugging
 
-		void							setAsValid(void);
-		void							addServer(Conf::Server server);
+		/* Useful server lookup utility */
+		Conf::Server							getServer(Conf::Server const & default_server, std::string server_name);
+
+		/* Servers accessors */
+		void									addServer(Conf::Server server);
 		std::vector<Conf::Server> const &		getServers(void) const;
-		bool							isValid(void) const;
+
+		/* Config validity */
+		void									setAsValid(void);
+		bool									isValid(void) const;
 
 	private:
-		bool						_valid;
 		std::vector<Conf::Server>	_servers;
+		bool						_valid;
 };
 
 #endif

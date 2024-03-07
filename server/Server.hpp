@@ -66,7 +66,6 @@ class Server {
         std::map<int, Conf::Server> serverfds;
 
 
-
         // socket methods
         void getInfoaddr( std::string const &host, std::string const &port );
         int createsocket( int &listener );

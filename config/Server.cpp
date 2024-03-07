@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 11:25:29 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/05 21:02:52 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,11 @@ Listen const	&Server::getListen(void) const { return (_listen); }
 
 void				Server::setServerName(ServerName const & server_name) { _server_name = server_name; }
 
-void				Server::addServerName(std::set<std::string> server_names) { _server_name.addHosts(server_names); }
+void				Server::addServerName(std::vector<std::string> server_names) { _server_name.addHosts(server_names); }
 
 ServerName const	&Server::getServerName(void) const { return (_server_name); }
+
+void				Server::setErrorPage(ErrorPage const & error_page) { _error_page = error_page; }
 
 void				Server::addErrorPage(std::pair<std::string, std::string> const & error_page) { _error_page.addErrorPage(error_page); }
 
@@ -48,7 +50,7 @@ AutoIndex const &	Server::getAutoIndex(void) const { return (_autoindex); }
 
 void				Server::setIndex(Index const & index) { _index = index; }
 
-void				Server::addIndex(std::set<std::string> const & index) { _index.addIndexes(index); }
+void				Server::addIndex(std::vector<std::string> const & index) { _index.addIndexes(index); }
 
 Index const &		Server::getIndex(void) const { return (_index); }
 
@@ -59,3 +61,6 @@ UploadStore const &	Server::getUploadPath(void) const { return (_upload_store); 
 void										Server::addLocation(std::pair<std::string, Location> location) { _locations.insert(location); }
 
 std::map<std::string, Location> const &		Server::getLocations(void) const { return (_locations); }
+
+void										Server::setLocations(std::map<std::string, Location> const & locations) {_locations = locations; }
+

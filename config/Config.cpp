@@ -12,6 +12,7 @@
 
 #include "Config.hpp"
 #include "Location.hpp"
+#include <iostream>
 
 using namespace	Conf;
 
@@ -39,6 +40,35 @@ bool	Config::isValid(void) const
 
 void	Config::addServer(Server server)
 {
+	ServerName					server_name = server.getServerName();
+	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		if (server.getListen() == it->getListen())
+		{
+			std::vector<std::string>	hosts = it->getServerName().getHosts();
+			std::vector<std::string>	server_names = server_name.getHosts();
+			std::vector<std::string>::iterator	name;
+			for (std::vector<std::string>::iterator i = hosts.begin(); i != hosts.end(); i++)
+			{
+				name = std::find(server_names.begin(), server_names.end(), *i);
+				if (name != server_names.end())
+				{
+					std::cerr << "[warn] conflicting server name \""
+							  << *i << "\""
+							  << " on "
+							  << it->getListen().getHost() << ":"
+							  << it->getListen().getPort() 
+							  << ", ignored" << std::endl;
+					hosts.erase(i);
+					server_names.erase(name);
+				}
+			}
+			if (server_names.size() == 0)
+				return ;
+			server_name.setHosts(server_names);
+			server.setServerName(server_name);
+		}
+	}
 	_servers.push_back(server);
 }
 
@@ -47,11 +77,26 @@ std::vector<Server> const &	Config::getServers(void) const
 	return (_servers);
 }
 
+Server	Config::getServer(Conf::Server const & default_server, std::string server_name)
+{
+	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		if (it->getListen() == default_server.getListen())
+		{
+			std::vector<std::string>	hosts = it->getServerName().getHosts();
+			if (std::find(hosts.begin(), hosts.end(), server_name) != hosts.end())
+				return (*it);
+		}
+	}
+	return (default_server);
+}
+
 #include<iostream>
 void	Config::print(void) const
 {
-	std::set<std::string>				hosts;
-	std::set<std::string>				indexes;
+	std::set<std::string>				methods;
+	std::vector<std::string>				hosts;
+	std::vector<std::string>				indexes;
 	std::map<std::string, std::string>	errors;
 	std::map<std::string, Location>		locations;
 
@@ -62,7 +107,7 @@ void	Config::print(void) const
 		std::cout << "Port: " << _servers[i].getListen().getPort() << std::endl;
 		std::cout << "Server names: ";
 		hosts = _servers[i].getServerName().getHosts();
-		for (std::set<std::string>::iterator it = hosts.begin(); it != hosts.end(); it++)
+		for (std::vector<std::string>::iterator it = hosts.begin(); it != hosts.end(); it++)
 		{
 			std::cout << *it << " ";
 		}
@@ -79,7 +124,7 @@ void	Config::print(void) const
 		std::cout << "Auto indexing: " << _servers[i].getAutoIndex().getToggle() << std::endl;
 		std::cout << "Indexes: ";
 		indexes = _servers[i].getIndex().getIndexes();
-		for (std::set<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
+		for (std::vector<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
 		{
 			std::cout << *it << " ";
 		}
@@ -103,12 +148,19 @@ void	Config::print(void) const
 			std::cout << "\t\t" << "Auto indexing: " << lo->second.getAutoIndex().getToggle() << std::endl;
 			std::cout << "\t\t" << "Indexes: ";
 			indexes = lo->second.getIndex().getIndexes();
-			for (std::set<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
+			for (std::vector<std::string>::iterator it = indexes.begin(); it != indexes.end(); it++)
 			{
 				std::cout << "\t\t" << *it << " ";
 			}
 			std::cout << std::endl;
 			std::cout << "\t\t" << "Upload Path: " << lo->second.getUploadPath().getPath() << std::endl;
+			methods = lo->second.getLimitExcept().getMethods();
+			std::cout << "\t\tAllowed Methods: ";
+			for (std::set<std::string>::iterator m = methods.begin(); m != methods.end(); m++)
+			{
+				std::cout << "\t\t" << *m << " ";
+			}
+			std::cout << std::endl;
 		}
 	}
 }
