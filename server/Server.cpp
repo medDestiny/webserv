@@ -269,6 +269,8 @@ void Server::mainpoll( void ) {
             } else {
 
                 // POLLOUT revents in the clients side
+                itClient = clients.find( pfds[i].fd );
+                itClient->second.sendresponse( pfds[i].fd );
             }
         } else if ( pfds[i].revents == POLLHUP ) {
 

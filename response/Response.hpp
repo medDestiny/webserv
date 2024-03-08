@@ -34,17 +34,38 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
+class Request;
+
 class Response {
 
     private:
         int receivedcontent;
         int statusCode;
+        int file;
+        bool sendedHeader;
+        bool notFound;
+        size_t contentLength;
 
     public:
         Response( void );
         ~Response( void );
         int getreceivedcontent( void ) const;
-        void setreceivedcontent( int const &receivedcontent );
-        void setStausCode( int statusCode );
-        int getStatusCode( void );
+        void setreceivedcontent( int const & receivedcontent );
+        void setStatusCode( int const & statusCode );
+        int getStatusCode( void ) const;
+        void setSendedHeader( bool const & sendedHeader );
+        bool getSendedHeader( void ) const;
+        void setNotFound( bool const & notFound );
+        bool getNotFound( void ) const;
+        void setContentLength( size_t const & contentLength );
+        size_t getContentLength( void ) const;
+        void setFile( int const & file );
+        int getFile( void ) const;
+
+        void sendHeader( Conf::Server const & server, int const &sockfd, Request const & request);
+        void sendBody( Conf::Server const & server, int const &sockfd, Request const & request);
+        std::string getStatusMessage(int const & statusCode);
+
 };
+
+std::string getMimeType(const std::string& extension);

@@ -69,28 +69,57 @@ void Client::setEndRecHeader( bool endRecHeader ) {
 
 int Client::recieveRequest( int const &sockfd ) {
 
-    // size_t maxSize = server.getClientMaxBodySize().getSize();
     char recievebuff[SIZE];
     int recieved = recv( sockfd, recievebuff, SIZE, 0 );
     if ( recieved <= 0 ) {
 
         if ( recieved == 0 ) {
+            if (this->request.getHeader().empty())
+                this->response.setStatusCode( 400 );
+            else {
+                this->request.setRequestBody();
+            }
             return (0); // end recieve request
         }
-        this->response.setStausCode( 500 );
+        this->response.setStatusCode( 500 );
         return (0); // error
     }
     else {
 
         recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
-        if (this->request.setRequestHeader()) {
-            this->request.parseRequestHeader( this->server );
+        if (!this->endRecHeader) {
+            if (this->request.setRequestHeader()) {
+                this->request.parseRequestHeader( this->server, this->response );
+                this->endRecHeader = true;
+                if (this->response.getStatusCode() >= 400)
+                    return (0); // error
+            }
         }
-        // if (this->request.getRequestBodySize() > maxSize) {
-        //     this->response.setStausCode( 413 );
-        //     return (0); // error
-        // }
+        else {
+            size_t maxSize = server.getClientMaxBodySize().getSize();
+            if (this->request.getRequestBodySize() > maxSize) {
+                this->response.setStatusCode( 413 );
+                return (0); // error
+            }
+        }
     }
     return (1); // still read request
+}
+
+void Client::sendresponse( int const &sockfd ) {
+
+    if (this->request.getMethod() == "GET") {
+        if (this->response.getStatusCode() >= 400) {
+            this->response.sendError();
+        }
+        else {
+            if (this->response.getSendedHeader()) {
+                this->response.sendBody( this->server, sockfd, this->request );
+            }
+            else {
+                this->response.sendHeader( this->server, sockfd, this->request );
+            }
+        }
+    }
 }

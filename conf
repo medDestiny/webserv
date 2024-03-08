@@ -1,39 +1,39 @@
 
-#server {server_name test;
-#	listen	localhost:90;
-#	listen	localhost:90;
-#	server_name	www.google.com test.net parsing.tzb;
-#	error_page	404 /404.html;
-#	error_page	406 403 /404.html;
-#	server_name	server.wa7d.a5or;
-#	client_max_body_size	100k;
-#	client_max_body_size	001k;
-#	server_name	server.wa7d.a5or;
-#
-#	return 303 /test;
-#	root	/var/www/html;
-#	autoindex	off;
-#	index	index.php index.html;
-#	index	maindexmatal3ba.hh;
-#	index	maindexmatal3ba.hh;
-#	upload_store	/html;
-#
-#	location /test {
-#		root /test;
-#		index tst.test;
-#	}
-#	location /test2 {
-#		root /test2;
-#		index tst.test2;
-#	autoindex	off;
-#	upload_store	/uploads;
-#	upload_store	/upload;
-#	limit_except GET	POST;
-#	limit_except POST;
-#	}
-#	autoindex	on;
-#
-#}
+server {server_name test;
+	listen	localhost:90;
+	listen	localhost:90;
+	server_name	www.google.com test.net parsing.tzb;
+	error_page	404 /404.html;
+	error_page	406 403 /404.html;
+	server_name	server.wa7d.a5or;
+	client_max_body_size	100k;
+	client_max_body_size	001k;
+	server_name	server.wa7d.a5or;
+
+	return 303 /test;
+	root	/var/www/html;
+	autoindex	off;
+	index	index.php index.html;
+	index	maindexmatal3ba.hh;
+	index	maindexmatal3ba.hh;
+	upload_store	/html;
+
+	location /test {
+		root /test;
+		index tst.test;
+	}
+	location /test2 {
+		root /test2;
+		index tst.test2;
+	autoindex	off;
+	upload_store	/uploads;
+	upload_store	/upload;
+	limit_except GET	POST;
+	limit_except POST;
+	}
+	autoindex	on;
+
+}
 
 server {
 	server_name l p o;

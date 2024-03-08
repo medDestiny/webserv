@@ -9,7 +9,9 @@ SRC= config/Config.cpp \
 	 main.cpp \
 	 server/Server.cpp \
 	 client/Client.cpp \
+	 client/Tools.cpp \
 	 response/Response.cpp \
+	 response/MimeType.cpp \
 	 request/Request.cpp
 
 C= c++

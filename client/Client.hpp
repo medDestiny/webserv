@@ -52,3 +52,7 @@ class Client {
         void sendresponse( int const &sockfd );
 
 };
+
+size_t stringToInt(const std::string& str);
+std::string intToString(size_t num);
+size_t get_size_fd(std::string fileD);
