@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/07 10:58:06 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/08 11:54:10 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Config.hpp"
 #include "Token.hpp"
 #include "Location.hpp"
+#include "../server/Colors.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -581,7 +582,7 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 			}
 			catch (Parser::Error & e)
 			{
-				std::cerr << e.what() << std::endl;
+				std::cerr << RED << e.what() << RESET << std::endl;
 				return (false);
 			}
 		}

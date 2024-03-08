@@ -35,17 +35,17 @@
 #
 #}
 
-server {
-	server_name l p o;
-	server_name z;
-	server_name n;
-	root /;
+#server {
+#	server_name	o;
+#	server_name	l;
+#	listen	localhost;
+#}
+
+server{ 
+	server_name	l o listen	localhost;
+	index listen localhost;
 }
-
-server {
-	server_name z l;
-	server_name l;
-	#server_name l p o z n;
-
-	location / {}
+server{ 
+	server_name	l
+	index listen localhost server;
 }
