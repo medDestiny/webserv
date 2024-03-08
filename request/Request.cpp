@@ -167,9 +167,9 @@ void Request::parseRequestHeader( Conf::Server & server, Response & response ) {
     std::string requestLine;
 	std::istringstream recbuffStream(recString);
 
+    std::string host = getValue("host:");
     /*   get server !!!!!!!!   */
 
-    std::string host = getValue("host:");
     //get request line "GET / HTTP/1.1"
 	std::getline(recbuffStream, requestLine);
 
@@ -182,13 +182,16 @@ void Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 	std::getline(methodStream, this->path, ' ');
 
     std::getline(methodStream, this->httpVersion);
-    // check httpVersion
+    if (this->httpVersion != "HTTP/1.1") {
+        response.setStatusCode( 505 );
+        this->httpVersion = "HTTP/1.1";
+    }
 
 	this->path.erase(0, 1);
     if (path.empty()) {
         path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
         if (path.empty()) {
-            response.setStatusCode( 404 );
+            
             // set Path Error !!!!!!!
         }
         // set Path Index !!!!!!!

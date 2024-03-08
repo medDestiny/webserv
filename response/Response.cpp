@@ -18,7 +18,7 @@ Response::Response( void ) {
     this->receivedcontent = 0;
     this->statusCode = 200;
     this->sendedHeader = false;
-    this->notFound = false;
+    this->displayError = false;
     this->file = -2;
     this->countBytesRead = 0;
     this->contentResponse = 0;
@@ -54,13 +54,13 @@ bool Response::getSendedHeader( void ) const {
     return (this->sendedHeader);
 }
 
-void Response::setNotFound( bool const & notFound ) {
+void Response::setDisplayError( bool const & displayError ) {
 
-    this->notFound = notFound;
+    this->displayError = displayError;
 }
-bool Response::getNotFound( void ) const {
+bool Response::getDisplayError( void ) const {
 
-    return (this->notFound);
+    return (this->displayError);
 }
 
 void Response::setContentLength( size_t const & contentLength ) {
@@ -119,23 +119,28 @@ std::string Response::getStatusMessage(int const & statusCode) {
     }
 }
 
-size_t Response::sendHeader( int const &sockfd, Request const & request ) {
+ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
-    // ---------type && mime type-------- //
+    std::string statusLine;
     std::string type = request.getPath().substr(request.getPath().rfind('.') + 1);
     std::string mimeType = getMimeType(type);
+    if (this->statusCode == 200) {
+        if (mimeType == "Unknown MIME type") {
+            this->statusCode = 415;
+        }
 
     // ----------status line----------- //
-    std::string statusLine;
-    if (access(request.getPath().c_str(), F_OK) == -1) {
-        this->statusCode = 404 ;
-        this->notFound = true;
+        if (access(request.getPath().c_str(), F_OK) == -1) {
+            this->statusCode = 404 ;
+        }
+        else if (!request.getRangeStart().empty()) {
+                this->statusCode = 206;
+        }
     }
-    else {
-        this->statusCode = 200;
-        if (!request.getRangeStart().empty())
-            this->statusCode = 206;
-    }
+    else if (this->statusCode >= 400)
+        mimeType = "text/html";
+    if (this->statusCode >= 400)
+        this->displayError = true;
 
     statusLine = request.getHttpVersion() + " " + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
@@ -155,12 +160,12 @@ size_t Response::sendHeader( int const &sockfd, Request const & request ) {
     headerResponse += "\r\nConnection: " + request.getConnection();
     headerResponse += "\r\n\r\n";
 
-    size_t sended;
+    ssize_t sended;
     sended = send( sockfd, ( headerResponse.c_str() ), headerResponse.length(), 0 );
     return (sended);
 }
 
-size_t Response::sendBody( int const &sockfd, Request const & request ) {
+ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
     // -----------open file---------- //
     if (this->file == -2) {
@@ -173,7 +178,7 @@ size_t Response::sendBody( int const &sockfd, Request const & request ) {
 
     char buffer[SEND];
     char bufferS[1000000];
-    size_t sended;
+    ssize_t sended;
 
     // --------seek the file-------- //
     if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {

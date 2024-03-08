@@ -110,24 +110,29 @@ int Client::recieveRequest( int const &sockfd ) {
 int Client::sendresponse( int const &sockfd ) {
 
     if (this->request.getMethod() == "GET") {
-        if (this->response.getSendedHeader()) {
-            size_t sended = this->response.sendBody( sockfd, this->request );
-            if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-                perror( "send" );
-                std::cout << "aaach had zmar : " << sockfd << std::endl;
-                return (0);
-            }
+        if (response.getDisplayError()) {
+            
         }
         else {
-            size_t sended = this->response.sendHeader( sockfd, this->request );
-            if ( (int)sended == -1 || response.getNotFound()) {
-
-                perror( "send" );
-                std::cout << "aaach had zmar : " << sockfd << std::endl;
-                return (0);
+            if (this->response.getSendedHeader()) {
+                ssize_t sended = this->response.sendBody( sockfd, this->request );
+                if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+                    perror( "send" );
+                    std::cout << "aaach had zmar : " << sockfd << std::endl;
+                    return (0);
+                }
             }
-            else
-                response.setSendedHeader( true );
+            else {
+                ssize_t sended = this->response.sendHeader( sockfd, this->request );
+                if ( (int)sended == -1) {
+
+                    perror( "send" );
+                    std::cout << "aaach had zmar : " << sockfd << std::endl;
+                    return (0);
+                }
+                else
+                    response.setSendedHeader( true );
+            }
         }
     }
     return (1);

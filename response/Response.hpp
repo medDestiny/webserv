@@ -45,7 +45,7 @@ class Response {
         int statusCode;
         int file;
         bool sendedHeader;
-        bool notFound;
+        bool displayError;
         size_t contentLength;
         size_t countBytesRead;
         size_t contentResponse;
@@ -59,8 +59,8 @@ class Response {
         int getStatusCode( void ) const;
         void setSendedHeader( bool const & sendedHeader );
         bool getSendedHeader( void ) const;
-        void setNotFound( bool const & notFound );
-        bool getNotFound( void ) const;
+        void setDisplayError( bool const & displayError );
+        bool getDisplayError( void ) const;
         void setContentLength( size_t const & contentLength );
         size_t getContentLength( void ) const;
         void setCountBytesRead( size_t const & countBytesRead );
@@ -70,8 +70,8 @@ class Response {
         void setFile( int const & file );
         int getFile( void ) const;
 
-        size_t sendHeader( int const &sockfd, Request const & request);
-        size_t sendBody( int const &sockfd, Request const & request);
+        ssize_t sendHeader( int const &sockfd, Request const & request);
+        ssize_t sendBody( int const &sockfd, Request const & request);
         std::string getStatusMessage(int const & statusCode);
 
 };
