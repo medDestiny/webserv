@@ -34,6 +34,8 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
+#define SEND 1024
+
 class Request;
 
 class Response {
@@ -45,6 +47,8 @@ class Response {
         bool sendedHeader;
         bool notFound;
         size_t contentLength;
+        size_t countBytesRead;
+        size_t contentResponse;
 
     public:
         Response( void );
@@ -59,11 +63,15 @@ class Response {
         bool getNotFound( void ) const;
         void setContentLength( size_t const & contentLength );
         size_t getContentLength( void ) const;
+        void setCountBytesRead( size_t const & countBytesRead );
+        size_t getCountBytesRead( void ) const;
+        void setContentResponse( size_t const & contentResponse );
+        size_t getContentResponse( void ) const;
         void setFile( int const & file );
         int getFile( void ) const;
 
-        void sendHeader( Conf::Server const & server, int const &sockfd, Request const & request);
-        void sendBody( Conf::Server const & server, int const &sockfd, Request const & request);
+        size_t sendHeader( int const &sockfd, Request const & request);
+        size_t sendBody( int const &sockfd, Request const & request);
         std::string getStatusMessage(int const & statusCode);
 
 };

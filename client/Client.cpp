@@ -107,19 +107,28 @@ int Client::recieveRequest( int const &sockfd ) {
     return (1); // still read request
 }
 
-void Client::sendresponse( int const &sockfd ) {
+int Client::sendresponse( int const &sockfd ) {
 
     if (this->request.getMethod() == "GET") {
-        if (this->response.getStatusCode() >= 400) {
-            this->response.sendError();
+        if (this->response.getSendedHeader()) {
+            size_t sended = this->response.sendBody( sockfd, this->request );
+            if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+                perror( "send" );
+                std::cout << "aaach had zmar : " << sockfd << std::endl;
+                return (0);
+            }
         }
         else {
-            if (this->response.getSendedHeader()) {
-                this->response.sendBody( this->server, sockfd, this->request );
+            size_t sended = this->response.sendHeader( sockfd, this->request );
+            if ( (int)sended == -1 || response.getNotFound()) {
+
+                perror( "send" );
+                std::cout << "aaach had zmar : " << sockfd << std::endl;
+                return (0);
             }
-            else {
-                this->response.sendHeader( this->server, sockfd, this->request );
-            }
+            else
+                response.setSendedHeader( true );
         }
     }
+    return (1);
 }

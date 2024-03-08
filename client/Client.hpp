@@ -49,7 +49,7 @@ class Client {
         // void initrequest( void );
 
         int recieveRequest( int const &sockfd );
-        void sendresponse( int const &sockfd );
+        int sendresponse( int const &sockfd );
 
 };
 

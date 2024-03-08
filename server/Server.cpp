@@ -270,7 +270,10 @@ void Server::mainpoll( void ) {
 
                 // POLLOUT revents in the clients side
                 itClient = clients.find( pfds[i].fd );
-                itClient->second.sendresponse( pfds[i].fd );
+                if ( !itClient->second.sendresponse( pfds[i].fd ) ) {
+                    this->removeclient( pfds[i].fd );
+                    this->removepollclient( i );
+                };
             }
         } else if ( pfds[i].revents == POLLHUP ) {
 
