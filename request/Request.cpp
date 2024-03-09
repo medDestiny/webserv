@@ -161,7 +161,7 @@ void Request::setRequestBody( void ) {
     // std::cout << "body request: " << this->body << std::endl;
 }
 
-void Request::parseRequestHeader( Conf::Server & server, Response & response ) {
+int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 
 	(void)server;
     std::string requestLine;
@@ -177,6 +177,8 @@ void Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 	std::istringstream methodStream(requestLine);
 
 	std::getline(methodStream, this->method, ' ');
+    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
+        return (0);
     // check method is valid !!!!!!
 
 	std::getline(methodStream, this->path, ' ');
@@ -184,17 +186,28 @@ void Request::parseRequestHeader( Conf::Server & server, Response & response ) {
     std::getline(methodStream, this->httpVersion);
     if (this->httpVersion != "HTTP/1.1") {
         response.setStatusCode( 505 );
-        this->httpVersion = "HTTP/1.1";
+        return (0);
     }
 
 	this->path.erase(0, 1);
     if (path.empty()) {
         path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
         if (path.empty()) {
-            
-            // set Path Error !!!!!!!
+            if (!server.getAutoIndex().getToggle()) {
+                response.setStatusCode( 403 );
+                return (0);
+            }
+            else {
+                response.setAutoIndexing( true );
+            }
         }
-        // set Path Index !!!!!!!
+    }
+    else {
+        this->path = server.getRoot().getPath() + this->path;
+        if (access(this->path.c_str(), F_OK) == -1) {
+            response.setStatusCode( 404 );
+            return (0);
+        }
     }
 
     this->connection = getValue("Connection:");
@@ -218,6 +231,7 @@ void Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 			break;
 		}
 	}
+    return (1);
 }
 
 std::string Request::getValue( std::string const & key ) const {

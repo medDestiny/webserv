@@ -45,7 +45,7 @@ server {
 server {
 	server_name z l;
 	server_name l;
-	#server_name l p o z n;
+	server_name l p o z n;
 
 	location / {}
 }

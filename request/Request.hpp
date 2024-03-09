@@ -88,7 +88,7 @@ class Request {
 
         size_t getRequestBodySize( void ) const;
         int setRequestHeader( void );
-        void parseRequestHeader( Conf::Server & server, Response & response );
+        int parseRequestHeader( Conf::Server & server, Response & response );
         void setRequestBody( void );
         std::string getValue( std::string const & key ) const;
         std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;

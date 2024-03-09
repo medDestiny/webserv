@@ -12,6 +12,7 @@
 
 #include "Response.hpp"
 #include "../request/Request.hpp"
+#include "../client/Client.hpp"
 
 Response::Response( void ) {
 
@@ -19,6 +20,7 @@ Response::Response( void ) {
     this->statusCode = 200;
     this->sendedHeader = false;
     this->displayError = false;
+    this->autoIndexing = false;
     this->file = -2;
     this->countBytesRead = 0;
     this->contentResponse = 0;
@@ -99,11 +101,21 @@ size_t Response::getContentResponse( void ) const {
     return (this->contentResponse);
 }
 
+void Response::setAutoIndexing( bool const & autoIndexing ) {
+
+    this->autoIndexing = autoIndexing;
+}
+bool Response::getAutoIndexing( void ) const {
+
+    return (this->autoIndexing);
+}
+
 std::string Response::getStatusMessage(int const & statusCode) {
     std::map<int, std::string> statusMessages;
     statusMessages[200] = "OK";
     statusMessages[206] = "Partial Content";
     statusMessages[400] = "Bad Request";
+    statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";
     statusMessages[413] = "Payload Too Large";
     statusMessages[415] = "Unsupported Media Type";
@@ -124,23 +136,11 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     std::string statusLine;
     std::string type = request.getPath().substr(request.getPath().rfind('.') + 1);
     std::string mimeType = getMimeType(type);
-    if (this->statusCode == 200) {
-        if (mimeType == "Unknown MIME type") {
-            this->statusCode = 415;
-        }
 
     // ----------status line----------- //
-        if (access(request.getPath().c_str(), F_OK) == -1) {
-            this->statusCode = 404 ;
-        }
-        else if (!request.getRangeStart().empty()) {
+        if (!request.getRangeStart().empty()) {
                 this->statusCode = 206;
         }
-    }
-    else if (this->statusCode >= 400)
-        mimeType = "text/html";
-    if (this->statusCode >= 400)
-        this->displayError = true;
 
     statusLine = request.getHttpVersion() + " " + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
@@ -199,3 +199,63 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
     }
     return (1);
 }
+
+std::string Response::getErrorPage(std::map<std::string, std::string> ErrorPages) {
+
+    std::map<std::string, std::string>::iterator it = ErrorPages.find(std::to_string(this->statusCode));
+    if (it != ErrorPages.end())
+        return (it->second);
+    else
+        return ("");
+}
+
+void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
+
+    std::string header;
+    std::string message;
+    std::string body;
+
+    std::string errorPage = getErrorPage(server.getErrorPage().getErrorPages());
+    if (!errorPage.empty()) {
+        errorPage = server.getRoot().getPath() + errorPage;
+        if (access(errorPage.c_str(), F_OK) == -1) {
+            errorPage = "";
+        }
+    }
+
+    if (errorPage.empty()) {
+        body += "<!DOCTYPE html>\n";
+        body += "<html>\n";
+        body += "<head><title>" + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title></head>\n";
+        body += "<body>\n";
+        body += "<center><h1>" + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</h1></center>\n";
+        body += "</body>\n";
+        body += "</html>";
+    }
+    else {
+        std::istringstream errorStream(errorPage);
+        std::string tmp;
+        while (std::getline( errorStream, tmp)) {
+            body += tmp;
+            body += '\n';
+        }
+    }
+
+    header = "HTTP/1.1" + std::to_string(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
+    header += "Content-Type: text/html\r\n";
+    header += "Content-Length: ";
+    if (errorPage.empty())
+        header += std::to_string(body.length());
+    else
+        header += std::to_string( get_size_fd(errorPage) );
+    header += "\r\nConnection: close\r\n\r\n";
+
+    message = header + body;
+    send( sockfd, message.c_str(), message.length(), 0);
+
+}
+
+// void displayAutoIndex( Conf::Server & server, int const &sockfd ) {
+
+
+// }

@@ -90,10 +90,9 @@ int Client::recieveRequest( int const &sockfd ) {
         this->request.setRecString( std::string(recievebuff, recieved) );
         if (!this->endRecHeader) {
             if (this->request.setRequestHeader()) {
-                this->request.parseRequestHeader( this->server, this->response );
-                this->endRecHeader = true;
-                if (this->response.getStatusCode() >= 400)
+                if ( !this->request.parseRequestHeader( this->server, this->response ))
                     return (0); // error
+                this->endRecHeader = true;
             }
         }
         else {
@@ -109,30 +108,28 @@ int Client::recieveRequest( int const &sockfd ) {
 
 int Client::sendresponse( int const &sockfd ) {
 
+    if (response.getStatusCode() >= 400) {
+        response.displayErrorPage(this->server, sockfd);
+        return (0);
+    }
+    if (response.getAutoIndexing()) {
+        ////////////////
+    }
     if (this->request.getMethod() == "GET") {
-        if (response.getDisplayError()) {
-            
+        
+        if (this->response.getSendedHeader()) {
+            ssize_t sended = this->response.sendBody( sockfd, this->request );
+            if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+                return (0);
+            }
         }
         else {
-            if (this->response.getSendedHeader()) {
-                ssize_t sended = this->response.sendBody( sockfd, this->request );
-                if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-                    perror( "send" );
-                    std::cout << "aaach had zmar : " << sockfd << std::endl;
-                    return (0);
-                }
+            ssize_t sended = this->response.sendHeader( sockfd, this->request );
+            if ( (int)sended == -1) {
+                return (0);
             }
-            else {
-                ssize_t sended = this->response.sendHeader( sockfd, this->request );
-                if ( (int)sended == -1) {
-
-                    perror( "send" );
-                    std::cout << "aaach had zmar : " << sockfd << std::endl;
-                    return (0);
-                }
-                else
-                    response.setSendedHeader( true );
-            }
+            else
+                response.setSendedHeader( true );
         }
     }
     return (1);

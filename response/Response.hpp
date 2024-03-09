@@ -46,6 +46,7 @@ class Response {
         int file;
         bool sendedHeader;
         bool displayError;
+        bool autoIndexing;
         size_t contentLength;
         size_t countBytesRead;
         size_t contentResponse;
@@ -61,6 +62,8 @@ class Response {
         bool getSendedHeader( void ) const;
         void setDisplayError( bool const & displayError );
         bool getDisplayError( void ) const;
+        void setAutoIndexing( bool const & autoIndexing );
+        bool getAutoIndexing( void ) const;
         void setContentLength( size_t const & contentLength );
         size_t getContentLength( void ) const;
         void setCountBytesRead( size_t const & countBytesRead );
@@ -73,6 +76,9 @@ class Response {
         ssize_t sendHeader( int const &sockfd, Request const & request);
         ssize_t sendBody( int const &sockfd, Request const & request);
         std::string getStatusMessage(int const & statusCode);
+        void displayErrorPage( Conf::Server & server, int const &sockfd );
+        void displayAutoIndex( Conf::Server & server, int const &sockfd );
+        std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
 
 };
 
