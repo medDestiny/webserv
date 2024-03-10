@@ -183,7 +183,7 @@ int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 
 	std::getline(methodStream, this->path, ' ');
 
-    std::getline(methodStream, this->httpVersion);
+    std::getline(methodStream, this->httpVersion, '\r');
     if (this->httpVersion != "HTTP/1.1") {
         response.setStatusCode( 505 );
         return (0);
@@ -192,7 +192,9 @@ int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 	this->path.erase(0, 1);
     if (path.empty()) {
         path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
+        // std::cout << "path: " << path << std::endl;
         if (path.empty()) {
+                std::cout << "here: " << server.getAutoIndex().getToggle() << std::endl;
             if (!server.getAutoIndex().getToggle()) {
                 response.setStatusCode( 403 );
                 return (0);
@@ -203,7 +205,8 @@ int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
         }
     }
     else {
-        this->path = server.getRoot().getPath() + this->path;
+        this->path = server.getRoot().getPath() + "/" + this->path;
+        // std::cout << "path: " << this->path << std::endl;
         if (access(this->path.c_str(), F_OK) == -1) {
             response.setStatusCode( 404 );
             return (0);
@@ -256,8 +259,8 @@ std::string Request::getIndex( std::vector<std::string> const & indexes, std::st
 
     std::string fullIndex;
     for (int i = 0; i < (int)indexes.size(); i++) {
-        fullIndex = root + indexes[i];
-        if (access(fullIndex.c_str(), F_OK)) {
+        fullIndex = root + "/" + indexes[i];
+        if (!access(fullIndex.c_str(), F_OK)) {
             return (fullIndex);
         }
     }

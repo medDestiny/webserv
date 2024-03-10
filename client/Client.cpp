@@ -116,7 +116,6 @@ int Client::sendresponse( int const &sockfd ) {
         ////////////////
     }
     if (this->request.getMethod() == "GET") {
-        
         if (this->response.getSendedHeader()) {
             ssize_t sended = this->response.sendBody( sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
