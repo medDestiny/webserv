@@ -181,7 +181,7 @@ void	AutoIndex::setToggle(bool toggle) { _toggle = toggle; _is_set = true; }
 bool	AutoIndex::getToggle(void) const { return (_toggle); }
 
 /* Index member functions */
-Index::Index(void) {}
+Index::Index(void) { _index.push_back("index.html"); }
 
 Index::Index(Index const & src) { *this = src; }
 

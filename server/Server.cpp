@@ -258,7 +258,7 @@ void Server::mainpoll( void ) {
                 // POLLIN revent int the clients side
                 itClient = clients.find( pfds[i].fd );
                 if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
-                    pfds[i].revents = POLLOUT;
+                    pfds[i].events = POLLOUT;
                 }
             }
         } else if ( pfds[i].revents == POLLOUT ) {
@@ -267,8 +267,12 @@ void Server::mainpoll( void ) {
 
                 // POLLOUT revent in the server side
             } else {
-
                 // POLLOUT revents in the clients side
+                itClient = clients.find( pfds[i].fd );
+                if ( !itClient->second.sendresponse( pfds[i].fd ) ) {
+                    this->removeclient( pfds[i].fd );
+                    this->removepollclient( i );
+                };
             }
         } else if ( pfds[i].revents == POLLHUP ) {
 
