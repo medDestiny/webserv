@@ -32,5 +32,18 @@ server {server_name test;
 	}
 	autoindex	on;
 
+#server {
+#	server_name	o;
+#	server_name	l;
+#	listen	localhost;
+#}
+
+server{ 
+	server_name	l o listen	localhost;
+	index listen localhost;
+}
+server{ 
+	server_name	l
+	index listen localhost server;
 }
 
