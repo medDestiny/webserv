@@ -10,9 +10,9 @@ server {server_name test;
 	server_name	server.wa7d.a5or;
 
 	return 303 /test;
-	root	/var/www/html;
+	root	/Users/amoukhle/Desktop/server;
 	autoindex	off;
-	index	index.php index.html;
+	index	var.html;
 	index	maindexmatal3ba.hh;
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
@@ -31,12 +31,13 @@ server {server_name test;
 	limit_except POST;
 	}
 	autoindex	on;
+}
 
-#server {
-#	server_name	o;
-#	server_name	l;
-#	listen	localhost;
-#}
+server {
+	server_name	o;
+	server_name	l;
+	listen	localhost;
+}
 
 server{ 
 	server_name	l o listen	localhost;

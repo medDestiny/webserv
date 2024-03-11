@@ -110,6 +110,23 @@ bool Response::getAutoIndexing( void ) const {
     return (this->autoIndexing);
 }
 
+std::string Response::getType( void ) const {
+
+    return (this->type);
+}
+void Response::setType( std::string const & type ) {
+
+    this->type = type;
+}
+std::string Response::getMimeType( void ) const {
+
+    return (this->mimeType);
+}
+void Response::setMimeType( std::string const & mimetype ){
+
+    this->mimeType = mimetype;
+}
+
 std::string Response::getStatusMessage(int const & statusCode) {
     std::map<int, std::string> statusMessages;
     statusMessages[200] = "OK";
@@ -134,26 +151,24 @@ std::string Response::getStatusMessage(int const & statusCode) {
 ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
     std::string statusLine;
-    std::string type = request.getPath().substr(request.getPath().rfind('.') + 1);
-    std::string mimeType = getMimeType(type);
 
     // ----------status line----------- //
         if (!request.getRangeStart().empty()) {
                 this->statusCode = 206;
         }
 
-    statusLine = request.getHttpVersion() + " " + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode);
+    statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
     std::string headerResponse;
-    headerResponse = statusLine + "\r\nContent-Type: " + mimeType + "\r\nContent-Length: ";
+    headerResponse = statusLine + "\r\nContent-Type: " + this->mimeType + "\r\nContent-Length: ";
     if (!request.getRangeStart().empty()) {
-        headerResponse += std::to_string( request.getRangeEndNum() - request.getRangeStartNum() + 1 ) + "\r\nAccept-Ranges: bytes";
-        headerResponse += "\r\nContent-Range: bytes " + request.getRangeStart() + "-" + request.getRangeEnd() + "/" + std::to_string( this->contentLength );
+        headerResponse += intToString( request.getRangeEndNum() - request.getRangeStartNum() + 1 ) + "\r\nAccept-Ranges: bytes";
+        headerResponse += "\r\nContent-Range: bytes " + request.getRangeStart() + "-" + request.getRangeEnd() + "/" + intToString( this->contentLength );
         this->contentLength = request.getRangeEndNum() - request.getRangeStartNum() + 1;
     }
     else
     {
-        headerResponse += std::to_string( this->contentLength );
+        headerResponse += intToString( this->contentLength );
         if (mimeType.substr(0, mimeType.find('/')) == "video" || mimeType.substr(0, mimeType.find('/')) == "audio")
             headerResponse += "\r\nAccept-Ranges: bytes";
     }
@@ -194,6 +209,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
         std::string message = std::string(buffer, bytesRead);
+        std::cout << "msg len: " << message.length() << " | " << "send:" << SEND << std::endl;
         sended = send( sockfd, ( message.c_str() ), message.length(), 0 );
         return (sended);
     }
@@ -202,7 +218,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
 std::string Response::getErrorPage(std::map<std::string, std::string> ErrorPages) {
 
-    std::map<std::string, std::string>::iterator it = ErrorPages.find(std::to_string(this->statusCode));
+    std::map<std::string, std::string>::iterator it = ErrorPages.find(intToString(this->statusCode));
     if (it != ErrorPages.end())
         return (it->second);
     else
@@ -226,9 +242,9 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
     if (errorPage.empty()) {
         body += "<!DOCTYPE html>\n";
         body += "<html>\n";
-        body += "<head><title>" + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title></head>\n";
+        body += "<head><title>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title></head>\n";
         body += "<body>\n";
-        body += "<center><h1>" + std::to_string(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</h1></center>\n";
+        body += "<center><h1>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</h1></center>\n";
         body += "</body>\n";
         body += "</html>";
     }
@@ -241,13 +257,13 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
         }
     }
 
-    header = "HTTP/1.1" + std::to_string(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
+    header = "HTTP/1.1" + intToString(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: ";
     if (errorPage.empty())
-        header += std::to_string(body.length());
+        header += intToString(body.length());
     else
-        header += std::to_string( get_size_fd(errorPage) );
+        header += intToString( get_size_fd(errorPage) );
     header += "\r\nConnection: close\r\n\r\n";
 
     message = header + body;
@@ -255,7 +271,44 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
 
 }
 
-// void displayAutoIndex( Conf::Server & server, int const &sockfd ) {
+int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Request request ) {
 
+    std::vector<std::string> fileNames;
+    DIR* dir;
+    struct dirent* entry;
+    dir = opendir(server.getRoot().getPath().c_str());
+    if (dir == NULL) {
+        std::cerr << "Error opening directory" << std::endl;
+        this->statusCode = 505;
+        return (0);
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        // if (entry->d_type == DT_REG) { // Check if it's a regular file
+            fileNames.push_back(std::string(entry->d_name));
+        // }
+    }
+    closedir(dir);
+    
+    std::string body;
+    std::string header;
+    std::string message;
 
-// }
+    body += "<html>\n";
+    body += "<head><title>Index of /</title></head>\n";
+    body += "<body>\n";
+    body += "<h1>Index of /</h1><hr><pre><a href=\"../\">../</a>\n";
+    for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
+        body += "<a href=" + *it + ">" + *it + "</a>\n";
+    }
+    body += "</pre><hr></body>\n";
+    body += "</html>";
+
+    header = "HTTP/1.1" + intToString(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
+    header += "Content-Type: text/html\r\n";
+    header += "Content-Length: " + intToString(body.length());
+    header += "\r\nConnection: " + request.getConnection() + "\r\n\r\n";
+
+    message = header + body;
+    send( sockfd, message.c_str(), message.length(), 0);
+    return (1);
+}

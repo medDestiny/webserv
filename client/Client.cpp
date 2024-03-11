@@ -90,8 +90,11 @@ int Client::recieveRequest( int const &sockfd ) {
         this->request.setRecString( std::string(recievebuff, recieved) );
         if (!this->endRecHeader) {
             if (this->request.setRequestHeader()) {
-                if ( !this->request.parseRequestHeader( this->server, this->response ))
+                if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
                     return (0); // error
+                }
+                if (recieved < SEND)
+                    return (0); // end recieve request
                 this->endRecHeader = true;
             }
         }
@@ -108,18 +111,26 @@ int Client::recieveRequest( int const &sockfd ) {
 
 int Client::sendresponse( int const &sockfd ) {
 
+    std::cout << "fd: " << sockfd << std::endl;
     if (response.getStatusCode() >= 400) {
         response.displayErrorPage(this->server, sockfd);
         return (0);
     }
     if (response.getAutoIndexing()) {
-        ////////////////
+        if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
+            response.displayErrorPage(this->server, sockfd);
+            return (0);
+        }
+        return (1);
     }
     if (this->request.getMethod() == "GET") {
         if (this->response.getSendedHeader()) {
             ssize_t sended = this->response.sendBody( sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
                 return (0);
+            }
+            if (response.getContentResponse() == response.getContentLength()) {
+                return (2); // change to PULLIN
             }
         }
         else {
