@@ -24,6 +24,21 @@ int Client::getsockfd( void ) const {
     return this->sockfd;
 }
 
+Client::Client(Client const & src) {
+
+    *this = src;
+}
+Client	&Client::operator=(Client const & obj) {
+
+    if (this != &obj) {
+        this->sockfd = obj.sockfd;
+        this->timeout = obj.timeout;
+        this->server = obj.server;
+        this->config = obj.config;
+    }
+    return (*this);
+}
+
 void Client::setsockfd( int const &sockfd ) {
 
     this->sockfd = sockfd;
@@ -111,7 +126,7 @@ int Client::recieveRequest( int const &sockfd ) {
 
 int Client::sendresponse( int const &sockfd ) {
 
-    std::cout << "fd: " << sockfd << std::endl;
+    // std::cout << "fd: " << sockfd << std::endl;
     if (response.getStatusCode() >= 400) {
         response.displayErrorPage(this->server, sockfd);
         return (0);

@@ -207,7 +207,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
     else {
         this->path = server.getRoot().getPath() + "/" + this->path;
-        std::cout << "path: " << this->path << std::endl;
+        // std::cout << "path: " << this->path << std::endl;
         if (access(this->path.c_str(), F_OK) == -1) {
             response.setStatusCode( 404 );
             return (0);
@@ -221,7 +221,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
 
     this->connection = getValue("Connection:");
-    std::cout << "content-length: " << get_size_fd(this->path) << std::endl;
+    // std::cout << "content-length: " << get_size_fd(this->path) << std::endl;
     response.setContentLength( get_size_fd(this->path) );
 
     //get Range

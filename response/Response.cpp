@@ -209,7 +209,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
         std::string message = std::string(buffer, bytesRead);
-        std::cout << "msg len: " << message.length() << " | " << "send:" << SEND << std::endl;
+        // std::cout << "msg len: " << message.length() << " | " << "send:" << SEND << std::endl;
         sended = send( sockfd, ( message.c_str() ), message.length(), 0 );
         return (sended);
     }
@@ -283,9 +283,7 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
         return (0);
     }
     while ((entry = readdir(dir)) != NULL) {
-        // if (entry->d_type == DT_REG) { // Check if it's a regular file
             fileNames.push_back(std::string(entry->d_name));
-        // }
     }
     closedir(dir);
     
