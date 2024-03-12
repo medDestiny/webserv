@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/12 14:28:19 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/12 18:12:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,7 +305,11 @@ Root	ParseRoot(std::vector<Token> & Tokens)
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
 		/* warning: some additionnal checks on the path validity needed */
-		root.setPath(Tokens.front().content());
+		std::string	path = Tokens.front().content();
+		size_t		slash = path.find_last_not_of('/');
+
+		path = path.substr(0, slash + 1);
+		root.setPath(path);
 		Tokens.erase(Tokens.begin()); // delete root path token
 	}
 	else
