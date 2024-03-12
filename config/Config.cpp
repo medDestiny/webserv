@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/08 11:41:43 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/12 14:32:12 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,7 @@ void	Config::print(void) const
 				std::cout << "\t\t" << *m << " ";
 			}
 			std::cout << std::endl;
+			std::cout << "\t\t" << "Cgi Path: " << lo->second.getCgiPass().getCgi() << std::endl;
 		}
 	}
 }

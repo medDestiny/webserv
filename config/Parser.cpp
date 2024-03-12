@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/08 11:54:10 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/12 14:28:19 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ using namespace	Conf;
 
 Parser::Error::Error(std::string error) throw()
 {
-	_error = "[emerg] " + error;
+	_error = error;
 }
 
 Parser::Error::~Error(void) throw() {}
@@ -32,7 +32,7 @@ Parser::Error::Error(std::string error, std::string token, size_t line) throw()
 {
 	std::stringstream ss;
 	ss << line;
-	_error = "[emerg] " + error + token + " (line: " + ss.str() + ")";
+	_error = error + token + " (line: " + ss.str() + ")";
 }
 
 char const	*Parser::Error::what() const throw()
@@ -431,6 +431,30 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 	return (limit_except);
 }
 
+CgiPass	ParseCgiPass(std::vector<Token> & Tokens)
+{
+	CgiPass	cgi;
+
+	Tokens.erase(Tokens.begin()); // delete cgi_pass token
+
+	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+	{
+		/* warning: some additionnal checks on the path validity needed */
+		cgi.setCgi(Tokens.front().content());
+		Tokens.erase(Tokens.begin()); // delete cgi path token
+	}
+
+	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+		throw Parser::Error("invalid number of arguments in cgi_pass");
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error("missing semicolon at end of directive: cgi_pass");
+
+	return (cgi);
+}
+
 void	fillServerLocations(Server & server)
 {
 	std::map<std::string, Location> locations = server.getLocations();
@@ -494,6 +518,8 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 			location.second.setUploadPath(ParseUploadStore(Tokens));
 		else if (Tokens.front().content() == "limit_except")
 			location.second.setLimitExcept(ParseLimitExcept(Tokens));
+		else if (Tokens.front().content() == "cgi_pass")
+			location.second.setCgiPass(ParseCgiPass(Tokens));
 		else
 			throw Parser::Error("unknown directive in location context: ", Tokens.front().content(), Tokens.front().line());
 	}
@@ -582,7 +608,7 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 			}
 			catch (Parser::Error & e)
 			{
-				std::cerr << RED << e.what() << RESET << std::endl;
+				std::cerr << RED << "[emerg] " << e.what() << RESET << std::endl;
 				return (false);
 			}
 		}

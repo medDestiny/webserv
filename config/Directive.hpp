@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/07 12:17:10 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/12 14:04:23 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,6 +195,21 @@ class	LimitExcept : public Directive
 
 	private:
 		std::set<std::string>	_methods;
+};
+
+class	CgiPass : public Directive 
+{
+	public:
+		CgiPass(void);
+		CgiPass(CgiPass const & src);
+		CgiPass	&operator=(CgiPass const & right);
+		~CgiPass(void);
+
+		std::string const &	getCgi(void) const;
+		void				setCgi(std::string const & cgi);
+
+	private:
+		std::string	_cgi;
 };
 
 #endif
