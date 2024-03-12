@@ -256,7 +256,6 @@ void Server::mainpoll( void ) {
             } else {
 
                 // POLLIN revent int the clients side
-                // std::cout << "fd IN: " << pfds[i].fd << std::endl;
                 itClient = clients.find( pfds[i].fd );
                 itClient->second.settimeout( std::time(NULL) );
                 if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
@@ -270,7 +269,6 @@ void Server::mainpoll( void ) {
                 // POLLOUT revent in the server side
             } else {
                 // POLLOUT revents in the clients side
-                // std::cout << "fd OUT: " << pfds[i].fd << std::endl;
                 int var;
                 itClient = clients.find( pfds[i].fd );
                 itClient->second.settimeout( std::time(NULL) );
@@ -287,7 +285,8 @@ void Server::mainpoll( void ) {
                 }
             }
         } else if ( pfds[i].revents == POLLHUP ) {
-
+            this->removeclient( pfds[i].fd );
+            this->removepollclient( i );
         } else
             this->checkclienttimeout();
     }
