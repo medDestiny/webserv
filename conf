@@ -30,7 +30,13 @@ server {server_name test;
 	limit_except GET	POST;
 	limit_except POST;
 	}
+	location /cgi-bin {
+		cgi_pass .php /usr/bin/php;
+		cgi_pass .py;
+		cgi_pass .out;
+	}
 	autoindex	on;
+
 }
 
 server {
@@ -48,3 +54,6 @@ server{
 	index listen localhost server;
 }
 
+server {
+	root	test;
+}
