@@ -21,6 +21,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <vector>
 #include <set>
 
 #include <unistd.h>
@@ -35,8 +36,11 @@
 
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
+#include "../config/Config.hpp"
 
 #define SIZE 1024
+
+class Response;
 
 class Request {
 
@@ -48,6 +52,12 @@ class Request {
         std::string connection;
         std::string header;
         std::string body;
+        std::string rangeStart;
+        std::string rangeEnd;
+        std::string httpVersion;
+        size_t rangeStartNum;
+        size_t rangeEndNum;
+        std::map<std::string, std::string> linesRequest;
 
     public:
         Request( void );
@@ -66,10 +76,23 @@ class Request {
         void setBody( std::string const & body );
         std::string getConnection( void ) const;
         void setConnection( std::string const & connection );
+        std::string getRangeStart( void ) const;
+        void setRangeStart( std::string const & rangeStart );
+        std::string getRangeEnd( void ) const;
+        void setRangeEnd( std::string const & rangeEnd );
+        size_t getRangeStartNum( void ) const;
+        void setRangeStartNum( size_t const & rangeStartNum );
+        size_t getRangeEndNum( void ) const;
+        void setRangeEndNum( size_t const & rangeEndNum );
+        void setHttpVersion ( std::string const & httpVersion );
+        std::string getHttpVersion( void ) const;
+        std::map<std::string, std::string> const & getLinesRequest( void ) const;
 
-        int getRequestBodySize( void ) const;
-        void parseRequest( void );
+
+        size_t getRequestBodySize( void ) const;
         int setRequestHeader( void );
-        void parseRequestHeader( Conf::Server & server );
+        int parseRequestHeader(Config conf, Conf::Server & server, Response & response );
+        void setRequestBody( void );
         std::string getValue( std::string const & key ) const;
+        std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
 };

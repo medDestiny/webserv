@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/07 10:58:06 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/13 17:03:42 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Config.hpp"
 #include "Token.hpp"
 #include "Location.hpp"
+#include "../server/Colors.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -22,7 +23,7 @@ using namespace	Conf;
 
 Parser::Error::Error(std::string error) throw()
 {
-	_error = "[emerg] " + error;
+	_error = error;
 }
 
 Parser::Error::~Error(void) throw() {}
@@ -31,7 +32,7 @@ Parser::Error::Error(std::string error, std::string token, size_t line) throw()
 {
 	std::stringstream ss;
 	ss << line;
-	_error = "[emerg] " + error + token + " (line: " + ss.str() + ")";
+	_error = error + token + " (line: " + ss.str() + ")";
 }
 
 char const	*Parser::Error::what() const throw()
@@ -304,7 +305,11 @@ Root	ParseRoot(std::vector<Token> & Tokens)
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
 		/* warning: some additionnal checks on the path validity needed */
-		root.setPath(Tokens.front().content());
+		std::string	path = Tokens.front().content();
+		size_t		slash = path.find_last_not_of('/');
+
+		path = path.substr(0, slash + 1);
+		root.setPath(path);
 		Tokens.erase(Tokens.begin()); // delete root path token
 	}
 	else
@@ -430,6 +435,42 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 	return (limit_except);
 }
 
+std::pair<std::string, std::string>	ParseCgiPass(std::vector<Token> & Tokens)
+{
+	std::string extension;
+	std::string cgi;
+
+	Tokens.erase(Tokens.begin()); // delete cgi_pass token
+
+	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+	{
+		/* warning: some additionnal checks on the extension validity needed */
+		extension = Tokens.front().content();
+		if (extension[0] != '.')
+			throw Parser::Error("invalid file extension: ", extension, Tokens.front().line());
+		Tokens.erase(Tokens.begin()); // delete cgi extension token
+	}
+	else
+		throw Parser::Error("invalid number of arguments in cgi_pass");
+
+	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+	{
+		/* warning: some additionnal checks on the path validity needed */
+		cgi = Tokens.front().content();
+		Tokens.erase(Tokens.begin()); // delete cgi path token
+	}
+
+	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+		throw Parser::Error("invalid number of arguments in cgi_pass");
+
+	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
+		Tokens.erase(Tokens.begin()); // delete semicolon
+	else
+		throw Parser::Error("missing semicolon at end of directive: cgi_pass");
+
+	return (std::make_pair(extension, cgi));
+}
+
 void	fillServerLocations(Server & server)
 {
 	std::map<std::string, Location> locations = server.getLocations();
@@ -493,6 +534,8 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 			location.second.setUploadPath(ParseUploadStore(Tokens));
 		else if (Tokens.front().content() == "limit_except")
 			location.second.setLimitExcept(ParseLimitExcept(Tokens));
+		else if (Tokens.front().content() == "cgi_pass")
+			location.second.addCgiPass(ParseCgiPass(Tokens));
 		else
 			throw Parser::Error("unknown directive in location context: ", Tokens.front().content(), Tokens.front().line());
 	}
@@ -581,7 +624,7 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 			}
 			catch (Parser::Error & e)
 			{
-				std::cerr << e.what() << std::endl;
+				std::cerr << RED << "[emerg] " << e.what() << RESET << std::endl;
 				return (false);
 			}
 		}

@@ -6,12 +6,13 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/04 11:48:12 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/13 17:01:03 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 #include "Location.hpp"
+#include "../server/Colors.hpp"
 #include <iostream>
 
 using namespace	Conf;
@@ -53,13 +54,15 @@ void	Config::addServer(Server server)
 				name = std::find(server_names.begin(), server_names.end(), *i);
 				if (name != server_names.end())
 				{
-					std::cerr << "[warn] conflicting server name \""
+					std::cerr << ORANGE
+							  << "[warn] conflicting server name \""
 							  << *i << "\""
 							  << " on "
 							  << it->getListen().getHost() << ":"
 							  << it->getListen().getPort() 
-							  << ", ignored" << std::endl;
-					hosts.erase(i);
+							  << ", ignored" 
+							  << RESET
+							  << std::endl;
 					server_names.erase(name);
 				}
 			}
@@ -99,6 +102,7 @@ void	Config::print(void) const
 	std::vector<std::string>				indexes;
 	std::map<std::string, std::string>	errors;
 	std::map<std::string, Location>		locations;
+	std::map<std::string, std::string>	cgi;
 
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
@@ -161,6 +165,11 @@ void	Config::print(void) const
 				std::cout << "\t\t" << *m << " ";
 			}
 			std::cout << std::endl;
+			cgi = lo->second.getCgiPass().getCgi();
+			for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); it++)
+			{
+				std::cout << "\t\t" << "Cgi ext:" << it->first << " " << "cgi:" << it->second << std::endl;
+			}
 		}
 	}
 }

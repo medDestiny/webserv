@@ -21,6 +21,7 @@
 #include <map>
 #include <set>
 
+#include <dirent.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -34,17 +35,58 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
+#define SEND 1024
+
+class Request;
+
 class Response {
 
     private:
         int receivedcontent;
         int statusCode;
+        int file;
+        bool sendedHeader;
+        bool displayError;
+        bool autoIndexing;
+        size_t contentLength;
+        size_t countBytesRead;
+        size_t contentResponse;
+        std::string type;
+        std::string mimeType;
 
     public:
         Response( void );
         ~Response( void );
         int getreceivedcontent( void ) const;
-        void setreceivedcontent( int const &receivedcontent );
-        void setStausCode( int statusCode );
-        int getStatusCode( void );
+        void setreceivedcontent( int const & receivedcontent );
+        void setStatusCode( int const & statusCode );
+        int getStatusCode( void ) const;
+        void setSendedHeader( bool const & sendedHeader );
+        bool getSendedHeader( void ) const;
+        void setDisplayError( bool const & displayError );
+        bool getDisplayError( void ) const;
+        void setAutoIndexing( bool const & autoIndexing );
+        bool getAutoIndexing( void ) const;
+        void setContentLength( size_t const & contentLength );
+        size_t getContentLength( void ) const;
+        void setCountBytesRead( size_t const & countBytesRead );
+        size_t getCountBytesRead( void ) const;
+        void setContentResponse( size_t const & contentResponse );
+        size_t getContentResponse( void ) const;
+        void setFile( int const & file );
+        int getFile( void ) const;
+        std::string getType( void ) const;
+        void setType( std::string const & type );
+        std::string getMimeType( void ) const;
+        void setMimeType( std::string const & mimetype );
+
+        ssize_t sendHeader( int const &sockfd, Request const & request);
+        ssize_t sendBody( int const &sockfd, Request const & request);
+        std::string getStatusMessage(int const & statusCode);
+        void displayErrorPage( Conf::Server & server, int const &sockfd );
+        int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
+        std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
+
 };
+
+std::string getMimeType(const std::string& extension);

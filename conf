@@ -1,51 +1,59 @@
 
-#server {server_name test;
-#	listen	localhost:90;
-#	listen	localhost:90;
-#	server_name	www.google.com test.net parsing.tzb;
-#	error_page	404 /404.html;
-#	error_page	406 403 /404.html;
-#	server_name	server.wa7d.a5or;
-#	client_max_body_size	100k;
-#	client_max_body_size	001k;
-#	server_name	server.wa7d.a5or;
-#
-#	return 303 /test;
-#	root	/var/www/html;
-#	autoindex	off;
-#	index	index.php index.html;
-#	index	maindexmatal3ba.hh;
-#	index	maindexmatal3ba.hh;
-#	upload_store	/html;
-#
-#	location /test {
-#		root /test;
-#		index tst.test;
-#	}
-#	location /test2 {
-#		root /test2;
-#		index tst.test2;
-#	autoindex	off;
-#	upload_store	/uploads;
-#	upload_store	/upload;
-#	limit_except GET	POST;
-#	limit_except POST;
-#	}
-#	autoindex	on;
-#
-#}
+server {server_name test;
+	listen	localhost:8080;
+	server_name	www.google.com test.net parsing.tzb;
+	error_page	404 /404.html;
+	error_page	406 403 /404.html;
+	server_name	server.wa7d.a5or;
+	client_max_body_size	100k;
+	client_max_body_size	001k;
+	server_name	server.wa7d.a5or;
 
-server {
-	server_name l p o;
-	server_name z;
-	server_name n;
-	root /;
+	return 303 /test;
+	root	/Users/amoukhle/Desktop/server;
+	autoindex	off;
+	index	var.html;
+	index	maindexmatal3ba.hh;
+	index	maindexmatal3ba.hh;
+	upload_store	/html;
+
+	location /test {
+		root /test;
+		index tst.test;
+	}
+	location /test2 {
+		root /test2;
+		index tst.test2;
+	autoindex	off;
+	upload_store	/uploads;
+	upload_store	/upload;
+	limit_except GET	POST;
+	limit_except POST;
+	}
+	location /cgi-bin {
+		cgi_pass .php /usr/bin/php;
+		cgi_pass .py;
+		cgi_pass .out;
+	}
+	autoindex	on;
+
 }
 
 server {
-	server_name z l;
-	server_name l;
-	#server_name l p o z n;
+	server_name	o;
+	server_name	l;
+	listen	localhost;
+}
 
-	location / {}
+server{ 
+	server_name	l o listen	localhost;
+	index listen localhost;
+}
+server{ 
+	server_name	l
+	index listen localhost server;
+}
+
+server {
+	root	test;
 }

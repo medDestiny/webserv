@@ -24,6 +24,21 @@ int Client::getsockfd( void ) const {
     return this->sockfd;
 }
 
+Client::Client(Client const & src) {
+
+    *this = src;
+}
+Client	&Client::operator=(Client const & obj) {
+
+    if (this != &obj) {
+        this->sockfd = obj.sockfd;
+        this->timeout = obj.timeout;
+        this->server = obj.server;
+        this->config = obj.config;
+    }
+    return (*this);
+}
+
 void Client::setsockfd( int const &sockfd ) {
 
     this->sockfd = sockfd;
@@ -69,28 +84,76 @@ void Client::setEndRecHeader( bool endRecHeader ) {
 
 int Client::recieveRequest( int const &sockfd ) {
 
-    // size_t maxSize = server.getClientMaxBodySize().getSize();
     char recievebuff[SIZE];
     int recieved = recv( sockfd, recievebuff, SIZE, 0 );
-    if ( recieved <= 0 ) {
-
-        if ( recieved == 0 ) {
-            return (0); // end recieve request
-        }
-        this->response.setStausCode( 500 );
+    if ( recieved < 0 ) {
+        this->response.setStatusCode( 500 );
         return (0); // error
     }
     else {
 
         recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
-        if (this->request.setRequestHeader()) {
-            this->request.parseRequestHeader( this->server );
+        if (!this->endRecHeader) {
+            if (this->request.setRequestHeader()) {
+                if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
+                    return (0); // error
+                }
+                this->endRecHeader = true;
+                if (recieved < SEND)
+                    return (0); // end recieve request
+            }
+            if (recieved < SEND && this->request.getHeader().empty()) {
+                this->response.setStatusCode( 400 );
+                return (0); // error
+            }
         }
-        // if (this->request.getRequestBodySize() > maxSize) {
-        //     this->response.setStausCode( 413 );
-        //     return (0); // error
-        // }
+        else {
+            size_t maxSize = server.getClientMaxBodySize().getSize();
+            if (this->request.getRequestBodySize() > maxSize) {
+                this->response.setStatusCode( 413 );
+                return (0); // error
+            }
+            if (recieved < SEND) {
+                this->request.setRequestBody();
+            }
+            return (0);
+        }
     }
     return (1); // still read request
+}
+
+int Client::sendresponse( int const &sockfd ) {
+
+    if (response.getStatusCode() >= 400) {
+        response.displayErrorPage(this->server, sockfd);
+        return (0);
+    }
+    if (response.getAutoIndexing()) {
+        if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
+            response.displayErrorPage(this->server, sockfd);
+            return (0);
+        }
+        return (1);
+    }
+    if (this->request.getMethod() == "GET") {
+        if (this->response.getSendedHeader()) {
+            ssize_t sended = this->response.sendBody( sockfd, this->request );
+            if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+                return (0);
+            }
+            if (response.getContentResponse() == response.getContentLength()) {
+                return (2); // change to PULLIN
+            }
+        }
+        else {
+            ssize_t sended = this->response.sendHeader( sockfd, this->request );
+            if ( (int)sended == -1) {
+                return (0);
+            }
+            else
+                response.setSendedHeader( true );
+        }
+    }
+    return (1);
 }

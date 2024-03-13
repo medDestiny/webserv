@@ -36,6 +36,8 @@ class Client {
     public:
         Client( void );
         ~Client( void );
+        Client(Client const & src);
+        Client	&operator=(Client const & obj);
         int getsockfd( void ) const;
         void setsockfd( int const &sockfd );
         std::time_t gettimeout( void ) const;
@@ -46,9 +48,12 @@ class Client {
         void setConfig( Config config );
         bool getEndRecHeader( void );
         void setEndRecHeader( bool endRecHeader );
-        // void initrequest( void );
 
         int recieveRequest( int const &sockfd );
-        void sendresponse( int const &sockfd );
+        int sendresponse( int const &sockfd );
 
 };
+
+size_t stringToInt(const std::string& str);
+std::string intToString(size_t num);
+size_t get_size_fd(std::string fileD);

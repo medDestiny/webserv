@@ -211,13 +211,15 @@ int Server::acceptconnections( int const &sockfd, Conf::Server server ) {
             std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
             return -1;
         }
-        exit( EXIT_FAILURE );
+        std::cout << RED << "accept fail" << RESET << std::endl;
+        return (-1);
     } else {
 
         if ( fcntl( sockfd, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
             std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
-            exit( EXIT_FAILURE );
+            std::cout << RED << "fcntl fail" << RESET << std::endl;
+            return (-1);
         }
         this->addpollclients( newfd );
         this->addclients( newfd, server );
@@ -246,10 +248,8 @@ void Server::mainpoll( void ) {
     
     this->pollwithtimeout();
     for ( size_t i = 0; i < pfds.size(); i++ ) {
-
         it = serverfds.find( pfds[i].fd );
         if ( pfds[i].revents == POLLIN ) {
-
             if ( it != serverfds.end() ) {
                 if ( this->acceptconnections( pfds[i].fd, it->second ) == -1 )
                     continue;
@@ -257,8 +257,9 @@ void Server::mainpoll( void ) {
 
                 // POLLIN revent int the clients side
                 itClient = clients.find( pfds[i].fd );
+                itClient->second.settimeout( std::time(NULL) );
                 if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
-                    pfds[i].revents = POLLOUT;
+                    pfds[i].events = POLLOUT;
                 }
             }
         } else if ( pfds[i].revents == POLLOUT ) {
@@ -267,11 +268,25 @@ void Server::mainpoll( void ) {
 
                 // POLLOUT revent in the server side
             } else {
-
                 // POLLOUT revents in the clients side
+                int var;
+                itClient = clients.find( pfds[i].fd );
+                itClient->second.settimeout( std::time(NULL) );
+                var = itClient->second.sendresponse( pfds[i].fd );
+                if ( !var ) {
+                    this->removeclient( pfds[i].fd );
+                    this->removepollclient( i );
+                }
+                else if (var == 2) {
+                    pfds[i].events = POLLIN;
+                    Client client(itClient->second);
+                    this->removeclient( pfds[i].fd );
+                    clients[pfds[i].fd] = client;
+                }
             }
         } else if ( pfds[i].revents == POLLHUP ) {
-
+            this->removeclient( pfds[i].fd );
+            this->removepollclient( i );
         } else
             this->checkclienttimeout();
     }

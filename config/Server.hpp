@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 17:52:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/07 11:06:01 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/12 16:52:02 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@ namespace	Conf
 	class	Server
 	{
 		public:
+
+			/* Easier access to locations */
+			std::map<std::string, Location>::iterator	getLocation(std::string const & path);
 	
 			/* Accessors to the server directives */
 			void										setListen(Listen const & listen);
