@@ -86,16 +86,7 @@ int Client::recieveRequest( int const &sockfd ) {
 
     char recievebuff[SIZE];
     int recieved = recv( sockfd, recievebuff, SIZE, 0 );
-    if ( recieved <= 0 ) {
-
-        if ( recieved == 0 ) {
-            if (this->request.getHeader().empty())
-                this->response.setStatusCode( 400 );
-            else {
-                this->request.setRequestBody();
-            }
-            return (0); // end recieve request
-        }
+    if ( recieved < 0 ) {
         this->response.setStatusCode( 500 );
         return (0); // error
     }
@@ -108,9 +99,13 @@ int Client::recieveRequest( int const &sockfd ) {
                 if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
                     return (0); // error
                 }
+                this->endRecHeader = true;
                 if (recieved < SEND)
                     return (0); // end recieve request
-                this->endRecHeader = true;
+            }
+            if (recieved < SEND && this->request.getHeader().empty()) {
+                this->response.setStatusCode( 400 );
+                return (0); // error
             }
         }
         else {
@@ -119,6 +114,10 @@ int Client::recieveRequest( int const &sockfd ) {
                 this->response.setStatusCode( 413 );
                 return (0); // error
             }
+            if (recieved < SEND) {
+                this->request.setRequestBody();
+            }
+            return (0);
         }
     }
     return (1); // still read request
@@ -126,7 +125,6 @@ int Client::recieveRequest( int const &sockfd ) {
 
 int Client::sendresponse( int const &sockfd ) {
 
-    // std::cout << "fd: " << sockfd << std::endl;
     if (response.getStatusCode() >= 400) {
         response.displayErrorPage(this->server, sockfd);
         return (0);

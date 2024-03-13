@@ -154,7 +154,7 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
     // ----------status line----------- //
         if (!request.getRangeStart().empty()) {
-                this->statusCode = 206;
+            this->statusCode = 206;
         }
 
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
@@ -279,14 +279,14 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     dir = opendir(server.getRoot().getPath().c_str());
     if (dir == NULL) {
         std::cerr << "Error opening directory" << std::endl;
-        this->statusCode = 505;
+        this->statusCode = 500;
         return (0);
     }
     while ((entry = readdir(dir)) != NULL) {
             fileNames.push_back(std::string(entry->d_name));
     }
     closedir(dir);
-    
+
     std::string body;
     std::string header;
     std::string message;

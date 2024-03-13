@@ -57,6 +57,7 @@ class Request {
         std::string httpVersion;
         size_t rangeStartNum;
         size_t rangeEndNum;
+        std::map<std::string, std::string> linesRequest;
 
     public:
         Request( void );
@@ -85,6 +86,7 @@ class Request {
         void setRangeEndNum( size_t const & rangeEndNum );
         void setHttpVersion ( std::string const & httpVersion );
         std::string getHttpVersion( void ) const;
+        std::map<std::string, std::string> const & getLinesRequest( void ) const;
 
 
         size_t getRequestBodySize( void ) const;
