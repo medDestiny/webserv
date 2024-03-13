@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:54:44 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/12 14:32:12 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/13 17:01:03 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,7 @@ void	Config::print(void) const
 	std::vector<std::string>				indexes;
 	std::map<std::string, std::string>	errors;
 	std::map<std::string, Location>		locations;
+	std::map<std::string, std::string>	cgi;
 
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
@@ -164,7 +165,11 @@ void	Config::print(void) const
 				std::cout << "\t\t" << *m << " ";
 			}
 			std::cout << std::endl;
-			std::cout << "\t\t" << "Cgi Path: " << lo->second.getCgiPass().getCgi() << std::endl;
+			cgi = lo->second.getCgiPass().getCgi();
+			for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); it++)
+			{
+				std::cout << "\t\t" << "Cgi ext:" << it->first << " " << "cgi:" << it->second << std::endl;
+			}
 		}
 	}
 }

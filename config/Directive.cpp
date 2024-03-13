@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 18:12:49 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/12 14:31:28 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/13 17:00:10 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,13 +259,19 @@ CgiPass::CgiPass(CgiPass const & src) { *this = src; }
 
 CgiPass	&CgiPass::operator=(CgiPass const & right)
 {
-	_cgi = right.getCgi();
+	_cgi = right._cgi;
 	_is_set = !right.empty();
 	return (*this);
 }
 
 CgiPass::~CgiPass(void) {}
 
-std::string const &	CgiPass::getCgi(void) const { return (_cgi); }
+std::string const &	CgiPass::getCgi(std::string const & extension) const { return (_cgi.at(extension)); }
 
-void				CgiPass::setCgi(std::string const & cgi) { _cgi = cgi; _is_set = true; }
+std::map<std::string, std::string> const &	CgiPass::getCgi(void) const { return (_cgi); }
+
+void				CgiPass::addCgi(std::pair<std::string, std::string> const & cgi)
+{
+	_cgi.insert(cgi);
+	_is_set = true;
+}

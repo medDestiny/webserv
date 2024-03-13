@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/12 18:12:43 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/13 17:03:42 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -435,16 +435,28 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 	return (limit_except);
 }
 
-CgiPass	ParseCgiPass(std::vector<Token> & Tokens)
+std::pair<std::string, std::string>	ParseCgiPass(std::vector<Token> & Tokens)
 {
-	CgiPass	cgi;
+	std::string extension;
+	std::string cgi;
 
 	Tokens.erase(Tokens.begin()); // delete cgi_pass token
 
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
+		/* warning: some additionnal checks on the extension validity needed */
+		extension = Tokens.front().content();
+		if (extension[0] != '.')
+			throw Parser::Error("invalid file extension: ", extension, Tokens.front().line());
+		Tokens.erase(Tokens.begin()); // delete cgi extension token
+	}
+	else
+		throw Parser::Error("invalid number of arguments in cgi_pass");
+
+	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
+	{
 		/* warning: some additionnal checks on the path validity needed */
-		cgi.setCgi(Tokens.front().content());
+		cgi = Tokens.front().content();
 		Tokens.erase(Tokens.begin()); // delete cgi path token
 	}
 
@@ -456,7 +468,7 @@ CgiPass	ParseCgiPass(std::vector<Token> & Tokens)
 	else
 		throw Parser::Error("missing semicolon at end of directive: cgi_pass");
 
-	return (cgi);
+	return (std::make_pair(extension, cgi));
 }
 
 void	fillServerLocations(Server & server)
@@ -523,7 +535,7 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 		else if (Tokens.front().content() == "limit_except")
 			location.second.setLimitExcept(ParseLimitExcept(Tokens));
 		else if (Tokens.front().content() == "cgi_pass")
-			location.second.setCgiPass(ParseCgiPass(Tokens));
+			location.second.addCgiPass(ParseCgiPass(Tokens));
 		else
 			throw Parser::Error("unknown directive in location context: ", Tokens.front().content(), Tokens.front().line());
 	}
