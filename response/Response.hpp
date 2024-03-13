@@ -21,6 +21,7 @@
 #include <map>
 #include <set>
 
+#include <dirent.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -50,6 +51,8 @@ class Response {
         size_t contentLength;
         size_t countBytesRead;
         size_t contentResponse;
+        std::string type;
+        std::string mimeType;
 
     public:
         Response( void );
@@ -72,12 +75,16 @@ class Response {
         size_t getContentResponse( void ) const;
         void setFile( int const & file );
         int getFile( void ) const;
+        std::string getType( void ) const;
+        void setType( std::string const & type );
+        std::string getMimeType( void ) const;
+        void setMimeType( std::string const & mimetype );
 
         ssize_t sendHeader( int const &sockfd, Request const & request);
         ssize_t sendBody( int const &sockfd, Request const & request);
         std::string getStatusMessage(int const & statusCode);
         void displayErrorPage( Conf::Server & server, int const &sockfd );
-        void displayAutoIndex( Conf::Server & server, int const &sockfd );
+        int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
 
 };

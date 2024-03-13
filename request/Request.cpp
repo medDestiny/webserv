@@ -14,6 +14,7 @@
 #include "../response/Response.hpp"
 #include "../client/Client.hpp"
 
+
 Request::Request( void ) {
 
     this->sendedcontent = 0;
@@ -139,6 +140,11 @@ std::string Request::getHttpVersion( void ) const {
     return (this->httpVersion);
 }
 
+std::map<std::string, std::string> const & Request::getLinesRequest( void ) const {
+
+    return (this->linesRequest);
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -161,25 +167,24 @@ void Request::setRequestBody( void ) {
     // std::cout << "body request: " << this->body << std::endl;
 }
 
-int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
+int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
 
-	(void)server;
     std::string requestLine;
-	std::istringstream recbuffStream(recString);
+	std::istringstream headerStream(this->header);
 
-    std::string host = getValue("host:");
-    /*   get server !!!!!!!!   */
+    std::string host = getValue("Host:");
+    server = conf.getServer(server, host);
 
     //get request line "GET / HTTP/1.1"
-	std::getline(recbuffStream, requestLine);
+	std::getline(headerStream, requestLine);
 
     //parse request line
 	std::istringstream methodStream(requestLine);
 
+    // check method is valid !!!!!!
 	std::getline(methodStream, this->method, ' ');
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
         return (0);
-    // check method is valid !!!!!!
 
 	std::getline(methodStream, this->path, ' ');
 
@@ -189,18 +194,36 @@ int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
         return (0);
     }
 
+    // get lines of request
+    std::string line;
+    std::string key;
+    std::string value;
+    std::istringstream headerStreamtmp(this->header);
+    std::getline(headerStreamtmp, line);
+    while (std::getline(headerStreamtmp, line) && line != "\r") {
+        std::istringstream lineStream(line);
+        std::getline(lineStream, key, ' ');
+        std::getline(lineStream, value, '\r');
+        if (value.empty() || key[key.length() - 1] != ':') {
+            response.setStatusCode( 400 );
+            return (0);
+        }
+        this->linesRequest[key] = value;
+    }
+
+    // check path is valid !!!!!
 	this->path.erase(0, 1);
     if (path.empty()) {
         path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
         // std::cout << "path: " << path << std::endl;
         if (path.empty()) {
-                std::cout << "here: " << server.getAutoIndex().getToggle() << std::endl;
             if (!server.getAutoIndex().getToggle()) {
                 response.setStatusCode( 403 );
                 return (0);
             }
             else {
                 response.setAutoIndexing( true );
+                return (1);
             }
         }
     }
@@ -211,14 +234,27 @@ int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
             response.setStatusCode( 404 );
             return (0);
         }
+        response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
+        response.setMimeType( getMimeType(response.getType()) );
+        if (response.getMimeType() == "Unknown MIME type") {
+            response.setStatusCode( 415 );
+            return (0);
+        }
     }
 
-    this->connection = getValue("Connection:");
+    // get connection
+    std::map<std::string, std::string>::iterator it = this->linesRequest.find("Connection:");
+    if (it != this->linesRequest.end())
+        this->connection = it->second;
+    else
+        this->connection = "close";
+    
+    // get content length
     response.setContentLength( get_size_fd(this->path) );
 
     //get Range
 	std::string range;
-	while (std::getline(recbuffStream, range)) {
+	while (std::getline(headerStream, range)) {
 		if (range.substr(0, 13) == "Range: bytes=") {
 			int numS = range.find('-') - (range.find('=') + 1);
 			this->rangeStart = range.substr(range.find('=') + 1, numS);
@@ -234,6 +270,7 @@ int Request::parseRequestHeader( Conf::Server & server, Response & response ) {
 			break;
 		}
 	}
+
     return (1);
 }
 
@@ -248,7 +285,7 @@ std::string Request::getValue( std::string const & key ) const {
         std::istringstream lineStream(line);
         std::getline(lineStream, part, ' ');
         if (part == key) {
-            std::getline(lineStream, part);
+            std::getline(lineStream, part, '\r');
             return (part);
         }
     }
