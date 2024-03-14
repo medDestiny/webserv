@@ -74,7 +74,10 @@ std::string Request::getBody( void ) const {
 }
 void Request::setBody( std::string const & body ) {
 
-    this->body = body;
+    if (this->body.empty())
+        this->body = body;
+    else
+        this->body += body;
 }
 
 std::string Request::getConnection( void ) const {
@@ -152,7 +155,7 @@ int Request::setRequestHeader( void ) {
     size_t found = recString.find(subString);
     if (found != std::string::npos) {
         this->header = recString.substr(0, found + subString.length());
-        // std::cout << "header request: " << this->header << std::endl;
+        std::cout << "header request: " << this->header << std::endl;
         return (1);
     }
     else
@@ -164,7 +167,7 @@ void Request::setRequestBody( void ) {
 
     size_t found = recString.find(subString);
     this->body = recString.substr(found + subString.length());
-    // std::cout << "body request: " << this->body << std::endl;
+
 }
 
 int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
@@ -211,65 +214,67 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->linesRequest[key] = value;
     }
 
-    // check path is valid !!!!!
-	this->path.erase(0, 1);
-    if (path.empty()) {
-        path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-        // std::cout << "path: " << path << std::endl;
-        if (path.empty()) {
-            if (!server.getAutoIndex().getToggle()) {
-                response.setStatusCode( 403 );
-                return (0);
-            }
-            else {
-                response.setAutoIndexing( true );
-                return (1);
-            }
-        }
-    }
-    else {
-        this->path = server.getRoot().getPath() + "/" + this->path;
-        // std::cout << "path: " << this->path << std::endl;
-        if (access(this->path.c_str(), F_OK) == -1) {
-            response.setStatusCode( 404 );
-            return (0);
-        }
-        response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
-        response.setMimeType( getMimeType(response.getType()) );
-        if (response.getMimeType() == "Unknown MIME type") {
-            response.setStatusCode( 415 );
-            return (0);
-        }
-    }
-
     // get connection
     std::map<std::string, std::string>::iterator it = this->linesRequest.find("Connection:");
     if (it != this->linesRequest.end())
         this->connection = it->second;
     else
         this->connection = "close";
-    
-    // get content length
-    response.setContentLength( get_size_fd(this->path) );
 
-    //get Range
-	std::string range;
-	while (std::getline(headerStream, range)) {
-		if (range.substr(0, 13) == "Range: bytes=") {
-			int numS = range.find('-') - (range.find('=') + 1);
-			this->rangeStart = range.substr(range.find('=') + 1, numS);
-			this->rangeStartNum = stringToInt(this->rangeStart);
-			if (range.find('-') + 1 < range.length() - 1 )
-				this->rangeEnd = range.substr(range.find('-') + 1);
-			if (this->rangeEnd.empty()) {
-				this->rangeEndNum = get_size_fd(this->path) - 1;
-				this->rangeEnd = intToString(this->rangeEndNum);
-			}
-			else
-				this->rangeEndNum = stringToInt(this->rangeEnd);
-			break;
-		}
-	}
+    if (this->method == "GET") {
+        // check path is valid !!!!!
+        this->path.erase(0, 1);
+        if (path.empty()) {
+            path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
+            // std::cout << "path: " << path << std::endl;
+            if (path.empty()) {
+                if (!server.getAutoIndex().getToggle()) {
+                    response.setStatusCode( 403 );
+                    return (0);
+                }
+                else {
+                    response.setAutoIndexing( true );
+                    return (1);
+                }
+            }
+        }
+        else {
+            this->path = server.getRoot().getPath() + "/" + this->path;
+            // std::cout << "path: " << this->path << std::endl;
+            if (access(this->path.c_str(), F_OK) == -1) {
+                response.setStatusCode( 404 );
+                return (0);
+            }
+            response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
+            response.setMimeType( getMimeType(response.getType()) );
+            if (response.getMimeType() == "Unknown MIME type") {
+                response.setStatusCode( 415 );
+                return (0);
+            }
+        }
+
+        // get content length
+        response.setContentLength( get_size_fd(this->path) );
+
+        //get Range
+        std::string range;
+        while (std::getline(headerStream, range)) {
+            if (range.substr(0, 13) == "Range: bytes=") {
+                int numS = range.find('-') - (range.find('=') + 1);
+                this->rangeStart = range.substr(range.find('=') + 1, numS);
+                this->rangeStartNum = stringToInt(this->rangeStart);
+                if (range.find('-') + 1 < range.length() - 1 )
+                    this->rangeEnd = range.substr(range.find('-') + 1);
+                if (this->rangeEnd.empty()) {
+                    this->rangeEndNum = get_size_fd(this->path) - 1;
+                    this->rangeEnd = intToString(this->rangeEndNum);
+                }
+                else
+                    this->rangeEndNum = stringToInt(this->rangeEnd);
+                break;
+            }
+        }
+    }
 
     return (1);
 }
