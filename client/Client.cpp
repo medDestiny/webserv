@@ -92,7 +92,8 @@ int Client::recieveRequest( int const &sockfd ) {
     }
     else {
 
-        recievebuff[recieved] = '\0';
+        if (recieved < SIZE)
+            recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
         if (!this->endRecHeader) {
             if (this->request.setRequestHeader()) {
@@ -100,6 +101,7 @@ int Client::recieveRequest( int const &sockfd ) {
                     return (0); // error
                 }
                 this->endRecHeader = true;
+                this->request.setRequestBody();
                 if (recieved < SEND)
                     return (0); // end recieve request
             }
@@ -114,10 +116,11 @@ int Client::recieveRequest( int const &sockfd ) {
                 this->response.setStatusCode( 413 );
                 return (0); // error
             }
-            if (recieved < SEND) {
+            if (this->request.getRequestBodySize() >= stringToInt(request.getValue("Content-Length:"))) {
                 this->request.setRequestBody();
+                std::cout << "body : " << request.getBody() << std::endl;
+                return (0);
             }
-            return (0);
         }
     }
     return (1); // still read request
@@ -154,6 +157,9 @@ int Client::sendresponse( int const &sockfd ) {
             else
                 response.setSendedHeader( true );
         }
+    }
+    else if (this->request.getMethod() == "POST") {
+        
     }
     return (1);
 }
