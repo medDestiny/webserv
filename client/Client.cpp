@@ -102,7 +102,7 @@ int Client::recieveRequest( int const &sockfd ) {
                 }
                 this->endRecHeader = true;
                 this->request.setRequestBody();
-                if (recieved < SEND)
+                if (request.getValue("Content-Length:").empty())
                     return (0); // end recieve request
             }
             if (recieved < SEND && this->request.getHeader().empty()) {
@@ -112,6 +112,8 @@ int Client::recieveRequest( int const &sockfd ) {
         }
         else {
             size_t maxSize = server.getClientMaxBodySize().getSize();
+            if (this->request.getCheckLocation())
+                maxSize = request.getLocation().getClientMaxBodySize().getSize();
             if (this->request.getRequestBodySize() > maxSize) {
                 this->response.setStatusCode( 413 );
                 return (0); // error
@@ -123,18 +125,21 @@ int Client::recieveRequest( int const &sockfd ) {
             }
         }
     }
+    if (!request.getBody().empty() && this->request.getRequestBodySize() >= stringToInt(request.getValue("Content-Length:"))) {
+        return (0); // end recieve request
+    }
     return (1); // still read request
 }
 
 int Client::sendresponse( int const &sockfd ) {
 
     if (response.getStatusCode() >= 400) {
-        response.displayErrorPage(this->server, sockfd);
+        response.displayErrorPage(this->server, sockfd, this->request);
         return (0);
     }
     if (response.getAutoIndexing()) {
         if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
-            response.displayErrorPage(this->server, sockfd);
+            response.displayErrorPage(this->server, sockfd, this->request);
             return (0);
         }
         return (1);

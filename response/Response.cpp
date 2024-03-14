@@ -134,6 +134,7 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[400] = "Bad Request";
     statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";
+    statusMessages[405] = "Method Not Allowed";
     statusMessages[413] = "Payload Too Large";
     statusMessages[415] = "Unsupported Media Type";
     statusMessages[500] = "Internal Server Error";
@@ -225,7 +226,7 @@ std::string Response::getErrorPage(std::map<std::string, std::string> ErrorPages
         return ("");
 }
 
-void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
+void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Request request) {
 
     std::string header;
     std::string message;
@@ -236,6 +237,15 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
         errorPage = server.getRoot().getPath() + errorPage;
         if (access(errorPage.c_str(), F_OK) == -1) {
             errorPage = "";
+        }
+    }
+    if (request.getCheckLocation()) {
+        errorPage = getErrorPage(request.getLocation().getErrorPage().getErrorPages());
+        if (!errorPage.empty()) {
+            errorPage = request.getLocation().getRoot().getPath() + errorPage;
+            if (access(errorPage.c_str(), F_OK) == -1) {
+                errorPage = "";
+            }
         }
     }
 
@@ -276,7 +286,10 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::vector<std::string> fileNames;
     DIR* dir;
     struct dirent* entry;
+
     dir = opendir(server.getRoot().getPath().c_str());
+    if (request.getCheckLocation())
+        dir = opendir(request.getLocation().getRoot().getPath().c_str());
     if (dir == NULL) {
         std::cerr << "Error opening directory" << std::endl;
         this->statusCode = 500;
