@@ -10,7 +10,7 @@ server {server_name test;
 	server_name	server.wa7d.a5or;
 
 	return 303 /test;
-	root	/Users/amoukhle/Desktop/server;
+	root	/Users/mmisskin/Desktop/1337/webserv/git;
 	autoindex	off;
 	index	var.html;
 	index	maindexmatal3ba.hh;
@@ -35,25 +35,7 @@ server {server_name test;
 		cgi_pass .py;
 		cgi_pass .out;
 	}
+	index index.html;
 	autoindex	on;
 
-}
-
-server {
-	server_name	o;
-	server_name	l;
-	listen	localhost;
-}
-
-server{ 
-	server_name	l o listen	localhost;
-	index listen localhost;
-}
-server{ 
-	server_name	l
-	index listen localhost server;
-}
-
-server {
-	root	test;
 }
