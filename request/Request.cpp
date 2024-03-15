@@ -260,7 +260,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        if (path.empty()) {
+        if (path.empty() || this->checkLocation) {
             if (this->checkLocation)
                 path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath());
             else
@@ -281,9 +281,10 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
             }
         }
         else {
-            this->path = server.getRoot().getPath() + "/" + this->path;
             if (this->checkLocation)
                 this->path = location.getRoot().getPath() + "/" + this->path;
+            else
+                this->path = server.getRoot().getPath() + "/" + this->path;
             // std::cout << "path: " << this->path << std::endl;
             if (access(this->path.c_str(), F_OK) == -1) {
                 response.setStatusCode( 404 );
