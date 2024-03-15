@@ -267,7 +267,7 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
         }
     }
 
-    header = "HTTP/1.1" + intToString(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
+    header += "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: ";
     if (errorPage.empty())
@@ -276,6 +276,7 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
         header += intToString( get_size_fd(errorPage) );
     header += "\r\nConnection: close\r\n\r\n";
 
+    // std::cout << "header response: " << header << std::endl;;
     message = header + body;
     send( sockfd, message.c_str(), message.length(), 0);
 
@@ -286,10 +287,13 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::vector<std::string> fileNames;
     DIR* dir;
     struct dirent* entry;
+    std::string fullPath;
 
-    dir = opendir(server.getRoot().getPath().c_str());
     if (request.getCheckLocation())
-        dir = opendir(request.getLocation().getRoot().getPath().c_str());
+        fullPath = request.getLocation().getRoot().getPath() + request.getStringLocation();
+    else
+        fullPath = server.getRoot().getPath();
+    dir = opendir(fullPath.c_str());
     if (dir == NULL) {
         std::cerr << "Error opening directory" << std::endl;
         this->statusCode = 500;
@@ -309,7 +313,7 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     body += "<body>\n";
     body += "<h1>Index of /</h1><hr><pre><a href=\"../\">../</a>\n";
     for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
-        body += "<a href=" + *it + ">" + *it + "</a>\n";
+        body += "<a href=" + request.getStringLocation() + "/" + *it + ">" + *it + "</a>\n";
     }
     body += "</pre><hr></body>\n";
     body += "</html>";

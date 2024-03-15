@@ -17,7 +17,6 @@ server {server_name test;
 	upload_store	/html;
 
 	location /test_1 {
-		root /Users/amoukhle/Desktop/test_1;
 		index index.html;
 		autoindex	on;
 	}

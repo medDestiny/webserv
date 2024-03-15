@@ -166,6 +166,15 @@ void Request::setCheckLocation( bool checkLocation ) {
     this->checkLocation = checkLocation;
 }
 
+std::string Request::getStringLocation( void ) {
+
+    return (this->stringLocation);
+}
+void Request::setStringLocation( std::string const & stringLocation ) {
+
+    this->stringLocation = stringLocation;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -212,9 +221,11 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         return (0);
     }
 
+    // get location
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;
+        this->stringLocation = itLocation->first;
         this->checkLocation = true;
     }
 
@@ -260,13 +271,13 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        if (path.empty() || this->checkLocation) {
+        if (this->path.empty() || this->checkLocation) {
             if (this->checkLocation)
-                path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath());
+                this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
             else
-                path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
+                this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
             // std::cout << "path: " << path << std::endl;
-            if (path.empty()) {
+            if (this->path.empty()) {
                 bool checkAutoIndex = server.getAutoIndex().getToggle();
                 if (this->checkLocation)
                     checkAutoIndex = this->location.getAutoIndex().getToggle();
@@ -279,6 +290,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                     return (1);
                 }
             }
+            response.setType( this->path.substr(this->path.rfind('.') + 1) );
+            response.setMimeType( getMimeType(response.getType()) );
         }
         else {
             if (this->checkLocation)
