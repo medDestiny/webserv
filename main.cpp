@@ -26,7 +26,7 @@ int	main(int ac, char **av)
 	Config	config = Parser::importConfig(av[1]);
 	Server serv( config ); 
 	
-	config.print();
+	// config.print();
 	if (!config.isValid())
 		return (1);
 

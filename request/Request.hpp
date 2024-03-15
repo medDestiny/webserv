@@ -59,6 +59,10 @@ class Request {
         size_t rangeEndNum;
         std::map<std::string, std::string> linesRequest;
 
+        // test
+        Location location;
+        bool checkLocation;
+
     public:
         Request( void );
         ~Request( void );
@@ -87,6 +91,10 @@ class Request {
         void setHttpVersion ( std::string const & httpVersion );
         std::string getHttpVersion( void ) const;
         std::map<std::string, std::string> const & getLinesRequest( void ) const;
+        Location const & getLocation( void ) const;
+        void setLocation( Location const & location );
+        bool getCheckLocation( void ) const;
+        void setCheckLocation( bool checkLocation ) ;
 
 
         size_t getRequestBodySize( void ) const;

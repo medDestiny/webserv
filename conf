@@ -16,9 +16,10 @@ server {server_name test;
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
 
-	location /test {
+	location / {
 		root /test;
 		index tst.test;
+		autoindex	off;
 	}
 	location /test2 {
 		root /test2;

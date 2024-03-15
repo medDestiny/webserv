@@ -18,6 +18,7 @@
 Request::Request( void ) {
 
     this->sendedcontent = 0;
+    this->checkLocation = false;
 }
 
 Request::~Request( void ) { }
@@ -148,6 +149,23 @@ std::map<std::string, std::string> const & Request::getLinesRequest( void ) cons
     return (this->linesRequest);
 }
 
+Location const & Request::getLocation( void ) const {
+
+    return (this->location);
+}
+void Request::setLocation( Location const & location ) {
+
+    this->location = location;
+}
+bool Request::getCheckLocation( void ) const {
+
+    return (this->checkLocation);
+}
+void Request::setCheckLocation( bool checkLocation ) {
+
+    this->checkLocation = checkLocation;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -184,16 +202,33 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     //parse request line
 	std::istringstream methodStream(requestLine);
 
-    // check method is valid !!!!!!
+    // get method | path | httpVersion
 	std::getline(methodStream, this->method, ' ');
-    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
-        return (0);
-
 	std::getline(methodStream, this->path, ' ');
-
     std::getline(methodStream, this->httpVersion, '\r');
+    // check httpVersion is valid
     if (this->httpVersion != "HTTP/1.1") {
         response.setStatusCode( 505 );
+        return (0);
+    }
+
+    std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
+    if (itLocation != server.getLocations().end()) {
+        this->location = itLocation->second;
+        this->checkLocation = true;
+    }
+
+    // check method is valid !!!!!!
+    if (this->checkLocation && !location.getLimitExcept().empty()) {
+        std::set<std::string> setMethods = location.getLimitExcept().getMethods();
+        std::set<std::string>::iterator itMethod = setMethods.find(this->method);
+        if (itMethod == setMethods.end()) {
+            response.setStatusCode( 405 );
+            return (0);
+        }
+    }
+    else if (this->method != "GET" && this->method != "POST" && this->method != "DELETE"){
+        response.setStatusCode( 405 );
         return (0);
     }
 
@@ -221,14 +256,21 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
+
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
         if (path.empty()) {
-            path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
+            if (this->checkLocation)
+                path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath());
+            else
+                path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
             // std::cout << "path: " << path << std::endl;
             if (path.empty()) {
-                if (!server.getAutoIndex().getToggle()) {
+                bool checkAutoIndex = server.getAutoIndex().getToggle();
+                if (this->checkLocation)
+                    checkAutoIndex = this->location.getAutoIndex().getToggle();
+                if (!checkAutoIndex) {
                     response.setStatusCode( 403 );
                     return (0);
                 }
@@ -240,6 +282,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         }
         else {
             this->path = server.getRoot().getPath() + "/" + this->path;
+            if (this->checkLocation)
+                this->path = location.getRoot().getPath() + "/" + this->path;
             // std::cout << "path: " << this->path << std::endl;
             if (access(this->path.c_str(), F_OK) == -1) {
                 response.setStatusCode( 404 );
