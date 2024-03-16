@@ -166,13 +166,22 @@ void Request::setCheckLocation( bool checkLocation ) {
     this->checkLocation = checkLocation;
 }
 
-std::string Request::getStringLocation( void ) {
+std::string Request::getStringLocation( void ) const {
 
     return (this->stringLocation);
 }
 void Request::setStringLocation( std::string const & stringLocation ) {
 
     this->stringLocation = stringLocation;
+}
+
+std::string Request::getUrl( void ) const {
+
+    return (this->url);
+}
+void Request::setUrl( std::string url ) {
+
+    this->url = url;
 }
 
 int Request::setRequestHeader( void ) {
@@ -214,6 +223,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     // get method | path | httpVersion
 	std::getline(methodStream, this->method, ' ');
 	std::getline(methodStream, this->path, ' ');
+    this->url = this->path;
     std::getline(methodStream, this->httpVersion, '\r');
     // check httpVersion is valid
     if (this->httpVersion != "HTTP/1.1") {
@@ -222,6 +232,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
 
     // get location
+    if (this->path[this->path.length() - 1] == '/')
+        this->path.erase(this->path.length() - 1, 1);
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;
@@ -305,10 +317,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
             }
             response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
             response.setMimeType( getMimeType(response.getType()) );
-            if (response.getMimeType() == "Unknown MIME type") {
-                response.setStatusCode( 415 );
-                return (0);
-            }
         }
 
         // get content length

@@ -9,14 +9,14 @@ server {server_name test;
 	server_name	server.wa7d.a5or;
 
 	return 303 /test;
-	root	/Users/amoukhle/Desktop/server;
+	root	/Users/amoukhle/Desktop/server_1;
 	autoindex	off;
 	index	var.html;
 	index	maindexmatal3ba.hh;
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
 
-	location /test_1 {
+	location /flexbox {
 		index index.html;
 		autoindex	on;
 	}

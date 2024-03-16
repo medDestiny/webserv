@@ -157,6 +157,9 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
         if (!request.getRangeStart().empty()) {
             this->statusCode = 206;
         }
+        if (request.getCheckLocation() && request.getUrl()[request.getUrl().length() - 1] != '/') {
+            this->statusCode = 302;
+        }
 
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
@@ -174,6 +177,9 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
             headerResponse += "\r\nAccept-Ranges: bytes";
     }
     headerResponse += "\r\nConnection: " + request.getConnection();
+    if (request.getCheckLocation() && request.getUrl()[request.getUrl().length() - 1] != '/') {
+        headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
+    }
     headerResponse += "\r\n\r\n";
 
     ssize_t sended;

@@ -22,3 +22,20 @@ size_t get_size_fd(std::string fileD) {
 	}
 	return (fileStat.st_size);
 }
+
+bool isDirectory(const char* path) {
+    struct stat pathStat;
+    if (stat(path, &pathStat) != 0) {
+        return false;
+    }
+    return S_ISDIR(pathStat.st_mode);
+}
+
+bool isRegularFile(const char* path) {
+    struct stat pathStat;
+    if (stat(path, &pathStat) != 0) {
+        // Error occurred while getting file status
+        return false;
+    }
+    return S_ISREG(pathStat.st_mode);
+}
