@@ -282,12 +282,16 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        if (this->path.empty() || (isDirectory(this->location.getRoot().getPath() + this->url))) {
+        std::string absolutPAth;
+        if (this->checkLocation)
+            absolutPAth = this->location.getRoot().getPath() + this->url;
+        else
+            absolutPAth = server.getRoot().getPath() + this->url;
+        if (this->path.empty() || (isDirectory(absolutPAth))) {
             if (this->checkLocation)
                 this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
             else
                 this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-            std::cout << "path: " << path << std::endl;
             if (this->path.empty()) {
                 bool checkAutoIndex = server.getAutoIndex().getToggle();
                 if (this->checkLocation)
@@ -301,9 +305,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                     return (1);
                 }
             }
-            // response.setType( this->path.substr(this->path.rfind('.') + 1) );
-            // std::cout << "type: " << this->path.substr(this->getPath().rfind('.') + 1) << std::endl;
-            // response.setMimeType( getMimeType(response.getType()) );
         }
         else {
             if (this->checkLocation)
@@ -316,7 +317,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                 return (0);
             }
             response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
-            // std::cout << "type: " << this->getPath().substr(this->getPath().rfind('.') + 1) << std::endl;
             response.setMimeType( getMimeType(response.getType()) );
         }
 
