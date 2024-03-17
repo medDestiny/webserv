@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 18:12:49 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/13 17:00:10 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/15 17:38:46 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,7 @@ void	AutoIndex::setToggle(bool toggle) { _toggle = toggle; _is_set = true; }
 bool	AutoIndex::getToggle(void) const { return (_toggle); }
 
 /* Index member functions */
-Index::Index(void) { _index.push_back("index.html"); }
+Index::Index(void) {}
 
 Index::Index(Index const & src) { *this = src; }
 
@@ -269,6 +269,13 @@ CgiPass::~CgiPass(void) {}
 std::string const &	CgiPass::getCgi(std::string const & extension) const { return (_cgi.at(extension)); }
 
 std::map<std::string, std::string> const &	CgiPass::getCgi(void) const { return (_cgi); }
+
+bool				CgiPass::found(std::string const & extension) const
+{
+	if (_cgi.find(extension) == _cgi.end())
+		return (false);
+	return (true);
+}
 
 void				CgiPass::addCgi(std::pair<std::string, std::string> const & cgi)
 {
