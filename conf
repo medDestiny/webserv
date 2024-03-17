@@ -1,40 +1,54 @@
 
-server {server_name test;
-	listen	localhost:8080;
-	server_name	www.google.com test.net parsing.tzb;
-	error_page	404 /404.html;
-	error_page	406 403 /404.html;
-	server_name	server.wa7d.a5or;
-	client_max_body_size	200k;
-	server_name	server.wa7d.a5or;
+#server {server_name test;
+#	listen	localhost:8080;
+#	server_name	www.google.com test.net parsing.tzb;
+#	error_page	404 /404.html;
+#	error_page	406 403 /404.html;
+#	server_name	server.wa7d.a5or;
+#	client_max_body_size	200k;
+#	server_name	server.wa7d.a5or;
+#
+#	return 303 /test;
+#	root	/Users/mmisskin/Desktop/1337/webserv/git;
+#	autoindex	off;
+#	index	var.html;
+#	index	maindexmatal3ba.hh;
+#	index	maindexmatal3ba.hh;
+#	upload_store	/html;
+#
+#	location /test {
+#		root /test;
+#		index tst.test;
+#	}
+#	location /test2 {
+#		root /test2;
+#		index tst.test2;
+#	autoindex	off;
+#	upload_store	/uploads;
+#	upload_store	/upload;
+#	limit_except GET	POST;
+#	limit_except POST;
+#	}
+#	location /cgi-bin {
+#		cgi_pass .php /usr/bin/php;
+#		cgi_pass .py;
+#		cgi_pass .out;
+#	}
+#	index index.html;
+#	autoindex	on;
+#
+#}
 
-	return 303 /test;
-	root	/Users/mmisskin/Desktop/1337/webserv/git;
-	autoindex	off;
-	index	var.html;
-	index	maindexmatal3ba.hh;
-	index	maindexmatal3ba.hh;
-	upload_store	/html;
+#server {
+#	root /Users/mmisskin/Desktop;
+##	index test.html test1.html;
+#	location / {
+#		index index.htm;
+#	}
+#}
 
-	location /test {
-		root /test;
-		index tst.test;
+server {
+	location / {}
+	location /flexbox {
 	}
-	location /test2 {
-		root /test2;
-		index tst.test2;
-	autoindex	off;
-	upload_store	/uploads;
-	upload_store	/upload;
-	limit_except GET	POST;
-	limit_except POST;
-	}
-	location /cgi-bin {
-		cgi_pass .php /usr/bin/php;
-		cgi_pass .py;
-		cgi_pass .out;
-	}
-	index index.html;
-	autoindex	on;
-
 }
