@@ -232,8 +232,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
 
     // get location
-    if (this->path[this->path.length() - 1] == '/')
-        this->path.erase(this->path.length() - 1, 1);
+    // if (this->path[this->path.length() - 1] == '/')
+    //     this->path.erase(this->path.length() - 1, 1);
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;
@@ -279,16 +279,15 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
-
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        if (this->path.empty() || this->checkLocation) {
+        if (this->path.empty() || (isDirectory(this->location.getRoot().getPath() + this->url))) {
             if (this->checkLocation)
                 this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
             else
                 this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-            // std::cout << "path: " << path << std::endl;
+            std::cout << "path: " << path << std::endl;
             if (this->path.empty()) {
                 bool checkAutoIndex = server.getAutoIndex().getToggle();
                 if (this->checkLocation)
@@ -302,8 +301,9 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                     return (1);
                 }
             }
-            response.setType( this->path.substr(this->path.rfind('.') + 1) );
-            response.setMimeType( getMimeType(response.getType()) );
+            // response.setType( this->path.substr(this->path.rfind('.') + 1) );
+            // std::cout << "type: " << this->path.substr(this->getPath().rfind('.') + 1) << std::endl;
+            // response.setMimeType( getMimeType(response.getType()) );
         }
         else {
             if (this->checkLocation)
@@ -316,6 +316,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                 return (0);
             }
             response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
+            // std::cout << "type: " << this->getPath().substr(this->getPath().rfind('.') + 1) << std::endl;
             response.setMimeType( getMimeType(response.getType()) );
         }
 

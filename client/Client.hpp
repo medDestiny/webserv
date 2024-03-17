@@ -57,5 +57,5 @@ class Client {
 size_t stringToInt(const std::string& str);
 std::string intToString(size_t num);
 size_t get_size_fd(std::string fileD);
-bool isDirectory(const char* path);
+bool isDirectory(std::string path);
 bool isRegularFile(const char* path);
