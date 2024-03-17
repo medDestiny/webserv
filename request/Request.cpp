@@ -287,7 +287,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
             absolutPAth = this->location.getRoot().getPath() + this->url;
         else
             absolutPAth = server.getRoot().getPath() + this->url;
-        if (this->path.empty() || (isDirectory(absolutPAth))) {
+        if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
+
             if (this->checkLocation)
                 this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
             else
@@ -311,7 +312,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                 this->path = location.getRoot().getPath() + "/" + this->path;
             else
                 this->path = server.getRoot().getPath() + "/" + this->path;
-            // std::cout << "path: " << this->path << std::endl;
             if (access(this->path.c_str(), F_OK) == -1) {
                 response.setStatusCode( 404 );
                 return (0);

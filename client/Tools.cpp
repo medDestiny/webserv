@@ -17,16 +17,16 @@ std::string intToString(size_t num) {
 size_t get_size_fd(std::string fileD) {
 	struct stat fileStat;
 
-	if (lstat(fileD.c_str(), &fileStat) == -1) {
+	if (lstat(fileD.c_str(), &fileStat) != 0) {
 		std::cout << "error getSize\n";
 		return (-1);
 	}
 	return (fileStat.st_size);
 }
 
-bool isDirectory(std::string path) {
+bool isDirectory(const char* path) {
     struct stat pathStat;
-    if (lstat(path.c_str(), &pathStat) != 0) {
+    if (stat(path, &pathStat) != 0) {
 		std::cout << "error isDirectory\n";
         return false;
     }
