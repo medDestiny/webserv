@@ -232,8 +232,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
 
     // get location
-    if (this->path[this->path.length() - 1] == '/')
-        this->path.erase(this->path.length() - 1, 1);
+    // if (this->path[this->path.length() - 1] == '/')
+    //     this->path.erase(this->path.length() - 1, 1);
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;
@@ -279,16 +279,20 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
-
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        if (this->path.empty() || this->checkLocation) {
+        std::string absolutPAth;
+        if (this->checkLocation)
+            absolutPAth = this->location.getRoot().getPath() + this->url;
+        else
+            absolutPAth = server.getRoot().getPath() + this->url;
+        if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
+
             if (this->checkLocation)
                 this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
             else
                 this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-            // std::cout << "path: " << path << std::endl;
             if (this->path.empty()) {
                 bool checkAutoIndex = server.getAutoIndex().getToggle();
                 if (this->checkLocation)
@@ -302,15 +306,12 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                     return (1);
                 }
             }
-            response.setType( this->path.substr(this->path.rfind('.') + 1) );
-            response.setMimeType( getMimeType(response.getType()) );
         }
         else {
             if (this->checkLocation)
                 this->path = location.getRoot().getPath() + "/" + this->path;
             else
                 this->path = server.getRoot().getPath() + "/" + this->path;
-            // std::cout << "path: " << this->path << std::endl;
             if (access(this->path.c_str(), F_OK) == -1) {
                 response.setStatusCode( 404 );
                 return (0);

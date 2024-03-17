@@ -30,6 +30,6 @@ int	main(int ac, char **av)
 	if (!config.isValid())
 		return (1);
 
-	/* std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; */
-	/* serv.createServer(); */
+	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; 
+	serv.createServer(); 
 }

@@ -17,7 +17,8 @@ std::string intToString(size_t num) {
 size_t get_size_fd(std::string fileD) {
 	struct stat fileStat;
 
-	if (lstat(fileD.c_str(), &fileStat) == -1) {
+	if (lstat(fileD.c_str(), &fileStat) != 0) {
+		std::cout << "error getSize\n";
 		return (-1);
 	}
 	return (fileStat.st_size);
@@ -26,6 +27,7 @@ size_t get_size_fd(std::string fileD) {
 bool isDirectory(const char* path) {
     struct stat pathStat;
     if (stat(path, &pathStat) != 0) {
+		std::cout << "error isDirectory\n";
         return false;
     }
     return S_ISDIR(pathStat.st_mode);
@@ -34,7 +36,7 @@ bool isDirectory(const char* path) {
 bool isRegularFile(const char* path) {
     struct stat pathStat;
     if (stat(path, &pathStat) != 0) {
-        // Error occurred while getting file status
+		std::cout << "error isFile\n";
         return false;
     }
     return S_ISREG(pathStat.st_mode);

@@ -157,10 +157,11 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
         if (!request.getRangeStart().empty()) {
             this->statusCode = 206;
         }
-        if (request.getCheckLocation() && request.getUrl()[request.getUrl().length() - 1] != '/') {
+        // std::cout << "path: " << request.getLocation().getRoot().getPath() + request.getUrl() << std::endl;
+        std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
+        if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
             this->statusCode = 302;
         }
-
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
     std::string headerResponse;
@@ -177,7 +178,7 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
             headerResponse += "\r\nAccept-Ranges: bytes";
     }
     headerResponse += "\r\nConnection: " + request.getConnection();
-    if (request.getCheckLocation() && request.getUrl()[request.getUrl().length() - 1] != '/') {
+    if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
         headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
     }
     headerResponse += "\r\n\r\n";
@@ -201,7 +202,6 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
     char buffer[SEND];
     char bufferS[1000000];
     ssize_t sended;
-
     // --------seek the file-------- //
     if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {
         size_t bufferSize = 1000000;
@@ -216,7 +216,6 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
         std::string message = std::string(buffer, bytesRead);
-        // std::cout << "msg len: " << message.length() << " | " << "send:" << SEND << std::endl;
         sended = send( sockfd, ( message.c_str() ), message.length(), 0 );
         return (sended);
     }
@@ -282,7 +281,6 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
         header += intToString( get_size_fd(errorPage) );
     header += "\r\nConnection: close\r\n\r\n";
 
-    // std::cout << "header response: " << header << std::endl;;
     message = header + body;
     send( sockfd, message.c_str(), message.length(), 0);
 
@@ -296,9 +294,9 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::string fullPath;
 
     if (request.getCheckLocation())
-        fullPath = request.getLocation().getRoot().getPath() + request.getStringLocation();
+        fullPath = request.getLocation().getRoot().getPath() + request.getStringLocation() + "/";
     else
-        fullPath = server.getRoot().getPath();
+        fullPath = server.getRoot().getPath() + request.getUrl();
     dir = opendir(fullPath.c_str());
     if (dir == NULL) {
         std::cerr << "Error opening directory" << std::endl;
@@ -319,7 +317,14 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     body += "<body>\n";
     body += "<h1>Index of /</h1><hr><pre><a href=\"../\">../</a>\n";
     for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
-        body += "<a href=" + request.getStringLocation() + "/" + *it + ">" + *it + "</a>\n";
+        if (request.getCheckLocation())
+            body += "<a href=" + request.getStringLocation() + "/" + *it + ">" + *it + "</a>\n";
+        else {
+            if (request.getUrl() == "/")
+                body += "<a href=" + request.getUrl().erase(0, 1) + "/" + *it + ">" + *it + "</a>\n";
+            else
+                body += "<a href=" + request.getUrl() + "/" + *it + ">" + *it + "</a>\n";
+        }
     }
     body += "</pre><hr></body>\n";
     body += "</html>";
