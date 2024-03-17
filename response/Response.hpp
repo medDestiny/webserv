@@ -83,7 +83,7 @@ class Response {
         ssize_t sendHeader( int const &sockfd, Request const & request);
         ssize_t sendBody( int const &sockfd, Request const & request);
         std::string getStatusMessage(int const & statusCode);
-        void displayErrorPage( Conf::Server & server, int const &sockfd );
+        void displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
 

@@ -134,6 +134,7 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[400] = "Bad Request";
     statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";
+    statusMessages[405] = "Method Not Allowed";
     statusMessages[413] = "Payload Too Large";
     statusMessages[415] = "Unsupported Media Type";
     statusMessages[500] = "Internal Server Error";
@@ -156,6 +157,9 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
         if (!request.getRangeStart().empty()) {
             this->statusCode = 206;
         }
+        if (request.getCheckLocation() && request.getUrl()[request.getUrl().length() - 1] != '/') {
+            this->statusCode = 302;
+        }
 
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
@@ -173,6 +177,9 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
             headerResponse += "\r\nAccept-Ranges: bytes";
     }
     headerResponse += "\r\nConnection: " + request.getConnection();
+    if (request.getCheckLocation() && request.getUrl()[request.getUrl().length() - 1] != '/') {
+        headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
+    }
     headerResponse += "\r\n\r\n";
 
     ssize_t sended;
@@ -225,7 +232,7 @@ std::string Response::getErrorPage(std::map<std::string, std::string> ErrorPages
         return ("");
 }
 
-void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
+void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Request request) {
 
     std::string header;
     std::string message;
@@ -236,6 +243,15 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
         errorPage = server.getRoot().getPath() + errorPage;
         if (access(errorPage.c_str(), F_OK) == -1) {
             errorPage = "";
+        }
+    }
+    if (request.getCheckLocation()) {
+        errorPage = getErrorPage(request.getLocation().getErrorPage().getErrorPages());
+        if (!errorPage.empty()) {
+            errorPage = request.getLocation().getRoot().getPath() + errorPage;
+            if (access(errorPage.c_str(), F_OK) == -1) {
+                errorPage = "";
+            }
         }
     }
 
@@ -257,7 +273,7 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
         }
     }
 
-    header = "HTTP/1.1" + intToString(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
+    header += "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: ";
     if (errorPage.empty())
@@ -266,6 +282,7 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd) {
         header += intToString( get_size_fd(errorPage) );
     header += "\r\nConnection: close\r\n\r\n";
 
+    // std::cout << "header response: " << header << std::endl;;
     message = header + body;
     send( sockfd, message.c_str(), message.length(), 0);
 
@@ -276,7 +293,13 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::vector<std::string> fileNames;
     DIR* dir;
     struct dirent* entry;
-    dir = opendir(server.getRoot().getPath().c_str());
+    std::string fullPath;
+
+    if (request.getCheckLocation())
+        fullPath = request.getLocation().getRoot().getPath() + request.getStringLocation();
+    else
+        fullPath = server.getRoot().getPath();
+    dir = opendir(fullPath.c_str());
     if (dir == NULL) {
         std::cerr << "Error opening directory" << std::endl;
         this->statusCode = 500;
@@ -296,7 +319,7 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     body += "<body>\n";
     body += "<h1>Index of /</h1><hr><pre><a href=\"../\">../</a>\n";
     for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
-        body += "<a href=" + *it + ">" + *it + "</a>\n";
+        body += "<a href=" + request.getStringLocation() + "/" + *it + ">" + *it + "</a>\n";
     }
     body += "</pre><hr></body>\n";
     body += "</html>";

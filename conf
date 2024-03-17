@@ -39,13 +39,35 @@
 #
 #}
 
-#server {
-#	root /Users/mmisskin/Desktop;
-##	index test.html test1.html;
-#	location / {
-#		index index.htm;
-#	}
-#}
+	return 303 /test;
+	root	/Users/amoukhle/Desktop/server_1;
+	autoindex	off;
+	index	var.html;
+	index	maindexmatal3ba.hh;
+	index	maindexmatal3ba.hh;
+	upload_store	/html;
+
+	location /flexbox {
+		index index.html;
+		autoindex	on;
+	}
+	location /test2 {
+		root /test2;
+		index tst.test2;
+	autoindex	off;
+	upload_store	/uploads;
+	upload_store	/upload;
+	limit_except GET	POST;
+	limit_except POST;
+	}
+	location /cgi-bin {
+		cgi_pass .php /usr/bin/php;
+		cgi_pass .py;
+		cgi_pass .out;
+	}
+	autoindex	on;
+
+}
 
 server {
 	location / {}
