@@ -16,6 +16,7 @@ server {server_name test;
 	index	maindexmatal3ba.hh;
 	upload_store	/html;
 
+
 	location /flexbox {
 		root	/Users/amoukhle/Desktop/server_1;
 		index index.html;

@@ -223,6 +223,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     // get method | path | httpVersion
 	std::getline(methodStream, this->method, ' ');
 	std::getline(methodStream, this->path, ' ');
+  
     this->url = this->path;
     std::getline(methodStream, this->httpVersion, '\r');
     // check httpVersion is valid
@@ -276,6 +277,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->connection = it->second;
     else
         this->connection = "close";
+
 
     if (this->method == "GET") {
         // check path is valid !!!!!

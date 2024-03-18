@@ -65,6 +65,10 @@ class Request {
         bool checkLocation;
         std::string stringLocation;
 
+        // test
+        Location location;
+        bool checkLocation;
+
     public:
         Request( void );
         ~Request( void );
