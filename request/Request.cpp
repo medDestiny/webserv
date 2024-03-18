@@ -166,6 +166,24 @@ void Request::setCheckLocation( bool checkLocation ) {
     this->checkLocation = checkLocation;
 }
 
+std::string Request::getStringLocation( void ) const {
+
+    return (this->stringLocation);
+}
+void Request::setStringLocation( std::string const & stringLocation ) {
+
+    this->stringLocation = stringLocation;
+}
+
+std::string Request::getUrl( void ) const {
+
+    return (this->url);
+}
+void Request::setUrl( std::string url ) {
+
+    this->url = url;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -205,6 +223,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     // get method | path | httpVersion
 	std::getline(methodStream, this->method, ' ');
 	std::getline(methodStream, this->path, ' ');
+  
+    this->url = this->path;
     std::getline(methodStream, this->httpVersion, '\r');
     // check httpVersion is valid
     if (this->httpVersion != "HTTP/1.1") {
@@ -212,9 +232,11 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         return (0);
     }
 
+    // get location
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;
+        this->stringLocation = itLocation->first;
         this->checkLocation = true;
     }
 
@@ -260,13 +282,18 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        if (path.empty()) {
+        std::string absolutPAth;
+        if (this->checkLocation)
+            absolutPAth = this->location.getRoot().getPath() + this->url;
+        else
+            absolutPAth = server.getRoot().getPath() + this->url;
+        if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
+
             if (this->checkLocation)
-                path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath());
+                this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
             else
-                path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-            // std::cout << "path: " << path << std::endl;
-            if (path.empty()) {
+                this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
+            if (this->path.empty()) {
                 bool checkAutoIndex = server.getAutoIndex().getToggle();
                 if (this->checkLocation)
                     checkAutoIndex = this->location.getAutoIndex().getToggle();
@@ -281,20 +308,16 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
             }
         }
         else {
-            this->path = server.getRoot().getPath() + "/" + this->path;
             if (this->checkLocation)
                 this->path = location.getRoot().getPath() + "/" + this->path;
-            // std::cout << "path: " << this->path << std::endl;
+            else
+                this->path = server.getRoot().getPath() + "/" + this->path;
             if (access(this->path.c_str(), F_OK) == -1) {
                 response.setStatusCode( 404 );
                 return (0);
             }
             response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
             response.setMimeType( getMimeType(response.getType()) );
-            if (response.getMimeType() == "Unknown MIME type") {
-                response.setStatusCode( 415 );
-                return (0);
-            }
         }
 
         // get content length

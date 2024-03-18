@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 17:54:02 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/12 14:31:46 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/17 15:02:04 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,6 @@ int	main(int ac, char **av)
 	if (!config.isValid())
 		return (1);
 
-	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl;
-	serv.createServer();
+	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; 
+	serv.createServer(); 
 }

@@ -133,22 +133,27 @@ int Client::recieveRequest( int const &sockfd ) {
 
 int Client::sendresponse( int const &sockfd ) {
 
+    // display error
     if (response.getStatusCode() >= 400) {
         response.displayErrorPage(this->server, sockfd, this->request);
         return (0);
     }
+
+    // display autoIndex
     if (response.getAutoIndexing()) {
         if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
             response.displayErrorPage(this->server, sockfd, this->request);
             return (0);
         }
-        return (1);
+        return (2); // change to PULLIN
     }
+
+    // send file 
     if (this->request.getMethod() == "GET") {
         if (this->response.getSendedHeader()) {
             ssize_t sended = this->response.sendBody( sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-                return (0);
+                return (0); // remove client and fd
             }
             if (response.getContentResponse() == response.getContentLength()) {
                 return (2); // change to PULLIN
@@ -157,7 +162,7 @@ int Client::sendresponse( int const &sockfd ) {
         else {
             ssize_t sended = this->response.sendHeader( sockfd, this->request );
             if ( (int)sended == -1) {
-                return (0);
+                return (0); // remove client and fd
             }
             else
                 response.setSendedHeader( true );

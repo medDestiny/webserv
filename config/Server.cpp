@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/12 16:51:59 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/17 15:00:58 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,4 +64,22 @@ std::map<std::string, Location> const &		Server::getLocations(void) const { retu
 
 void										Server::setLocations(std::map<std::string, Location> const & locations) {_locations = locations; }
 
-std::map<std::string, Location>::iterator	Server::getLocation(std::string const & path) { return (_locations.find(path)); }
+std::map<std::string, Location>::iterator	Server::getLocation(std::string const & path)
+{
+	std::map<std::string, Location>::iterator it = _locations.find(path);
+
+	/* if exact match fails, try prefix matching as last resort */
+	if (it == _locations.end())
+	{
+		std::map<std::string, Location>::iterator tmp;
+		for (size_t i = 0; path[i]; i++)
+		{
+			tmp = _locations.find(path.substr(0, i));
+			if (tmp != _locations.end())
+				it = tmp;
+		}
+		return (it);
+	}
+
+	return (it);
+}

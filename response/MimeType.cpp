@@ -259,5 +259,5 @@ std::string getMimeType(const std::string& extension) {
 	if (extension == "avi") {
 		return "video/x-msvideo";
 	}
-	return "Unknown MIME type";
+	return "text/plain";
 }
