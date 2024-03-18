@@ -18,7 +18,7 @@ server {server_name test;
 
 
 	location /flexbox {
-		root	/Users/amoukhle/Desktop/server_1;
+		root	/Users/del-yaag/Desktop/server;
 		index index.html;
 	}
 	location /test2 {
