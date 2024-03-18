@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/07 14:09:43 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/18 18:11:20 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,10 +64,6 @@ class Request {
         Location location;
         bool checkLocation;
         std::string stringLocation;
-
-        // test
-        Location location;
-        bool checkLocation;
 
     public:
         Request( void );
