@@ -232,8 +232,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
 
     // get location
-    // if (this->path[this->path.length() - 1] == '/')
-    //     this->path.erase(this->path.length() - 1, 1);
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;

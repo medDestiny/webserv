@@ -321,9 +321,9 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
             body += "<a href=" + request.getStringLocation() + "/" + *it + ">" + *it + "</a>\n";
         else {
             if (request.getUrl() == "/")
-                body += "<a href=" + request.getUrl().erase(0, 1) + "/" + *it + ">" + *it + "</a>\n";
+                body += "<a href=\"" + request.getUrl().erase(0, 1) + "/" + *it + "\">" + *it + "</a>\n";
             else
-                body += "<a href=" + request.getUrl() + "/" + *it + ">" + *it + "</a>\n";
+                body += "<a href=\"" + request.getUrl() + "/" + *it + "\">" + *it + "</a>\n";
         }
     }
     body += "</pre><hr></body>\n";
