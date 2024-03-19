@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/19 21:10:06 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/19 21:55:06 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,54 +169,33 @@ void Request::parsePostBodyHeader( std::string const &chunck ) {
 
 int Request::bufferPostBody( void ) {
     
-    if ( this->getContentLength() == 0 ) {
-                
-        if ( this->getEndBoundary().empty() ) {
-            
-            if ( this->getTransferEncoding().empty() || this->getTransferEncoding() != "chunked") // bad request we can't know how to stop reading body
-                return 2;
-            else {
-
-                if ( this->getBody().find( "0\r\n\r\n" ) == std::string::npos ) { // encoding
-                    
-                    this->setBodyType( ENCODING );
-                    return 0;
-                }
-            }
-        }
-        else {
-            
-            if ( this->getTransferEncoding().empty() || this->getTransferEncoding() != "chunked" ) {
-
-                if ( this->getBody().find( this->getEndBoundary() ) != std::string::npos ) { // boundries
-
-                    this->setBodyType( BOUNDARIES );
-                    return 0;
-                }
-            } else {
-
-                if ( this->getBody().find( "0\r\n\r\n" ) != std::string::npos ) { // boundaries width encoding
-                    
-                    this->setBodyType( ENCODING );
-                    return 0;
-                }
-            }
-        }
+    if ( !this->getTransferEncoding().empty() ) {
         
-    } else if ( this->getRequestBodySize() >= this->getContentLength() ) { // if there is a content length
-        
-        if ( this->getTransferEncoding().empty() || this->getTransferEncoding() != "chunked" ) {
-
-            if ( this->getRequestBodySize() == this->getContentLength() ) { // length
-
-                this->setBodyType( LENGTH );
-                return 0;
-            }
-        } else {
-
-            if ( this->getBody().find( "0\r\n\r\n" ) != std::string::npos ) { // boundaries width encoding
+        if ( this->getTransferEncoding() == "chunked" ) {
+            
+            if ( this->getBody().find( "0\r\n\r\n" ) != std::string::npos ) { // encoding
                 
                 this->setBodyType( ENCODING );
+                return 0;
+            }
+        } else 
+            return 2;
+    }
+    if ( this->getContentLength() ) {
+
+        if ( this->getRequestBodySize() == this->getContentLength() ) { // length
+
+            this->setBodyType( LENGTH );
+            return 0;
+        }
+        
+    } else {
+        
+        if ( !this->getEndBoundary().empty() ) {
+
+            if ( this->getBody().find( this->getEndBoundary() ) != std::string::npos ) { // boundaries
+
+                this->setBodyType( BOUNDARIES );
                 return 0;
             }
         }
