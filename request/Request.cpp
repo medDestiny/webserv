@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/07 14:03:40 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/18 21:06:06 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ int Request::setRequestHeader( void ) {
     size_t found = recString.find(subString);
     if (found != std::string::npos) {
         this->header = recString.substr(0, found + subString.length());
-        std::cout << "header request: " << this->header << std::endl;
+        std::cout << BLUE << this->header << RESET << std::endl;
         return (1);
     }
     else
@@ -341,6 +341,9 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
                 break;
             }
         }
+    } else if ( this->method == "POST" ) {
+         
+        this->parsePostHeader();
     }
 
     return (1);

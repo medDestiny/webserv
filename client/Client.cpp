@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:44 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/19 21:08:15 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,40 +93,60 @@ int Client::recieveRequest( int const &sockfd ) {
     else {
 
         if (recieved < SIZE)
-            recievebuff[recieved] = '\0';
+            recievebuff[recieved] = '\0';  
         this->request.setRecString( std::string(recievebuff, recieved) );
+        
         if (!this->endRecHeader) {
+            
             if (this->request.setRequestHeader()) {
+                
                 if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
                     return (0); // error
                 }
+                
                 this->endRecHeader = true;
                 this->request.setRequestBody();
-                if (request.getValue("Content-Length:").empty())
-                    return (0); // end recieve request
+                
+                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" )
+                    return 0;
             }
+            
+            // invalid header *error*
             if (recieved < SEND && this->request.getHeader().empty()) {
+                
                 this->response.setStatusCode( 400 );
                 return (0); // error
             }
+
         }
         else {
+            
             size_t maxSize = server.getClientMaxBodySize().getSize();
             if (this->request.getCheckLocation())
                 maxSize = request.getLocation().getClientMaxBodySize().getSize();
+            
             if (this->request.getRequestBodySize() > maxSize) {
+                
+                std::cout << "henaaaa" << std::endl;
                 this->response.setStatusCode( 413 );
                 return (0); // error
             }
-            if (this->request.getRequestBodySize() >= stringToInt(request.getValue("Content-Length:"))) {
-                this->request.setRequestBody();
-                std::cout << "body : " << request.getBody() << std::endl;
-                return (0);
+            
+            // append chunck to body
+            this->request.setBody( std::string( recievebuff, recieved ) );
+            
+            if ( this->request.bufferPostBody() == 2 ) {
+
+                this->response.setStatusCode( 400 );
+                return 0;
+                
+            } else if ( !this->request.bufferPostBody() ) {
+                
+                std::cout << this->request.getBody() << std::endl;
+                std::cout << this->request.getBodyType() << std::endl;
+                return 0;
             }
         }
-    }
-    if (!request.getBody().empty() && this->request.getRequestBodySize() >= stringToInt(request.getValue("Content-Length:"))) {
-        return (0); // end recieve request
     }
     return (1); // still read request
 }

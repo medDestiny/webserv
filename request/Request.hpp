@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/18 18:11:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/19 21:01:54 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,13 @@
 
 #define SIZE 1024
 
+enum bodyType {
+
+    LENGTH,
+    ENCODING,
+    BOUNDARIES
+};
+
 class Response;
 
 class Request {
@@ -59,6 +66,19 @@ class Request {
         size_t rangeEndNum;
         std::map<std::string, std::string> linesRequest;
         std::string url;
+
+        // post method
+        std::string startBoundary;
+        std::string endBoundary;
+        std::string contentType;
+        std::string postBodyHeader;
+        std::string BHName;
+        std::string BHFilename;
+        std::string BHContentDispo;
+        std::string BHContentType;
+        std::string transferEncoding;
+        int         bodyType;
+        size_t      contentLength;
 
         // location
         Location location;
@@ -109,4 +129,32 @@ class Request {
         void setRequestBody( void );
         std::string getValue( std::string const & key ) const;
         std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
+
+        // ------------- POST ------------- //
+        void parsePostHeader( void );
+        void parsePostBodyHeader( std::string const &chunck );
+        int bufferPostBody( void );
+        
+        std::string getStartBoundary( void ) const;
+        void setStartBoundary( std::string const &boundary );
+        std::string getEndBoundary( void ) const;
+        void setEndBoundary( std::string const &boundary );
+        std::string getContentType( void ) const;
+        void setContentType( std::string const &type );
+        size_t getContentLength( void ) const;
+        void setContentLength( size_t const &length );
+        std::string getPostBodyHeader( void ) const;
+        void setPostBodyHeader( std::string const &header );
+        std::string getBHName( void ) const;
+        void setBHName( std::string const &name );
+        std::string getBHFilename( void ) const;
+        void setBHFilename( std::string const &filename );
+        std::string getBHContentDispo( void ) const;
+        void setBHContentDispo( std::string const &content );
+        std::string getBHContentType( void ) const;
+        void setBHContentType( std::string const &type );
+        std::string getTransferEncoding( void ) const;
+        void setTransferEncoding( std::string const &content );
+        int getBodyType( void ) const;
+        void setBodyType( int const &type ) ;
 };
