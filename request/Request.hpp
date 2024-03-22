@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/19 21:01:54 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/22 22:56:58 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ class Request {
         std::string postBodyHeader;
         std::string BHName;
         std::string BHFilename;
+        stf::string oldfilename;
         std::string BHContentDispo;
         std::string BHContentType;
         std::string transferEncoding;
@@ -99,7 +100,7 @@ class Request {
         std::string getHeader( void ) const;
         void setHeader( std::string const & header );
         std::string getBody( void ) const;
-        void setBody( std::string const & body );
+        void setBody( char const *body, int const &size );
         std::string getConnection( void ) const;
         void setConnection( std::string const & connection );
         std::string getRangeStart( void ) const;
@@ -133,7 +134,13 @@ class Request {
         // ------------- POST ------------- //
         void parsePostHeader( void );
         void parsePostBodyHeader( std::string const &chunck );
-        int bufferPostBody( void );
+        int bufferPostBody( std::string const &buffer );
+        int parsePostBody( std::string const &buffer );
+        int parseEncodingBody( void );
+        int parseBoundariesBody( void );
+        int parseLengthBody( void );
+        std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
+        int createFileAndWrite( std::string const &str );
         
         std::string getStartBoundary( void ) const;
         void setStartBoundary( std::string const &boundary );
@@ -158,3 +165,5 @@ class Request {
         int getBodyType( void ) const;
         void setBodyType( int const &type ) ;
 };
+
+int hexadecimalToDecimal( std::string hexVal );

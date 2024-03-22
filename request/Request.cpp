@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/18 21:06:06 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/22 18:20:21 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,12 +73,12 @@ std::string Request::getBody( void ) const {
 
     return (this->body);
 }
-void Request::setBody( std::string const & body ) {
+void Request::setBody( char const *body, int const &size ) {
 
     if (this->body.empty())
-        this->body = body;
+        this->body.append( body, size );
     else
-        this->body += body;
+        this->body.append( body, size );
 }
 
 std::string Request::getConnection( void ) const {

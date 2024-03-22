@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/19 21:08:15 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/22 22:17:39 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ int Client::recieveRequest( int const &sockfd ) {
 
     char recievebuff[SIZE];
     int recieved = recv( sockfd, recievebuff, SIZE, 0 );
+    
     if ( recieved < 0 ) {
         this->response.setStatusCode( 500 );
         return (0); // error
@@ -93,7 +94,7 @@ int Client::recieveRequest( int const &sockfd ) {
     else {
 
         if (recieved < SIZE)
-            recievebuff[recieved] = '\0';  
+            recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
         
         if (!this->endRecHeader) {
@@ -127,23 +128,25 @@ int Client::recieveRequest( int const &sockfd ) {
             
             if (this->request.getRequestBodySize() > maxSize) {
                 
-                std::cout << "henaaaa" << std::endl;
                 this->response.setStatusCode( 413 );
                 return (0); // error
             }
             
             // append chunck to body
-            this->request.setBody( std::string( recievebuff, recieved ) );
+            this->request.setBody( recievebuff, recieved );
+            std::string buffer = std::string( recievebuff, recieved );
             
-            if ( this->request.bufferPostBody() == 2 ) {
+            int status = this->request.parsePostBody( buffer );
+            
+            if ( status == 2 ) {
 
                 this->response.setStatusCode( 400 );
                 return 0;
                 
-            } else if ( !this->request.bufferPostBody() ) {
+            } else if ( !status ) {
                 
                 std::cout << this->request.getBody() << std::endl;
-                std::cout << this->request.getBodyType() << std::endl;
+                std::cout << this->request.getBody().size() << std::endl;
                 return 0;
             }
         }
