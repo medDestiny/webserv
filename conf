@@ -39,3 +39,83 @@ server {server_name test;
 	autoindex	on;
 
 }
+server {server_name test1;
+	listen	localhost:8080;
+	server_name	www.google.com test.net parsing.tzb;
+	error_page	404 /404.html;
+	error_page	406 403 /404.html;
+	server_name	server.wa7d.a5or;
+	client_max_body_size	20000M;
+	server_name	server.wa7d.a5or;
+
+	return 303 /test;
+	root	/;
+	autoindex	off;
+	index	var.html;
+	index	maindexmatal3ba.hh;
+	index	maindexmatal3ba.hh;
+	upload_store	/html;
+
+
+	location /flexbox {
+		root	/Users/del-yaag/Desktop/server;
+		index index.html;
+	}
+	location /test2 {
+		root /test2;
+		index tst.test2;
+	autoindex	off;
+	upload_store	/uploads;
+	upload_store	/upload;
+	limit_except GET	POST;
+	limit_except POST;
+	}
+	location /cgi-bin {
+		cgi_pass .php /usr/bin/php;
+		cgi_pass .py;
+		cgi_pass .out;
+	}
+	index index.html;
+	autoindex	on;
+
+}
+server {server_name test1;
+	listen	8080;
+	server_name	www.google.com test.net parsing.tzb;
+	error_page	404 /404.html;
+	error_page	406 403 /404.html;
+	server_name	server.wa7d.a5or;
+	client_max_body_size	20000M;
+	server_name	server.wa7d.a5or;
+
+	return 303 /test;
+	root	/;
+	autoindex	off;
+	index	var.html;
+	index	maindexmatal3ba.hh;
+	index	maindexmatal3ba.hh;
+	upload_store	/html;
+
+
+	location /flexbox {
+		root	/Users/del-yaag/Desktop/server;
+		index index.html;
+	}
+	location /test2 {
+		root /test2;
+		index tst.test2;
+	autoindex	off;
+	upload_store	/uploads;
+	upload_store	/upload;
+	limit_except GET	POST;
+	limit_except POST;
+	}
+	location /cgi-bin {
+		cgi_pass .php /usr/bin/php;
+		cgi_pass .py;
+		cgi_pass .out;
+	}
+	index index.html;
+	autoindex	on;
+
+}

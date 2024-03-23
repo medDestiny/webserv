@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/22 22:56:58 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/23 16:48:50 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ class Request {
         std::string postBodyHeader;
         std::string BHName;
         std::string BHFilename;
-        stf::string oldfilename;
+        // stf::string oldfilename;
         std::string BHContentDispo;
         std::string BHContentType;
         std::string transferEncoding;
