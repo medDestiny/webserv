@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/22 22:17:39 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/23 23:46:24 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,8 @@ void Client::setEndRecHeader( bool endRecHeader ) {
 
 int Client::recieveRequest( int const &sockfd ) {
 
+    int status;
+    std::string buffer;
     char recievebuff[SIZE];
     int recieved = recv( sockfd, recievebuff, SIZE, 0 );
     
@@ -134,9 +136,9 @@ int Client::recieveRequest( int const &sockfd ) {
             
             // append chunck to body
             this->request.setBody( recievebuff, recieved );
-            std::string buffer = std::string( recievebuff, recieved );
+            buffer = std::string( recievebuff, recieved );
             
-            int status = this->request.parsePostBody( buffer );
+            status = this->request.parsePostBody( buffer );
             
             if ( status == 2 ) {
 
@@ -144,11 +146,11 @@ int Client::recieveRequest( int const &sockfd ) {
                 return 0;
                 
             } else if ( !status ) {
-                
-                std::cout << this->request.getBody() << std::endl;
+
                 std::cout << this->request.getBody().size() << std::endl;
-                return 0;
-            }
+                this->response.setBody( this->request.getBody() );
+                return 0; // end recive
+            } 
         }
     }
     return (1); // still read request
@@ -193,6 +195,8 @@ int Client::sendresponse( int const &sockfd ) {
     }
     else if (this->request.getMethod() == "POST") {
         
+        if ( !this->response.execPostMethod( this->request ) )
+            return 0;
     }
     return (1);
 }

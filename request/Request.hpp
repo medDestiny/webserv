@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/23 16:48:50 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/23 23:46:47 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,15 +72,10 @@ class Request {
         std::string endBoundary;
         std::string contentType;
         std::string postBodyHeader;
-        std::string BHName;
-        std::string BHFilename;
-        // stf::string oldfilename;
-        std::string BHContentDispo;
-        std::string BHContentType;
         std::string transferEncoding;
         int         bodyType;
         size_t      contentLength;
-
+        
         // location
         Location location;
         bool checkLocation;
@@ -132,15 +127,9 @@ class Request {
         std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
 
         // ------------- POST ------------- //
-        void parsePostHeader( void );
-        void parsePostBodyHeader( std::string const &chunck );
-        int bufferPostBody( std::string const &buffer );
         int parsePostBody( std::string const &buffer );
-        int parseEncodingBody( void );
-        int parseBoundariesBody( void );
-        int parseLengthBody( void );
-        std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
-        int createFileAndWrite( std::string const &str );
+        int bufferPostBody( std::string const &buffer );
+        void parsePostHeader( void );
         
         std::string getStartBoundary( void ) const;
         void setStartBoundary( std::string const &boundary );
@@ -152,18 +141,8 @@ class Request {
         void setContentLength( size_t const &length );
         std::string getPostBodyHeader( void ) const;
         void setPostBodyHeader( std::string const &header );
-        std::string getBHName( void ) const;
-        void setBHName( std::string const &name );
-        std::string getBHFilename( void ) const;
-        void setBHFilename( std::string const &filename );
-        std::string getBHContentDispo( void ) const;
-        void setBHContentDispo( std::string const &content );
-        std::string getBHContentType( void ) const;
-        void setBHContentType( std::string const &type );
         std::string getTransferEncoding( void ) const;
         void setTransferEncoding( std::string const &content );
         int getBodyType( void ) const;
-        void setBodyType( int const &type ) ;
+        void setBodyType( int const &type );
 };
-
-int hexadecimalToDecimal( std::string hexVal );

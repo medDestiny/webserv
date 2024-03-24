@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:24 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 00:49:48 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 #include "../config/Location.hpp"
 
 #define SEND 1024
+#define CHUNKED 2621440
 
 class Request;
 
@@ -53,6 +54,15 @@ class Response {
         size_t contentResponse;
         std::string type;
         std::string mimeType;
+
+        // post method
+        std::string body;
+        std::string BHName;
+        std::string BHFilename;
+        std::string BHContentDispo;
+        std::string BHContentType;
+        int         fd;
+        bool        bodyFlag;
 
     public:
         Response( void );
@@ -87,6 +97,26 @@ class Response {
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
 
+        // ------------ post ------------ //
+        void parsePostBodyHeader( std::string const &chunck );
+        int parseEncodingBody( void );
+        int parseBoundariesBody( Request const &request );
+        int parseLengthBody( void );
+        std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
+        int createFileAndWrite( std::string const &str, bool const &flag );
+        int execPostMethod( Request const &request );
+        
+        std::string getBHName( void ) const;
+        void setBHName( std::string const &name );
+        std::string getBHFilename( void ) const;
+        void setBHFilename( std::string const &filename );
+        std::string getBHContentDispo( void ) const;
+        void setBHContentDispo( std::string const &content );
+        std::string getBHContentType( void ) const;
+        void setBHContentType( std::string const &type );
+        std::string getBody( void ) const;
+        void setBody( std::string const &body );
 };
 
 std::string getMimeType(const std::string& extension);
+int hexadecimalToDecimal( std::string hexVal );
