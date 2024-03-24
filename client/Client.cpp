@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/23 23:46:24 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 03:25:30 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,6 +197,8 @@ int Client::sendresponse( int const &sockfd ) {
         
         if ( !this->response.execPostMethod( this->request ) )
             return 0;
+        else
+            this->settimeout( std::time( NULL ) );
     }
     return (1);
 }

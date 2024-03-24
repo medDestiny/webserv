@@ -84,7 +84,7 @@ void  Response::parsePostBodyHeader( std::string const &chunck ) {
     // std::cout << this->getBHContentType() << std::endl;
 }
 
-int  Response::createFileAndWrite( std::string const &str, bool const &flag ) {
+int  Response::createFileAndWrite( std::string const &str, bool const flag ) {
 
     std::string path;
     ssize_t bytes;
@@ -126,13 +126,78 @@ int  Response::createFileAndWrite( std::string const &str, bool const &flag ) {
     return 1;
 }
 
+void Response::resetHeaderElements( void ) {
+
+    this->setBHContentDispo( "" );
+    this->setBHContentType( "" );
+    this->setBHFilename( "" );
+    this->setBHName( "" );
+}
+
+int Response::PutChunkedBodyToFile( Request const &request, bool const flag ) {
+
+    std::string chunked;
+    std::string chunkedBody;
+    size_t find;
+    size_t next;
+
+    chunkedBody = this->body.substr( 0, CHUNKED );
+    find = chunkedBody.find( request.getStartBoundary() );
+    if ( find != std::string::npos ) {
+
+        next = chunkedBody.find( "\r\n", find );
+        chunked = chunkedBody.substr( find, next - find );
+        if ( chunked == request.getEndBoundary() ) { // got the end boundaries
+
+            std::cout << "false end" << std::endl;
+            chunked = chunkedBody.substr( 0, find - 2 );
+            if ( !this->createFileAndWrite( chunked, flag ) )
+                return 0; // error
+                
+            this->body.erase( 0, find ); // erase body
+            std::cout << "body: " << this->body.size() << std::endl;
+            
+            // reset all vars
+            this->resetHeaderElements();
+            if ( flag )
+                this->bodyFlag = false;
+            close( this->fd );
+            
+            return 0; // end
+
+        } else if ( chunked == request.getStartBoundary() ) { // got the start boundaries
+            
+            std::cout << "false start" << std::endl;
+            chunked = chunkedBody.substr( 0, find - 2 );
+            if ( !this->createFileAndWrite( chunked, flag ) )
+                return 0;
+            this->body.erase( 0, find ); // erase body
+            std::cout << "body: " << this->body.size() << std::endl;
+            // reset all vars
+            this->resetHeaderElements();
+            if ( flag )
+                this->bodyFlag = false;
+            close( this->fd );
+        }
+    } else {
+
+        std::cout << "false walo" << std::endl;
+        if ( !this->createFileAndWrite( chunkedBody, flag ) )
+            return 0;
+        this->body.erase( 0, CHUNKED ); // erase body
+        std::cout << "body: " << this->body.size() << std::endl;
+        if ( !flag )
+            this->bodyFlag = true;
+    }
+    return 1;
+}
+
 int  Response::parseBoundariesBody( Request const &request ) {
 
     std::string buffer;
     std::string chunked;
     std::string chunkedBody;
     size_t find;
-    size_t next;
 
     if ( this->bodyFlag == false ) {
 
@@ -155,108 +220,14 @@ int  Response::parseBoundariesBody( Request const &request ) {
                 }
                 this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
 
-                
-                chunkedBody = this->body.substr( 0, CHUNKED );
-                find = chunkedBody.find( request.getStartBoundary() );
-                if ( find != std::string::npos ) {
-
-                    next = chunkedBody.find( "\r\n", find );
-                    chunked = chunkedBody.substr( find, next - find );
-                    if ( chunked == request.getEndBoundary() ) { // got the end boundaries
-
-                        std::cout << "false end" << std::endl;
-                        chunked = chunkedBody.substr( 0, find - 2 );
-                        if ( !this->createFileAndWrite( chunked, false ) )
-                            return 0; // error
-                            
-                        this->body.erase( 0, find ); // erase body
-                        std::cout << "body: " << this->body.size() << std::endl;
-                        
-                        // reset all vars
-                        this->setBHContentDispo( "" );
-                        this->setBHContentType( "" );
-                        this->setBHFilename( "" );
-                        this->setBHName( "" );
-                        close( this->fd );
-                        
-                        return 0; // end
-
-                    } else if ( chunked == request.getStartBoundary() ) { // got the start boundaries
-                        
-                        std::cout << "false start" << std::endl;
-                        chunked = chunkedBody.substr( 0, find - 2 );
-                        if ( !this->createFileAndWrite( chunked, false ) )
-                            return 0;
-                        this->body.erase( 0, find ); // erase body
-                        std::cout << "body: " << this->body.size() << std::endl;
-                        // reset all vars
-                        this->setBHContentDispo( "" );
-                        this->setBHContentType( "" );
-                        this->setBHFilename( "" );
-                        this->setBHName( "" );
-                        close( this->fd );
-                    }
-                } else {
-
-                    std::cout << "false walo" << std::endl;
-                    if ( !this->createFileAndWrite( chunkedBody, false ) )
-                        return 0;
-                    this->body.erase( 0, CHUNKED ); // erase body
-                    std::cout << "body: " << this->body.size() << std::endl;
-                    bodyFlag = true;
-                }
+                if ( !this->PutChunkedBodyToFile( request, false ) )
+                    return 0;
             }
         }
     } else {
         
-        chunkedBody = this->body.substr( 0, CHUNKED );
-        find = chunkedBody.find( request.getStartBoundary() );
-        if ( find != std::string::npos ) {
-
-            next = chunkedBody.find( "\r\n", find );
-            chunked = chunkedBody.substr( find, next - find );
-            if ( chunked == request.getEndBoundary() ) { // got the end boundaries
-
-                std::cout << "true end" << std::endl;
-                chunked = chunkedBody.substr( 0, find - 2 );
-                if ( !this->createFileAndWrite( chunked, true ) )
-                    return 0;
-                this->body.erase( 0, find ); // erase body
-                
-                // reset all vars
-                this->setBHContentDispo( "" );
-                this->setBHContentType( "" );
-                this->setBHFilename( "" );
-                this->setBHName( "" );
-                this->bodyFlag = false;
-                close( this->fd );
-                
-                return 0; // end
-
-            } else if ( chunked == request.getStartBoundary() ) { // got the start boundaries
-                
-                std::cout << "ture start" << std::endl;
-                chunked = chunkedBody.substr( 0, find - 2 );
-                if ( !this->createFileAndWrite( chunked, true ) )
-                    return 0;
-                this->body.erase( 0, find ); // erase body
-                std::cout << "body: " << this->body.size() << std::endl;
-                // reset all vars
-                this->setBHContentDispo( "" );
-                this->setBHContentType( "" );
-                this->setBHFilename( "" );
-                this->setBHName( "" );
-                this->bodyFlag = false;
-                close( this->fd );
-            }
-        } else {
-
-            std::cout << "true walo" << std::endl;
-            if ( !this->createFileAndWrite( chunkedBody, true ) )
-                return 0;
-            this->body.erase( 0, CHUNKED ); // erase body
-            std::cout << "body: " << this->body.size() << std::endl;
-        }
+        if ( !this->PutChunkedBodyToFile( request, true ) )
+            return 0;
     }
     return 1;
 }

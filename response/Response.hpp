@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 00:49:48 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 03:17:12 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,8 +103,10 @@ class Response {
         int parseBoundariesBody( Request const &request );
         int parseLengthBody( void );
         std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
-        int createFileAndWrite( std::string const &str, bool const &flag );
+        int createFileAndWrite( std::string const &str, bool const flag );
         int execPostMethod( Request const &request );
+        int PutChunkedBodyToFile( Request const &request, bool const flag );
+        void resetHeaderElements( void );
         
         std::string getBHName( void ) const;
         void setBHName( std::string const &name );
