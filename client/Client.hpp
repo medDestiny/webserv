@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:47 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 02:31:46 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,8 @@ class Client {
         bool getEndRecHeader( void );
         void setEndRecHeader( bool endRecHeader );
 
-        int recieveRequest( int const &sockfd );
-        int sendresponse( int const &sockfd );
+        int recieveRequest();
+        int sendresponse();
 
 };
 

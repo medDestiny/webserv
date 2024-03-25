@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:44 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 15:37:48 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,10 +82,10 @@ void Client::setEndRecHeader( bool endRecHeader ) {
     this->endRecHeader = endRecHeader;
 }
 
-int Client::recieveRequest( int const &sockfd ) {
+int Client::recieveRequest() {
 
     char recievebuff[SIZE];
-    int recieved = recv( sockfd, recievebuff, SIZE, 0 );
+    int recieved = recv( this->sockfd, recievebuff, SIZE, 0 );
     if ( recieved < 0 ) {
         this->response.setStatusCode( 500 );
         return (0); // error
@@ -97,7 +97,7 @@ int Client::recieveRequest( int const &sockfd ) {
         this->request.setRecString( std::string(recievebuff, recieved) );
         if (!this->endRecHeader) {
             if (this->request.setRequestHeader()) {
-                if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
+                if ( !this->request.parseRequestHeader(this->config, this->server, this->response , this->sockfd)) {
                     return (0); // error
                 }
                 this->endRecHeader = true;
@@ -131,31 +131,52 @@ int Client::recieveRequest( int const &sockfd ) {
     return (1); // still read request
 }
 
-int Client::sendresponse( int const &sockfd ) {
+int Client::sendresponse() {
 
     if (response.getStatusCode() >= 400) {
-        response.displayErrorPage(this->server, sockfd, this->request);
+        response.displayErrorPage(this->server, this->sockfd, this->request);
         return (0);
     }
     if (response.getAutoIndexing()) {
-        if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
-            response.displayErrorPage(this->server, sockfd, this->request);
+        if ( !response.displayAutoIndex(this->server, this->sockfd, this->request) ) {
+            response.displayErrorPage(this->server, this->sockfd, this->request);
             return (0);
         }
         return (1);
     }
-    if (this->request.getMethod() == "GET") {
+
+	if (this->request.getMethod() == "GET") {
+		if (this->request.cgi)
+		{
+			/* check if the script has finished */
+			if (this->request.pid == waitpid(this->request.pid, NULL, WNOHANG))
+			{
+				std::cout << "Cgi finished" << std::endl;
+				if (response.sendCgiHeader(this->sockfd, this->request) == -1)
+					return (0);
+				else
+					response.setSendedHeader( true );
+				this->request.cgi = false;
+			}
+			else
+				return (1);
+			/* if it finished send the response */
+			/* otherwise if the timeout occurs kill it */
+			/* if non of the above return 1 */
+		}
         if (this->response.getSendedHeader()) {
-            ssize_t sended = this->response.sendBody( sockfd, this->request );
+            ssize_t sended = this->response.sendBody( this->sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+				close(this->response.getFile());
                 return (0);
             }
             if (response.getContentResponse() == response.getContentLength()) {
+				close(this->response.getFile());
                 return (2); // change to PULLIN
             }
         }
         else {
-            ssize_t sended = this->response.sendHeader( sockfd, this->request );
+            ssize_t sended = this->response.sendHeader( this->sockfd, this->request );
             if ( (int)sended == -1) {
                 return (0);
             }

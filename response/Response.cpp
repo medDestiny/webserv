@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 15:38:05 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,63 @@ std::string Response::getStatusMessage(int const & statusCode) {
     }
 }
 
+ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
+
+	std::ifstream	cgiFile(request.tmpFile);
+
+	if (!cgiFile.good())
+	{
+		std::cerr << "unable to open cgi tmp file: " << strerror(errno) << std::endl;
+		return (-1);
+	}
+
+	std::string	cgiHeader;
+	std::string	tmp;
+
+	std::string	statusLine = request.getHttpVersion() + " 200 OK";
+	while (1)
+	{
+		if (!std::getline(cgiFile, tmp) || tmp.empty())
+			break;
+		if (tmp.find("Status:") != std::string::npos)
+		{
+			statusLine = request.getHttpVersion() + tmp.substr(tmp.find(':') + 1);
+			std::cout << statusLine << std::endl;
+			continue ;
+		}
+		cgiHeader += "\r\n" + tmp;
+	}
+	cgiHeader = statusLine + cgiHeader;
+		std::streampos	currentPos = cgiFile.tellg();
+	if (cgiHeader.find("Content-Length:") == std::string::npos)
+	{
+		cgiFile.seekg(0, std::ios::end);
+		std::streampos	length = cgiFile.tellg() - currentPos;
+
+		std::stringstream	ss;
+		ss << length;
+		cgiHeader += "\r\nContent-Length: " + ss.str();
+		setContentLength(static_cast<size_t>(length));
+	}
+	cgiHeader += "\r\nConnection: " + request.getConnection();
+	cgiHeader += "\r\n\r\n";
+	std::cout << GREEN << cgiHeader << RESET << std::endl;
+
+	/* open the file for later body reading */
+	this->file = open( request.tmpFile.c_str(), O_RDONLY );
+	if ( this->file == -1 ) {
+		std::cerr << "failed to open file" << std::endl;
+		return (-1); // to remove client and poll
+	}
+	/* skip the header part of the file */
+	char	buff[static_cast<size_t>(currentPos)];
+	read(this->file, buff, currentPos);
+
+    ssize_t sended;
+    sended = send( sockfd, cgiHeader.c_str(), cgiHeader.length(), 0 );
+	return (sended);
+}
+
 ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
     std::string statusLine;
@@ -191,13 +248,22 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
     // -----------open file---------- //
+	std::string	path;
+
+	if (request.cgi)	
+		path = request.tmpFile;
+	else
+		path = request.getPath();
+
     if (this->file == -2) {
-        this->file = open( request.getPath().c_str(), O_RDONLY, 0777 );
+        this->file = open( path.c_str(), O_RDONLY, 0777 );
         if ( this->file == -1 ) {
             std::cerr << "failed to open file" << std::endl;
             return (-1); // to remove client and poll
         }
     }
+
+	std::cout << "kansendi l body hh" << std::endl;
 
     char buffer[SEND];
     char bufferS[1000000];

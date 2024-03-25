@@ -6,13 +6,14 @@ SRC= config/Config.cpp \
 	 config/Parser.cpp \
 	 config/Server.cpp \
 	 config/Token.cpp \
-	 main.cpp \
 	 server/Server.cpp \
 	 client/Client.cpp \
 	 client/Tools.cpp \
 	 response/Response.cpp \
 	 response/MimeType.cpp \
-	 request/Request.cpp
+	 request/Request.cpp \
+	 cgi/cgi.cpp \
+	 main.cpp
 
 C= c++
 

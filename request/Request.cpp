@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/07 14:03:40 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/24 23:00:09 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ Request::Request( void ) {
 
     this->sendedcontent = 0;
     this->checkLocation = false;
+    this->cgi = false;
 }
 
 Request::~Request( void ) { }
@@ -206,7 +207,7 @@ void Request::setRequestBody( void ) {
 
 }
 
-int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
+int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response, int sockfd ) {
 
     std::string requestLine;
 	std::istringstream headerStream(this->header);
@@ -232,8 +233,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     }
 
     // get location
-    // if (this->path[this->path.length() - 1] == '/')
-    //     this->path.erase(this->path.length() - 1, 1);
     std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
     if (itLocation != server.getLocations().end()) {
         this->location = itLocation->second;
@@ -278,6 +277,24 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->connection = it->second;
     else
         this->connection = "close";
+
+	// cgi
+	if (this->checkLocation && !itLocation->second.getCgiPass().empty())
+	{
+		/* warning: cgi detection only works if the script is located at the end of the request url */
+		size_t 		extension = this->path.rfind('.');
+		std::string	cgiExtension;
+
+		if (extension != std::string::npos)
+			cgiExtension = this->path.substr(extension);
+		if (itLocation->second.getCgiPass().found(cgiExtension))
+		{
+			handleCgiRequest(itLocation, itLocation->second.getCgiPass().getCgi(cgiExtension), sockfd);
+			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
+			this->cgi = true;
+			return (1);
+		}
+	}
 
     if (this->method == "GET") {
         // check path is valid !!!!!
