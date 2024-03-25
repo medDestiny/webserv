@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 03:25:30 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 02:33:20 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ int Client::recieveRequest( int const &sockfd ) {
             }
             
             // invalid header *error*
-            if (recieved < SEND && this->request.getHeader().empty()) {
+            if (recieved < SENDED && this->request.getHeader().empty()) {
                 
                 this->response.setStatusCode( 400 );
                 return (0); // error
@@ -134,9 +134,9 @@ int Client::recieveRequest( int const &sockfd ) {
                 return (0); // error
             }
             
-            // append chunck to body
             this->request.setBody( recievebuff, recieved );
             buffer = std::string( recievebuff, recieved );
+            this->settimeout( std::time( NULL ) );
             
             status = this->request.parsePostBody( buffer );
             
@@ -147,6 +147,7 @@ int Client::recieveRequest( int const &sockfd ) {
                 
             } else if ( !status ) {
 
+                std::cout << this->request.getBodyType() << std::endl;
                 std::cout << this->request.getBody().size() << std::endl;
                 this->response.setBody( this->request.getBody() );
                 return 0; // end recive

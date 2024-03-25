@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 03:17:12 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 03:22:33 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
-#define SEND 1024
+#define SENDED 1000000
 #define CHUNKED 2621440
 
 class Request;
@@ -99,7 +99,7 @@ class Response {
 
         // ------------ post ------------ //
         void parsePostBodyHeader( std::string const &chunck );
-        int parseEncodingBody( void );
+        int parseEncodingBody( Request const &request );
         int parseBoundariesBody( Request const &request );
         int parseLengthBody( void );
         std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );

@@ -94,10 +94,12 @@ int  Response::createFileAndWrite( std::string const &str, bool const flag ) {
         if ( !this->getBHFilename().empty() ) {
 
             // std::cout << str << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
+            // std::cout << " true size of str: " << str.size() << std::endl;
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
 
                 std::cout << RED << "==> ERROR cannot write, in post method" << RESET << std::endl;
+                close( this->fd );
                 return 0;
             }
         }
@@ -109,16 +111,16 @@ int  Response::createFileAndWrite( std::string const &str, bool const flag ) {
             // std::cout << str << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
             path = "/Users/del-yaag/goinfre/file/" + this->getBHFilename();
             this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0777 );
-            
             if ( fd == -1 ) {
                 std::cout << "rah mabghach am3elem" << std::endl;
                 return 0;
             }
-            std::cout << "size of str: " << str.size() << std::endl;
+            // std::cout << "false size of str: " << str.size() << std::endl;
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
                 
                 std::cout << "khouna rah mabghach ykteb" << std::endl;
+                close( this->fd );
                 return 0;
             }
         }
@@ -232,14 +234,60 @@ int  Response::parseBoundariesBody( Request const &request ) {
     return 1;
 }
 
-int  Response::parseLengthBody( void ) {
+int Response::parseEncodingBody( Request const &request ) {
 
-    std::cout << "length" <<  std::endl;
+    std::string buffer;
+    std::string chunked;
+    size_t lengthToRead;
+    size_t find;
+    ( void )request;
+
+    find = this->body.find( "\r\n" );
+    if ( find != std::string::npos ) {
+
+        buffer = this->body.substr( 0, find );
+        lengthToRead = hexadecimalToDecimal( buffer );
+        this->body.erase( 0, find + 2 );
+        chunked = this->body.substr( 0, lengthToRead );
+        if ( chunked.find( request.getStartBoundary() ) != std::string::npos &&
+            (   chunked.find( "name=" ) != std::string::npos ||
+                chunked.find( "filename=" ) != std::string::npos ||
+                chunked.find( "Content-Type: " ) != std::string::npos ) ) { // body header
+
+            this->resetHeaderElements();
+            this->parsePostBodyHeader( chunked );
+            close( this->fd );
+            this->bodyFlag = false;
+
+            this->body.erase( 0, lengthToRead + 2 );
+
+        } else if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) {
+
+            this->resetHeaderElements();
+            close( this->fd );
+            return 0;
+
+        } else {
+
+            if ( !this->bodyFlag ) {
+
+                if ( !this->createFileAndWrite( chunked, false ) )
+                    return 0;
+                this->bodyFlag = true;
+            } else {
+
+                if ( !this->createFileAndWrite( chunked, true ) )
+                    return 0;
+            }
+            this->body.erase( 0, lengthToRead + 2 );
+        }
+    }
     return 1;
 }
 
-int Response::parseEncodingBody( void ) {
-    std::cout << "encoding" << std::endl;
+int  Response::parseLengthBody( void ) {
+
+    std::cout << "length" <<  std::endl;
     return 1;
 }
 
@@ -247,12 +295,14 @@ int Response::execPostMethod( Request const &request ) {
 
     if ( request.getBodyType() == ENCODING ) {
 
-        this->parseEncodingBody();
+        if ( !this->parseEncodingBody( request ) )
+            return 0;
+
     } else if ( request.getBodyType() == BOUNDARIES ) {
         
-        if ( !this->parseBoundariesBody( request ) ) {
+        if ( !this->parseBoundariesBody( request ) )
             return 0;
-        }
+            
     }
     return 1;
 }

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/23 22:24:39 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 22:11:05 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,177 +108,52 @@ void Request::parsePostHeader( void ) {
 
 int Request::bufferPostBody( std::string const &buffer ) {
     
+    size_t size = this->body.size();
+    std::string body;
+    if ( size > 200 )
+        body = this->body.substr( size - 200, 200 );
     if ( this->getContentType() != "multipart/form-data;" )
         return 2;
     if ( !this->getTransferEncoding().empty() ) {
         
         if ( this->getTransferEncoding() == "chunked" ) {
             
-            // std::cout << " waa3" << std::endl;
             if ( buffer.find( "0\r\n\r\n" ) != std::string::npos ) { // encoding
+                
+                this->setBodyType( ENCODING );
+                return 0;
+            } else if ( body.find( "0\r\n\r\n" ) != std::string::npos ) { // encoding
                 
                 this->setBodyType( ENCODING );
                 return 0;
             }
         } else
             return 2;
-    }
-    else if ( !this->getEndBoundary().empty() ) {
+    } else if ( !this->getEndBoundary().empty() ) {
 
         if ( buffer.find( this->getEndBoundary() ) != std::string::npos ) { // boundaries
 
             this->setBodyType( BOUNDARIES );
+            std::cout << "f boundaries" << std::endl;
+            return 0;
+        } else if ( body.find( this->getEndBoundary() ) != std::string::npos ) {
+            
+            this->setBodyType( BOUNDARIES );
+            std::cout << "f chunked" << std::endl;
             return 0;
         }
-    }
-    else if ( this->getContentLength() ) {
+    } else if ( this->getContentLength() ) {
 
         if ( this->getRequestBodySize() == this->getContentLength() ) { // length
 
             this->setBodyType( LENGTH );
+            std::cout << "f length" << std::endl;
             return 0;
         }
         
     }
     return 1;
 }
-
-// std::ofstream outFile( "/Users/del-yaag/Desktop/" + this->getBHFilename() );
-// if ( !outFile.good() )
-//     std::cout << "not good" << std::endl;
-// outFile << str;
-// outFile.close();
-
-
-// int Request::parseEncodingBody( void ) {
-//     std::cout << "encoding" << std::endl;
-//     return 1;
-// }
-
-// int Request::parseEncodingBody( void ) {
-
-//     std::string buffer;
-//     std::string chunked;
-//     std::string body = this->getBody();
-//     size_t lengthToRead;
-
-//     while ( body.size() ) {
-        
-//         buffer = body.substr( 0, body.find( "\r\n" ) );
-//         if ( buffer.size() ) {
-            
-//             lengthToRead = hexadecimalToDecimal( buffer );
-//             if ( !lengthToRead ) {
-
-//                 break;
-//             }
-//             body.erase( 0, buffer.size() + std::strlen( "\r\n" ) );
-//             chunked = body.substr( 0, lengthToRead );
-            
-//             if ( chunked.find( this->getStartBoundary() ) != std::string::npos &&
-//                 (   chunked.find( "name=" ) != std::string::npos ||
-//                     chunked.find( "filename=" ) != std::string::npos ||
-//                     chunked.find( "Content-Type: " ) != std::string::npos ) ) { // body header
-
-//                 // std::cout << GREEN << chunked << RESET << std::endl;
-                
-//                 this->setBHFilename( "" );
-//                 this->setBHName( "" );
-//                 this->setBHContentDispo( "" );
-//                 this->setBHContentType( "" );
-//                 this->parsePostBodyHeader( chunked );
-                
-//             } else if ( chunked.find( this->getEndBoundary() ) != std::string::npos ) { // end boundary
-
-//             } else { // body
-
-//                 // std::cout << RED << chunked << RESET << std::endl;
-//                 // std::cout << "buffer: " << buffer << std::endl;
-//                 // std::cout << "length: " << lengthToRead << std::endl;
-//                 std::cout << "size: " << chunked.size() << std::endl;
-//                 // exit( 1 );
-//                 if ( !this->createFileAndWrite( chunked ) )
-//                     return 0;
-//                 if ( this->getBHFilename().empty() ) {
-                    
-//                     if ( !this->getBHName().empty() ) {
-
-//                         if ( this->getPath().find( "cgi-bin/" ) != std::string::npos ) { // cgi post
-
-//                         }
-//                     }
-//                 }
-//             }
-//             body.erase( 0, lengthToRead );
-//         } else {
-
-//             body.erase( 0, buffer.size() + std::strlen( "\r\n" ) );
-//             continue;
-//         }
-//     }
-//     return 1;
-// }
-
-// int Request::parseBoundariesBody( void ) {
-
-//     std::string buffer;
-//     std::string chunked;
-//     std::string body = this->getBody();
-//     size_t find;
-//     size_t next;
-    
-//     while ( !body.empty() ) {
-        
-//         find = body.find( "\r\n" );
-//         if ( find != std::string::npos ) {
-            
-//             buffer = body.substr( 0, find );
-            
-//             if ( buffer == this->getEndBoundary() )
-//                 return 1;
-//             else if ( buffer == this->getStartBoundary() ) {
-
-//                 body.erase( 0, find + std::strlen( "\r\n" ) );
-//                 find = body.find( "\r\n\r\n" );
-//                 if ( find != std::string::npos ) {
-
-//                     chunked = body.substr( 0, find );
-//                     this->parsePostBodyHeader( chunked );
-//                     std::cout << RED << chunked << RESET << std::endl;
-//                 }
-
-//                 body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
-            
-//                 find = body.find( this->getStartBoundary() );
-//                 if ( find != std::string::npos ) {
-                        
-//                     find = body.find( this->getStartBoundary() );
-//                     if ( find != std::string::npos ) {
-
-//                         next = body.find( "\r\n", find );
-//                         chunked = body.substr( find, next - find );
-//                         if ( chunked == this->getEndBoundary() ) {
-
-//                             std::cout << chunked.size() << std::endl;
-//                             chunked = body.substr( 0, find - 2 );
-//                             if ( !this->createFileAndWrite( chunked ) )
-//                                 return 0;
-//                             body.erase( 0, find );
-//                             return 1;
-//                         } else if ( chunked == this->getStartBoundary() ) {
-                            
-//                             chunked = body.substr( 0, find - 2 );
-//                             if ( !this->createFileAndWrite( chunked ) )
-//                                 return 0;
-//                             body.erase( 0, find );
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     return 1;
-// }
 
 int Request::parsePostBody( std::string const &buffer ) {
     

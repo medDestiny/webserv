@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/23 23:42:45 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 03:25:38 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,9 +202,9 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         }
     }
 
-    char buffer[SEND];
+    char buffer[SENDED];
     char bufferS[1000000];
-    ssize_t sended;
+    ssize_t sended = 0;
     // --------seek the file-------- //
     if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {
         size_t bufferSize = 1000000;
@@ -214,12 +214,21 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         this->countBytesRead += bytesRead;
     }
     else { // --------read file to send----------//
-        size_t bytesRead = read(this->file, buffer, SEND);
-        if (bytesRead < SEND)
+        size_t bytesRead = read(this->file, buffer, SENDED);
+        if (bytesRead < SENDED)
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
         std::string message = std::string(buffer, bytesRead);
-        sended = send( sockfd, ( message.c_str() ), message.length(), 0 );
+        
+        // std::string tmp = message;
+        while ( !message.empty() ) {
+            
+        
+            std::string str = message.substr( 0, 1024 );
+            // std::cout << RED << "HELLO" << RESET << std::endl;
+            sended = send( sockfd, str.c_str() , str.size(), 0 );
+            message.erase( 0, 1024 );
+        }
         return (sended);
     }
     return (1);

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/23 23:45:50 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 18:12:38 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,8 +242,9 @@ void Server::pollwithtimeout( void ) {
 
         std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
         exit( EXIT_FAILURE );
-    } else if ( !status )
-        this->checkclienttimeout();
+    } 
+    // else if ( !status )
+    //     this->checkclienttimeout();
 }
 
 void Server::mainpoll( void ) {
@@ -294,8 +295,9 @@ void Server::mainpoll( void ) {
         } else if ( pfds[i].revents == POLLHUP ) {
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
-        } else
-            this->checkclienttimeout();
+        } 
+        // else
+            // this->checkclienttimeout();
     }
 }
 
