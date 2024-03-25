@@ -14,7 +14,6 @@ server {server_name test;
 	index	var.html;
 	index	maindexmatal3ba.hh;
 	index	maindexmatal3ba.hh;
-	upload_store	/html;
 
 
 	location /flexbox {
@@ -25,8 +24,7 @@ server {server_name test;
 		root /test2;
 		index tst.test2;
 	autoindex	off;
-	upload_store	/uploads;
-	upload_store	/upload;
+	upload_store	/Users/del-yaag/Desktop/test;
 	limit_except GET	POST;
 	limit_except POST;
 	}
@@ -54,19 +52,19 @@ server {server_name test1;
 	index	var.html;
 	index	maindexmatal3ba.hh;
 	index	maindexmatal3ba.hh;
-	upload_store	/html;
+	upload_store	/Users/del-yaag/Desktop/test;
+	upload_store	/Users/del-yaag/Desktop;
 
 
 	location /flexbox {
 		root	/Users/del-yaag/Desktop/server;
+		upload_store	/Users/del-yaag/Desktop/test/test;
 		index index.html;
 	}
 	location /test2 {
 		root /test2;
 		index tst.test2;
 	autoindex	off;
-	upload_store	/uploads;
-	upload_store	/upload;
 	limit_except GET	POST;
 	limit_except POST;
 	}

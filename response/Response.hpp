@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 03:22:33 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 22:08:15 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,13 +99,13 @@ class Response {
 
         // ------------ post ------------ //
         void parsePostBodyHeader( std::string const &chunck );
-        int parseEncodingBody( Request const &request );
-        int parseBoundariesBody( Request const &request );
+        int parseEncodingBody( Request const &request, Conf::Server const &server);
+        int parseBoundariesBody( Request const &request, Conf::Server const &server);
         int parseLengthBody( void );
         std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
-        int createFileAndWrite( std::string const &str, bool const flag );
-        int execPostMethod( Request const &request );
-        int PutChunkedBodyToFile( Request const &request, bool const flag );
+        int createFileAndWrite( std::string const &str, Request const &request, Conf::Server const &server, bool const flag );
+        int execPostMethod( Request const &request, Conf::Server const &server );
+        int PutChunkedBodyToFile( Request const &request, Conf::Server const &server, bool const flag );
         void resetHeaderElements( void );
         
         std::string getBHName( void ) const;

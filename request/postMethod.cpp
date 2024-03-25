@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 22:11:05 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 20:51:08 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ void Request::parsePostHeader( void ) {
     
     // get transfer encoding
     this->setTransferEncoding( this->getValue( "Transfer-Encoding:" ) );
+    std::cout << "transfer encodign: " << this->getTransferEncoding() << std::endl;
 }
 
 int Request::bufferPostBody( std::string const &buffer ) {
@@ -116,7 +117,7 @@ int Request::bufferPostBody( std::string const &buffer ) {
         return 2;
     if ( !this->getTransferEncoding().empty() ) {
         
-        if ( this->getTransferEncoding() == "chunked" ) {
+        if ( this->getTransferEncoding().find( "chunked" ) != std::string::npos ) {
             
             if ( buffer.find( "0\r\n\r\n" ) != std::string::npos ) { // encoding
                 

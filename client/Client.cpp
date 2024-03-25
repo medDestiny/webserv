@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 02:33:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 21:52:52 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,10 +108,23 @@ int Client::recieveRequest( int const &sockfd ) {
                 }
                 
                 this->endRecHeader = true;
-                this->request.setRequestBody();
-                
                 if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" )
                     return 0;
+                
+                // parse post body ( if body is too small )
+                this->request.setRequestBody();
+                status = this->request.parsePostBody( this->request.getBody() );
+                if ( status == 2 ) {
+
+                    this->response.setStatusCode( 400 );
+                    return 0;
+                    
+                } else if ( !status ) {
+
+                    this->response.setBody( this->request.getBody() );
+                    return 0; // end recive
+                }
+                
             }
             
             // invalid header *error*
@@ -196,7 +209,7 @@ int Client::sendresponse( int const &sockfd ) {
     }
     else if (this->request.getMethod() == "POST") {
         
-        if ( !this->response.execPostMethod( this->request ) )
+        if ( !this->response.execPostMethod( this->request, this->server ) )
             return 0;
         else
             this->settimeout( std::time( NULL ) );

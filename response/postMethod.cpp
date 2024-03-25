@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include "../server/Server.hpp"
 #include "../request/Request.hpp"
 
 std::string Response::getBHName( void ) const {
@@ -72,19 +73,12 @@ std::string  Response::getHeaderValue( std::string const &chunck, std::string co
 void  Response::parsePostBodyHeader( std::string const &chunck ) {
     
     this->BHContentDispo = this->getHeaderValue( chunck, "Content-Disposition: ", ";" ); // get content desposition
-    // std::cout << this->BHContentDispo << std::endl;
-
     this->BHName = this->getHeaderValue( chunck, "name=\"", "\"" ); // get name
-    // std::cout << this->BHName << std::endl;
-
     this->BHFilename = this->getHeaderValue( chunck, "filename=\"", "\"" ); // get filename
-    // std::cout << this->BHFilename << std::endl;
-    
     this->BHContentType = this->getHeaderValue( chunck, "Content-Type: ", "\r\n" ); // get content type
-    // std::cout << this->getBHContentType() << std::endl;
 }
 
-int  Response::createFileAndWrite( std::string const &str, bool const flag ) {
+int  Response::createFileAndWrite( std::string const &str, Request const &request, Conf::Server const &server, bool const flag ) {
 
     std::string path;
     ssize_t bytes;
@@ -93,13 +87,12 @@ int  Response::createFileAndWrite( std::string const &str, bool const flag ) {
         
         if ( !this->getBHFilename().empty() ) {
 
-            // std::cout << str << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
-            // std::cout << " true size of str: " << str.size() << std::endl;
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
 
                 std::cout << RED << "==> ERROR cannot write, in post method" << RESET << std::endl;
                 close( this->fd );
+                this->setStatusCode( 500 );
                 return 0;
             }
         }
@@ -107,20 +100,28 @@ int  Response::createFileAndWrite( std::string const &str, bool const flag ) {
     } else {
         
         if ( !this->getBHFilename().empty() ) {
-                        
-            // std::cout << str << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
-            path = "/Users/del-yaag/goinfre/file/" + this->getBHFilename();
+            
+            if ( request.getCheckLocation() ) {
+
+                path = request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename();
+                std::cout << "location " << request.getLocation().getUploadPath().getPath() << std::endl;
+            } else {
+
+                path = server.getUploadPath().getPath() + "/" + this->getBHFilename();
+                std::cout << "server " << server.getUploadPath().getPath() << std::endl;
+            }
             this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0777 );
             if ( fd == -1 ) {
                 std::cout << "rah mabghach am3elem" << std::endl;
+                this->setStatusCode( 500 );
                 return 0;
             }
-            // std::cout << "false size of str: " << str.size() << std::endl;
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
                 
                 std::cout << "khouna rah mabghach ykteb" << std::endl;
                 close( this->fd );
+                this->setStatusCode( 500 );
                 return 0;
             }
         }
@@ -136,7 +137,7 @@ void Response::resetHeaderElements( void ) {
     this->setBHName( "" );
 }
 
-int Response::PutChunkedBodyToFile( Request const &request, bool const flag ) {
+int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &server, bool const flag ) {
 
     std::string chunked;
     std::string chunkedBody;
@@ -151,13 +152,11 @@ int Response::PutChunkedBodyToFile( Request const &request, bool const flag ) {
         chunked = chunkedBody.substr( find, next - find );
         if ( chunked == request.getEndBoundary() ) { // got the end boundaries
 
-            std::cout << "false end" << std::endl;
             chunked = chunkedBody.substr( 0, find - 2 );
-            if ( !this->createFileAndWrite( chunked, flag ) )
-                return 0; // error
+            if ( !this->createFileAndWrite( chunked, request, server, flag ) )
+                return 2; // error
                 
             this->body.erase( 0, find ); // erase body
-            std::cout << "body: " << this->body.size() << std::endl;
             
             // reset all vars
             this->resetHeaderElements();
@@ -169,12 +168,10 @@ int Response::PutChunkedBodyToFile( Request const &request, bool const flag ) {
 
         } else if ( chunked == request.getStartBoundary() ) { // got the start boundaries
             
-            std::cout << "false start" << std::endl;
             chunked = chunkedBody.substr( 0, find - 2 );
-            if ( !this->createFileAndWrite( chunked, flag ) )
-                return 0;
+            if ( !this->createFileAndWrite( chunked, request, server, flag ) )
+                return 2;
             this->body.erase( 0, find ); // erase body
-            std::cout << "body: " << this->body.size() << std::endl;
             // reset all vars
             this->resetHeaderElements();
             if ( flag )
@@ -183,23 +180,22 @@ int Response::PutChunkedBodyToFile( Request const &request, bool const flag ) {
         }
     } else {
 
-        std::cout << "false walo" << std::endl;
-        if ( !this->createFileAndWrite( chunkedBody, flag ) )
-            return 0;
+        if ( !this->createFileAndWrite( chunkedBody, request, server, flag ) )
+            return 2;
         this->body.erase( 0, CHUNKED ); // erase body
-        std::cout << "body: " << this->body.size() << std::endl;
         if ( !flag )
             this->bodyFlag = true;
     }
     return 1;
 }
 
-int  Response::parseBoundariesBody( Request const &request ) {
+int  Response::parseBoundariesBody( Request const &request, Conf::Server const &server ) {
 
     std::string buffer;
     std::string chunked;
     std::string chunkedBody;
     size_t find;
+    int status;
 
     if ( this->bodyFlag == false ) {
 
@@ -208,8 +204,15 @@ int  Response::parseBoundariesBody( Request const &request ) {
             
             buffer = this->body.substr( 0, find );
             
-            if ( buffer == request.getEndBoundary() )
+            if ( buffer == request.getEndBoundary() ) {
+
+                if ( !this->bodyFlag ) {
+
+                    this->setStatusCode( 400 );
+                    return 1;
+                }
                 return 0;
+            }
             else if ( buffer == request.getStartBoundary() ) {
 
                 this->body.erase( 0, find + std::strlen( "\r\n" ) );
@@ -218,23 +221,28 @@ int  Response::parseBoundariesBody( Request const &request ) {
 
                     chunked = this->body.substr( 0, find );
                     this->parsePostBodyHeader( chunked );
-                    std::cout << RED << chunked << RESET << std::endl;
                 }
                 this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
 
-                if ( !this->PutChunkedBodyToFile( request, false ) )
+                status = this->PutChunkedBodyToFile( request, server, false );
+                if ( !status )
                     return 0;
+                else if ( status == 2 )
+                    return 1;
             }
         }
     } else {
         
-        if ( !this->PutChunkedBodyToFile( request, true ) )
+        status = this->PutChunkedBodyToFile( request, server, true );
+        if ( !status )
             return 0;
+        else if ( status == 2 )
+            return 1;
     }
     return 1;
 }
 
-int Response::parseEncodingBody( Request const &request ) {
+int Response::parseEncodingBody( Request const &request, Conf::Server const &server ) {
 
     std::string buffer;
     std::string chunked;
@@ -264,6 +272,11 @@ int Response::parseEncodingBody( Request const &request ) {
         } else if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) {
 
             this->resetHeaderElements();
+            if ( !this->bodyFlag ) {
+
+                this->setStatusCode( 400 );
+                return 1;
+            }
             close( this->fd );
             return 0;
 
@@ -271,13 +284,13 @@ int Response::parseEncodingBody( Request const &request ) {
 
             if ( !this->bodyFlag ) {
 
-                if ( !this->createFileAndWrite( chunked, false ) )
-                    return 0;
+                if ( !this->createFileAndWrite( chunked, request, server, false ) )
+                    return 1;
                 this->bodyFlag = true;
             } else {
 
-                if ( !this->createFileAndWrite( chunked, true ) )
-                    return 0;
+                if ( !this->createFileAndWrite( chunked, request, server, true ) )
+                    return 1;
             }
             this->body.erase( 0, lengthToRead + 2 );
         }
@@ -291,16 +304,16 @@ int  Response::parseLengthBody( void ) {
     return 1;
 }
 
-int Response::execPostMethod( Request const &request ) {
+int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
 
     if ( request.getBodyType() == ENCODING ) {
 
-        if ( !this->parseEncodingBody( request ) )
+        if ( !this->parseEncodingBody( request, server ) )
             return 0;
 
     } else if ( request.getBodyType() == BOUNDARIES ) {
         
-        if ( !this->parseBoundariesBody( request ) )
+        if ( !this->parseBoundariesBody( request, server ) )
             return 0;
             
     }
