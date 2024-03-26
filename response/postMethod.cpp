@@ -303,6 +303,10 @@ int  Response::parseLengthBody( void ) {
 
 int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
 
+    if ( request.getPath().find( "cgi-bin/" ) != std::string::npos ) { // this is just before implimentation of cgi *must be removed later*
+
+        return 3;
+    }
     if ( request.getConnection() == "close" ) {
 
         if ( request.getBodyType() == ENCODING ) {

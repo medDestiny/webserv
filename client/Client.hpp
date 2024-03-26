@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 00:19:23 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/26 17:54:34 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ class Client {
 
         int recieveRequest( int const &sockfd );
         int sendresponse( int const &sockfd );
-        int sendPostResponse( void );
+        int sendPostResponse( std::string const &message );
 };
 
 size_t stringToInt(const std::string& str);

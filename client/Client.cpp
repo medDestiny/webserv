@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 01:01:23 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/26 18:05:48 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ int Client::recieveRequest( int const &sockfd ) {
                 status = this->request.parsePostBody( this->request.getBody() );
                 if ( status == 2 ) {
 
-                    this->response.setStatusCode( 400 );
+                    this->response.setStatusCode( 501 );
                     return 0;
                     
                 } else if ( !status ) {
@@ -210,17 +210,23 @@ int Client::sendresponse( int const &sockfd ) {
         int status = this->response.execPostMethod( this->request, this->server );
         if ( !status ) {
             
-            if ( !this->sendPostResponse() )
+            if ( !this->sendPostResponse( "data uploaded successfully" ) )
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 0;
         }
         else if ( status == 2 ) {
             
-            if ( !this->sendPostResponse() )
+            if ( !this->sendPostResponse( "data uploaded successfully" ) )
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 2;
+        } else if ( status == 3 ) {
+
+            if ( !this->sendPostResponse( "all good but cgi not implimanted yet" ) )
+                return 1;
+            std::cout << BLUE << "\tPOST done." << RESET << std::endl;
+            return 0;
         }
         else
             this->settimeout( std::time( NULL ) );
@@ -228,11 +234,20 @@ int Client::sendresponse( int const &sockfd ) {
     return (1);
 }
 
-int Client::sendPostResponse( void ) {
+int Client::sendPostResponse( std::string const &message ) {
 
     ssize_t bytes;
     std::string header;
-    std::string body = "mession passed successfully";
+    std::string body;
+    
+    body = "<!DOCTYPE html>\n";
+    body += "<html>\n";
+    body += "<head><title> POST METHOD </title>\n";
+    body += "<style> * { background-color: #1E1E1E; font-family: Fantasy; color: #2E8B57; } </style></head>\n";
+    body += "<body>\n";
+    body += "<center><h1>" + message + "</h1></center>\n";
+    body += "</body>\n";
+    body += "</html>";
     
     header = "HTTP/1.1 " + intToString( this->response.getStatusCode() ) + " " + this->response.getStatusMessage( this->response.getStatusCode() ) + "\r\n";
     header += "Content-Type: text/plain\r\n";
