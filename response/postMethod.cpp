@@ -90,7 +90,7 @@ int  Response::createFileAndWrite( std::string const &str, Request const &reques
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
 
-                std::cout << RED << "==> ERROR cannot write, in post method" << RESET << std::endl;
+                std::cout << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
                 close( this->fd );
                 this->setStatusCode( 500 );
                 return 0;
@@ -101,25 +101,21 @@ int  Response::createFileAndWrite( std::string const &str, Request const &reques
         
         if ( !this->getBHFilename().empty() ) {
             
-            if ( request.getCheckLocation() ) {
+            if ( request.getCheckLocation() )// get location path
+                path = request.getLocation().getRoot().getPath() + request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename();
+            else // get server path
+                path = server.getRoot().getPath() + server.getUploadPath().getPath() + "/" + this->getBHFilename();
 
-                path = request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename();
-                std::cout << "location " << request.getLocation().getUploadPath().getPath() << std::endl;
-            } else {
-
-                path = server.getUploadPath().getPath() + "/" + this->getBHFilename();
-                std::cout << "server " << server.getUploadPath().getPath() << std::endl;
-            }
             this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0777 );
             if ( fd == -1 ) {
-                std::cout << "rah mabghach am3elem" << std::endl;
+                std::cout << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
                 this->setStatusCode( 500 );
                 return 0;
             }
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
                 
-                std::cout << "khouna rah mabghach ykteb" << std::endl;
+                std::cout << RED << "\tERROR: write: cannot write in " << path << RESET << std::endl;
                 close( this->fd );
                 this->setStatusCode( 500 );
                 return 0;
@@ -157,9 +153,7 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
                 return 2; // error
                 
             this->body.erase( 0, find ); // erase body
-            
-            // reset all vars
-            this->resetHeaderElements();
+            this->resetHeaderElements(); // reset all vars
             if ( flag )
                 this->bodyFlag = false;
             close( this->fd );
@@ -172,8 +166,7 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
             if ( !this->createFileAndWrite( chunked, request, server, flag ) )
                 return 2;
             this->body.erase( 0, find ); // erase body
-            // reset all vars
-            this->resetHeaderElements();
+            this->resetHeaderElements(); // reset all vars
             if ( flag )
                 this->bodyFlag = false;
             close( this->fd );
@@ -221,6 +214,8 @@ int  Response::parseBoundariesBody( Request const &request, Conf::Server const &
 
                     chunked = this->body.substr( 0, find );
                     this->parsePostBodyHeader( chunked );
+                    if ( !this->getBHFilename().empty() )
+                        std::cout << GREEN << "\tsending... " << this->getBHFilename() << RESET << std::endl;
                 }
                 this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
 
@@ -262,14 +257,16 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
                 chunked.find( "filename=" ) != std::string::npos ||
                 chunked.find( "Content-Type: " ) != std::string::npos ) ) { // body header
 
-            this->resetHeaderElements();
+            this->resetHeaderElements(); // reset vars
             this->parsePostBodyHeader( chunked );
+            if ( !this->getBHFilename().empty() )
+                std::cout << GREEN << "\tsending... " << this->getBHFilename() << RESET << std::endl;
             close( this->fd );
             this->bodyFlag = false;
 
             this->body.erase( 0, lengthToRead + 2 );
 
-        } else if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) {
+        } else if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) { // end of body
 
             this->resetHeaderElements();
             if ( !this->bodyFlag ) {
@@ -280,16 +277,16 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
             close( this->fd );
             return 0;
 
-        } else {
+        } else { // chunked body
 
             if ( !this->bodyFlag ) {
 
-                if ( !this->createFileAndWrite( chunked, request, server, false ) )
+                if ( !this->createFileAndWrite( chunked, request, server, false ) ) // first time create file
                     return 1;
                 this->bodyFlag = true;
             } else {
 
-                if ( !this->createFileAndWrite( chunked, request, server, true ) )
+                if ( !this->createFileAndWrite( chunked, request, server, true ) ) // just write file already exits
                     return 1;
             }
             this->body.erase( 0, lengthToRead + 2 );
@@ -306,16 +303,33 @@ int  Response::parseLengthBody( void ) {
 
 int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
 
-    if ( request.getBodyType() == ENCODING ) {
+    if ( request.getConnection() == "close" ) {
 
-        if ( !this->parseEncodingBody( request, server ) )
-            return 0;
+        if ( request.getBodyType() == ENCODING ) {
 
-    } else if ( request.getBodyType() == BOUNDARIES ) {
-        
-        if ( !this->parseBoundariesBody( request, server ) )
-            return 0;
+            if ( !this->parseEncodingBody( request, server ) )
+                return 0;
+
+        } else if ( request.getBodyType() == BOUNDARIES ) {
             
+            if ( !this->parseBoundariesBody( request, server ) )
+                return 0;
+                
+        }
+    } else {
+
+        if ( request.getBodyType() == ENCODING ) {
+
+            if ( !this->parseEncodingBody( request, server ) )
+                return 2;
+
+        } else if ( request.getBodyType() == BOUNDARIES ) {
+            
+            if ( !this->parseBoundariesBody( request, server ) )
+                return 2;
+                
+        }
+
     }
     return 1;
 }

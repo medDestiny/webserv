@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 20:27:25 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 23:20:38 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,8 +264,7 @@ void Server::mainpoll( void ) {
                 itClient = clients.find( pfds[i].fd );
                 itClient->second.settimeout( std::time(NULL) );
                 if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
-                    
-                    std::cout << " sf poll out " <<  std::endl;
+
                     pfds[i].events = POLLOUT;
                 }
             }

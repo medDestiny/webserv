@@ -52,13 +52,13 @@ server {server_name test1;
 	index	var.html;
 	index	maindexmatal3ba.hh;
 	index	maindexmatal3ba.hh;
-	upload_store	/Users/del-yaag/Desktop/test;
-	upload_store	/Users/del-yaag/Desktop;
+	upload_store	/upload;
+	upload_store	/upload;
 
 
 	location /flexbox {
 		root	/Users/del-yaag/Desktop/server;
-		upload_store	/Users/del-yaag/Desktop/test/test;
+		upload_store	/uploaded;
 		index index.html;
 	}
 	location /test2 {

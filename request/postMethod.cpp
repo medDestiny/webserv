@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 20:51:08 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/26 00:57:43 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,25 +86,19 @@ void Request::parsePostHeader( void ) {
     size_t length;
     std::string str;
 
-    // get content type and boundaries
-    str = this->getValue( "Content-Type:" );
+    str = this->getValue( "Content-Type:" ); // get content type and boundaries
     if ( str.find( " boundary=" ) != std::string::npos ) {
         
         this->setContentType( str.substr( 0, str.find( " boundary=" ) ) );
         this->setStartBoundary( str.substr( str.find( " boundary=" ) + std::strlen( " boundary=" ) ).insert( 0, 2, '-' ) );
         this->setEndBoundary( this->getStartBoundary().append( "--" ) );
     }
-    
-    // get content length
-    std::istringstream iss( this->getValue( "Content-Length:" ) );
+    std::istringstream iss( this->getValue( "Content-Length:" ) ); // get content length
     if ( iss >> length && iss.peek() == EOF )
         this->setContentLength( length );
     else
         this->setContentLength( 0 );
-    
-    // get transfer encoding
-    this->setTransferEncoding( this->getValue( "Transfer-Encoding:" ) );
-    std::cout << "transfer encodign: " << this->getTransferEncoding() << std::endl;
+    this->setTransferEncoding( this->getValue( "Transfer-Encoding:" ) ); // get transfer encoding
 }
 
 int Request::bufferPostBody( std::string const &buffer ) {
@@ -135,12 +129,10 @@ int Request::bufferPostBody( std::string const &buffer ) {
         if ( buffer.find( this->getEndBoundary() ) != std::string::npos ) { // boundaries
 
             this->setBodyType( BOUNDARIES );
-            std::cout << "f boundaries" << std::endl;
             return 0;
         } else if ( body.find( this->getEndBoundary() ) != std::string::npos ) {
             
             this->setBodyType( BOUNDARIES );
-            std::cout << "f chunked" << std::endl;
             return 0;
         }
     } else if ( this->getContentLength() ) {
@@ -148,7 +140,6 @@ int Request::bufferPostBody( std::string const &buffer ) {
         if ( this->getRequestBodySize() == this->getContentLength() ) { // length
 
             this->setBodyType( LENGTH );
-            std::cout << "f length" << std::endl;
             return 0;
         }
         

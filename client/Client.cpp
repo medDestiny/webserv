@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 21:52:52 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/26 01:01:23 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,8 +160,6 @@ int Client::recieveRequest( int const &sockfd ) {
                 
             } else if ( !status ) {
 
-                std::cout << this->request.getBodyType() << std::endl;
-                std::cout << this->request.getBody().size() << std::endl;
                 this->response.setBody( this->request.getBody() );
                 return 0; // end recive
             } 
@@ -209,10 +207,44 @@ int Client::sendresponse( int const &sockfd ) {
     }
     else if (this->request.getMethod() == "POST") {
         
-        if ( !this->response.execPostMethod( this->request, this->server ) )
+        int status = this->response.execPostMethod( this->request, this->server );
+        if ( !status ) {
+            
+            if ( !this->sendPostResponse() )
+                return 1;
+            std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 0;
+        }
+        else if ( status == 2 ) {
+            
+            if ( !this->sendPostResponse() )
+                return 1;
+            std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
+            return 2;
+        }
         else
             this->settimeout( std::time( NULL ) );
     }
     return (1);
+}
+
+int Client::sendPostResponse( void ) {
+
+    ssize_t bytes;
+    std::string header;
+    std::string body = "mession passed successfully";
+    
+    header = "HTTP/1.1 " + intToString( this->response.getStatusCode() ) + " " + this->response.getStatusMessage( this->response.getStatusCode() ) + "\r\n";
+    header += "Content-Type: text/plain\r\n";
+    header += "Content-Length: " + intToString( body.size() ) + "\r\n";
+    header += "Connection: " + request.getConnection() + "\r\n\r\n";
+    header += body;
+    
+    bytes = send( this->sockfd, header.c_str(), header.size(), 0 ); // send response
+    if ( bytes == -1 ) {
+
+        this->response.setStatusCode( 500 );
+        return 0;
+    }
+    return 1;
 }
