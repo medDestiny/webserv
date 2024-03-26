@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 15:41:08 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/26 01:09:42 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,8 @@ class Request {
     public:
 		bool		cgi;
 		pid_t		pid;
+		size_t		cgiTime;
+		int			cgiStdErr;
 		std::string	tmpFile;
 
         Request( void );

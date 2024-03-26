@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 23:00:09 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/25 23:24:53 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,7 +286,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
 		std::string	cgiExtension;
 
 		if (extension != std::string::npos)
-			cgiExtension = this->path.substr(extension);
+			cgiExtension = this->path.substr(extension, this->path.find_first_of("?/", extension) - extension);
+		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
 		if (itLocation->second.getCgiPass().found(cgiExtension))
 		{
 			handleCgiRequest(itLocation, itLocation->second.getCgiPass().getCgi(cgiExtension), sockfd);

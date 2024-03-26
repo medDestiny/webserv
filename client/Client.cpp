@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 15:37:48 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/26 03:56:02 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,7 @@ int Client::recieveRequest() {
     }
     return (1); // still read request
 }
-
+#include<signal.h>
 int Client::sendresponse() {
 
     if (response.getStatusCode() >= 400) {
@@ -146,32 +146,52 @@ int Client::sendresponse() {
     }
 
 	if (this->request.getMethod() == "GET") {
-		if (this->request.cgi)
+
+		if (this->request.cgi && !this->response.getSendedHeader())
 		{
-			/* check if the script has finished */
+			/* 
+			 * check if the script has finished
+			 * if it finished send the response header
+			 * otherwise if the timeout occurs kill it
+			 * if non of the above return 1
+			 */
+			char	tmp[1025] = {0};
+			int		i = read(this->request.cgiStdErr, tmp, 1024);
+			/* std::cout << RED << "stderr: " << read(this->request.cgiStdErr, tmp, 1) << RESET << std::endl; */
 			if (this->request.pid == waitpid(this->request.pid, NULL, WNOHANG))
 			{
 				std::cout << "Cgi finished" << std::endl;
+				close(this->request.cgiStdErr);
 				if (response.sendCgiHeader(this->sockfd, this->request) == -1)
 					return (0);
 				else
 					response.setSendedHeader( true );
-				this->request.cgi = false;
+			}
+			else if (std::time(NULL) - this->request.cgiTime >= 30
+					|| i > 0)
+			{
+				std::cout << RED << "stderr: " << i << " \'" << tmp << "\'"<< RESET << std::endl;
+				std::cout << "killed" << std::endl;
+				close(this->request.cgiStdErr);
+				kill(this->request.pid, SIGTERM);
+				remove(this->request.tmpFile.c_str());
+				return (0);
 			}
 			else
 				return (1);
-			/* if it finished send the response */
-			/* otherwise if the timeout occurs kill it */
-			/* if non of the above return 1 */
 		}
         if (this->response.getSendedHeader()) {
             ssize_t sended = this->response.sendBody( this->sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
 				close(this->response.getFile());
+				if (this->request.cgi)
+					remove(this->request.tmpFile.c_str());
                 return (0);
             }
             if (response.getContentResponse() == response.getContentLength()) {
 				close(this->response.getFile());
+				if (this->request.cgi)
+					remove(this->request.tmpFile.c_str());
                 return (2); // change to PULLIN
             }
         }

@@ -4,6 +4,7 @@ server {
 
 	location / {
 		cgi_pass .sh /bin/bash;
+		cgi_pass .cgi;
 	}
 
 	location /flexbox {

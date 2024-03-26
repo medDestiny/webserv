@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 15:38:05 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/26 04:03:12 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,7 +165,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 	std::string	statusLine = request.getHttpVersion() + " 200 OK";
 	while (1)
 	{
-		if (!std::getline(cgiFile, tmp) || tmp.empty())
+		if (!std::getline(cgiFile, tmp) || tmp.empty() || tmp == "\r")
 			break;
 		if (tmp.find("Status:") != std::string::npos)
 		{
@@ -179,7 +179,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 		std::streampos	currentPos = cgiFile.tellg();
 	if (cgiHeader.find("Content-Length:") == std::string::npos)
 	{
-		cgiFile.seekg(0, std::ios::end);
+		cgiFile.seekg(0, cgiFile.end);
 		std::streampos	length = cgiFile.tellg() - currentPos;
 
 		std::stringstream	ss;
@@ -189,6 +189,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 	}
 	cgiHeader += "\r\nConnection: " + request.getConnection();
 	cgiHeader += "\r\n\r\n";
+	cgiFile.close();
 	std::cout << GREEN << cgiHeader << RESET << std::endl;
 
 	/* open the file for later body reading */
@@ -248,22 +249,13 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
     // -----------open file---------- //
-	std::string	path;
-
-	if (request.cgi)	
-		path = request.tmpFile;
-	else
-		path = request.getPath();
-
     if (this->file == -2) {
-        this->file = open( path.c_str(), O_RDONLY, 0777 );
+        this->file = open( request.getPath().c_str(), O_RDONLY, 0777 );
         if ( this->file == -1 ) {
             std::cerr << "failed to open file" << std::endl;
             return (-1); // to remove client and poll
         }
     }
-
-	std::cout << "kansendi l body hh" << std::endl;
 
     char buffer[SEND];
     char bufferS[1000000];
