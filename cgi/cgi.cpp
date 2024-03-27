@@ -6,14 +6,32 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/26 02:57:57 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/27 02:59:57 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../request/Request.hpp"
+#include "../client/Client.hpp"
 #include <unistd.h>
 
 # define TMP "/tmp/.webservtmp"
+
+/* cgi methods */
+Cgi::Cgi(void) : _isSet(false) {}
+bool				Cgi::isSet(void) const { return (_isSet); }
+void				Cgi::enable(void) { _isSet = true; }
+void				Cgi::setPid(pid_t const pid) { _pid = pid; }
+void				Cgi::setCgiTime(size_t time) { _cgiTime = time; }
+void				Cgi::setCgiStdErr(int stdErr) { _cgiStdErr = stdErr; }
+void				Cgi::setCgiTmpFile(std::string const & tmp) { _cgiTmpFile = tmp + _cgiTmpFileSuffix; }
+void				Cgi::setFileSuffix(std::string const & suffix) { _cgiTmpFileSuffix = suffix; }
+pid_t				Cgi::getPid(void) const { return (_pid); }
+size_t				Cgi::getCgiTime(void) const { return (_cgiTime); }
+int					Cgi::getCgiStdErr(void) const { return (_cgiStdErr); }
+std::string const &	Cgi::getCgiTmpFile(void) const { return (_cgiTmpFile); }
+
+void		Request::setCgiFileSuffix(std::string const & suffix) { cgi.setFileSuffix(suffix); }
+bool		Request::isCgi(void) const { return (cgi.isSet()); }
+Cgi	const &	Request::getCgi(void) const { return (cgi); }
 
 std::string	getIdentifier(std::string header)
 {
@@ -48,6 +66,7 @@ char **buildEnv(std::map<std::string, std::string> & req, std::string const & me
 	{
 		environment.push_back("QUERY_STRING");
 		environment.push_back("PATH_INFO=" + url);
+		/* environment.push_back("PATH_INFO=8301983091"); */
 	}
 
 	std::string	entry;
@@ -91,13 +110,10 @@ std::string	getScriptName(std::string path)
 	return (path.substr(start, len));
 }
 
-void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocation, std::string const & cgi, int sockfd)
+void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocation, std::string const & cgi)
 {
-	std::stringstream ss;
-
-	ss << sockfd;
-	this->tmpFile = TMP + ss.str();
-	std::cout << this->tmpFile << std::endl;
+	this->cgi.setCgiTmpFile(TMP);
+	std::cout << this->cgi.getCgiTmpFile() << std::endl;
 
 	int	end[2];
 	if (pipe(end) == -1)
@@ -127,7 +143,11 @@ void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocat
 		/* std::cout << path.substr(path.find('.')) << std::endl; */
 		std::string	script = getScriptName(path);
 		/* std::string	cwd = itLocation->second.getRoot().getPath() + itLocation->first + path.substr(1, path.rfind('/')); */
-		std::string	cwd = itLocation->second.getRoot().getPath() + itLocation->first;
+		std::string	cwd;
+		if (!isDirectory(itLocation->first.c_str()))
+			cwd = itLocation->second.getRoot().getPath() + '/';
+		else
+	   		cwd = itLocation->second.getRoot().getPath() + itLocation->first;
 		/* std::cout << cwd << std::endl; */
 		/* std::cout << script << std::endl; */
 
@@ -162,7 +182,7 @@ void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocat
 		/* close(in); */
 
 		/* setup and change child's standart output */
-		int fd = open(this->tmpFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		int fd = open(this->cgi.getCgiTmpFile().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (fd == -1)
 		{
 			std::cerr << RED << "file opening failed" << RESET << std::endl;
@@ -179,13 +199,14 @@ void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocat
 		/* std::cerr << "after" << std::endl; */
 
 		execve(av[0], av, env);
-		exit(0);
+		std::cerr << "execve: " << strerror(errno) << std::endl;
+		exit(1);
 	}
 
 	/* close the write end since we're not gonna use it */
 	close(end[1]);
 
-	this->pid = pid;
-	this->cgiTime = std::time(NULL);
-	this->cgiStdErr = end[0];
+	this->cgi.setPid(pid);
+	this->cgi.setCgiTime(std::time(NULL));
+	this->cgi.setCgiStdErr(end[0]);
 }

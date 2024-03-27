@@ -12,7 +12,7 @@ SRC= config/Config.cpp \
 	 response/Response.cpp \
 	 response/MimeType.cpp \
 	 request/Request.cpp \
-	 cgi/cgi.cpp \
+	 cgi/Cgi.cpp \
 	 main.cpp
 
 C= c++
@@ -29,7 +29,8 @@ HEADER=	config/Config.hpp \
 		server/Colors.hpp \
 		client/Client.hpp \
 	 	response/Response.hpp \
-	 	request/Request.hpp
+	 	request/Request.hpp \
+	 	cgi/Cgi.hpp
 
 OBJ= $(SRC:.cpp=.o)
 

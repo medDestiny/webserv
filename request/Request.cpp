@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 23:24:53 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/27 03:20:39 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ Request::Request( void ) {
 
     this->sendedcontent = 0;
     this->checkLocation = false;
-    this->cgi = false;
 }
 
 Request::~Request( void ) { }
@@ -207,7 +206,7 @@ void Request::setRequestBody( void ) {
 
 }
 
-int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response, int sockfd ) {
+int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
 
     std::string requestLine;
 	std::istringstream headerStream(this->header);
@@ -281,7 +280,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
 	// cgi
 	if (this->checkLocation && !itLocation->second.getCgiPass().empty())
 	{
-		/* warning: cgi detection only works if the script is located at the end of the request url */
 		size_t 		extension = this->path.rfind('.');
 		std::string	cgiExtension;
 
@@ -290,9 +288,9 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
 		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
 		if (itLocation->second.getCgiPass().found(cgiExtension))
 		{
-			handleCgiRequest(itLocation, itLocation->second.getCgiPass().getCgi(cgiExtension), sockfd);
+			handleCgiRequest(itLocation, itLocation->second.getCgiPass().getCgi(cgiExtension));
 			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
-			this->cgi = true;
+			this->cgi.enable();
 			return (1);
 		}
 	}

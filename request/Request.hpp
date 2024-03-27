@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 01:09:42 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/27 02:34:31 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 #include "../config/Config.hpp"
+#include "../cgi/Cgi.hpp"
 
 #define SIZE 1024
 
@@ -65,13 +66,10 @@ class Request {
         bool		checkLocation;
         std::string	stringLocation;
 
-    public:
-		bool		cgi;
-		pid_t		pid;
-		size_t		cgiTime;
-		int			cgiStdErr;
-		std::string	tmpFile;
+		// Cgi
+		Cgi			cgi;
 
+    public:
         Request( void );
         ~Request( void );
         int			getsendedcontent( void ) const;
@@ -109,11 +107,14 @@ class Request {
         void		setUrl( std::string url );
 
 		/* cgi functions */
-		void		handleCgiRequest(std::map<std::string, Location>::iterator itLocation, std::string const & cgi, int sockfd);
+		void		handleCgiRequest(std::map<std::string, Location>::iterator itLocation, std::string const & cgi);
+		void		setCgiFileSuffix(std::string const & suffix);
+		bool		isCgi(void) const;
+		Cgi const &	getCgi(void) const;
 
         size_t		getRequestBodySize( void ) const;
         int			setRequestHeader( void );
-        int			parseRequestHeader(Config conf, Conf::Server & server, Response & response, int sockfd);
+        int			parseRequestHeader(Config conf, Conf::Server & server, Response & response);
         void		setRequestBody( void );
         std::string	getValue( std::string const & key ) const;
         std::string	getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;

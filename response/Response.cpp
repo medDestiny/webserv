@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 04:03:12 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/27 02:39:24 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,7 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[415] = "Unsupported Media Type";
     statusMessages[500] = "Internal Server Error";
     statusMessages[501] = "Not Implemented"; // The request method is not supported
+    statusMessages[504] = "Gateway Timeout";
     statusMessages[505] = "HTTP Version Not Supported";
 
     std::map<int, std::string>::iterator it = statusMessages.find(statusCode);
@@ -151,7 +152,7 @@ std::string Response::getStatusMessage(int const & statusCode) {
 
 ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 
-	std::ifstream	cgiFile(request.tmpFile);
+	std::ifstream	cgiFile(request.getCgi().getCgiTmpFile());
 
 	if (!cgiFile.good())
 	{
@@ -169,8 +170,22 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 			break;
 		if (tmp.find("Status:") != std::string::npos)
 		{
-			statusLine = request.getHttpVersion() + tmp.substr(tmp.find(':') + 1);
-			std::cout << statusLine << std::endl;
+			std::string	status = tmp.substr(tmp.find(':') + 1);
+			std::string message;
+
+			if (status[0] == ' ' || status[0] == '\t')
+				status.erase(0, 1);
+
+			message = status.substr(4);
+			status = status.substr(0, 3);
+			statusLine = request.getHttpVersion() + ' ' + status + ' ' + message;
+
+			/* prevent header sending on failure statusCode */
+			size_t	statusCode = stringToInt(status);
+			this->statusCode = statusCode;
+			if (statusCode >= 400)
+				return (0);
+
 			continue ;
 		}
 		cgiHeader += "\r\n" + tmp;
@@ -182,9 +197,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 		cgiFile.seekg(0, cgiFile.end);
 		std::streampos	length = cgiFile.tellg() - currentPos;
 
-		std::stringstream	ss;
-		ss << length;
-		cgiHeader += "\r\nContent-Length: " + ss.str();
+		cgiHeader += "\r\nContent-Length: " + intToString(length);
 		setContentLength(static_cast<size_t>(length));
 	}
 	cgiHeader += "\r\nConnection: " + request.getConnection();
@@ -193,7 +206,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 	std::cout << GREEN << cgiHeader << RESET << std::endl;
 
 	/* open the file for later body reading */
-	this->file = open( request.tmpFile.c_str(), O_RDONLY );
+	this->file = open( request.getCgi().getCgiTmpFile().c_str(), O_RDONLY );
 	if ( this->file == -1 ) {
 		std::cerr << "failed to open file" << std::endl;
 		return (-1); // to remove client and poll
