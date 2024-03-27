@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 23:55:49 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/26 23:15:23 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,7 @@ class Response {
         int execPostMethod( Request const &request, Conf::Server const &server );
         int PutChunkedBodyToFile( Request const &request, Conf::Server const &server, bool const flag );
         void resetHeaderElements( void );
+        int  openFile( Request const &request, Conf::Server const &server );
         
         std::string getBHName( void ) const;
         void setBHName( std::string const &name );

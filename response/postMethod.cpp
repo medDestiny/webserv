@@ -101,26 +101,100 @@ int  Response::createFileAndWrite( std::string const &str, Request const &reques
         
         if ( !this->getBHFilename().empty() ) {
             
-            if ( request.getCheckLocation() )// get location path
-                path = request.getLocation().getRoot().getPath() + request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename();
-            else // get server path
-                path = server.getRoot().getPath() + server.getUploadPath().getPath() + "/" + this->getBHFilename();
+            if ( request.getCheckLocation() ) { // get location path
 
-            this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0777 );
+                if ( request.getLocation().getUploadPath().empty() || request.getLocation().getUploadPath().getPath() == "/" ) {
+
+                    std::cerr << RED << "\tServer Upload directory not set!" << RESET << std::endl;
+                    this->setStatusCode( 500 );
+                    return 0;
+                }
+                if ( request.getLocation().getUploadPath().getPath() != "/" ) {
+
+                    if ( request.getLocation().getUploadPath().getPath().front() == '/' )
+                        path = request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename(); // absolute path
+                    else
+                        path = request.getLocation().getRoot().getPath() + "/" + request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename(); // relative path
+                }
+            }
+            else { // get server path
+
+                if ( server.getUploadPath().empty() || server.getUploadPath().getPath() == "/" ) {
+
+                    std::cerr << RED << "\tServer Upload directory not set!" << RESET << std::endl;
+                    this->setStatusCode( 500 );
+                    return 0;
+                }
+                if ( server.getUploadPath().getPath() != "/" ) {
+
+                    if ( server.getUploadPath().getPath().front() == '/' )
+                        path = server.getUploadPath().getPath() + "/" + this->getBHFilename(); // absolute path
+                    else
+                        path = server.getRoot().getPath() + "/" + server.getUploadPath().getPath() + "/" + this->getBHFilename(); // relative path
+                }
+            } 
+
+            this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
             if ( fd == -1 ) {
-                std::cout << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
+                std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
                 this->setStatusCode( 500 );
                 return 0;
             }
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
                 
-                std::cout << RED << "\tERROR: write: cannot write in " << path << RESET << std::endl;
+                std::cerr << RED << "\tERROR: write: cannot write in " << path << RESET << std::endl;
                 close( this->fd );
                 this->setStatusCode( 500 );
                 return 0;
             }
         }
+    }
+    return 1;
+}
+
+int  Response::openFile( Request const &request, Conf::Server const &server ) {
+
+    std::string path;
+        
+    if ( request.getCheckLocation() ) { // get location path
+
+        if ( request.getLocation().getUploadPath().empty() || request.getLocation().getUploadPath().getPath() == "/" ) {
+
+            std::cerr << RED << "\tServer Upload directory not set!" << RESET << std::endl;
+            this->setStatusCode( 500 );
+            return 0;
+        }
+        if ( request.getLocation().getUploadPath().getPath() != "/" ) {
+
+            if ( request.getLocation().getUploadPath().getPath().front() == '/' )
+                path = request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename(); // absolute path
+            else
+                path = request.getLocation().getRoot().getPath() + "/" + request.getLocation().getUploadPath().getPath() + "/" + this->getBHFilename(); // relative path
+        }
+    }
+    else { // get server path
+
+        if ( server.getUploadPath().empty() || server.getUploadPath().getPath() == "/" ) {
+
+            std::cerr << RED << "\tServer Upload directory not set!" << RESET << std::endl;
+            this->setStatusCode( 500 );
+            return 0;
+        }
+        if ( server.getUploadPath().getPath() != "/" ) {
+
+            if ( server.getUploadPath().getPath().front() == '/' )
+                path = server.getUploadPath().getPath() + "/" + this->getBHFilename(); // absolute path
+            else
+                path = server.getRoot().getPath() + "/" + server.getUploadPath().getPath() + "/" + this->getBHFilename(); // relative path
+        }
+    }
+
+    this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+    if ( fd == -1 ) {
+        std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
+        this->setStatusCode( 500 );
+        return 0;
     }
     return 1;
 }
@@ -148,10 +222,17 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
         chunked = chunkedBody.substr( find, next - find );
         if ( chunked == request.getEndBoundary() ) { // got the end boundaries
 
+            if ( !this->bodyFlag && !this->BHFilename.size() ) {
+
+                this->setStatusCode( 400 );
+                return 1;
+            }
+
             chunked = chunkedBody.substr( 0, find - 2 );
             if ( !this->createFileAndWrite( chunked, request, server, flag ) )
                 return 2; // error
-                
+            if ( !this->getBHFilename().size() ) // for database cgi *not implemented yet*
+                return 3;
             this->body.erase( 0, find ); // erase body
             this->resetHeaderElements(); // reset all vars
             if ( flag )
@@ -165,6 +246,8 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
             chunked = chunkedBody.substr( 0, find - 2 );
             if ( !this->createFileAndWrite( chunked, request, server, flag ) )
                 return 2;
+            if ( !this->getBHFilename().size() ) // for database cgi *not implemented yet*
+                return 3;
             this->body.erase( 0, find ); // erase body
             this->resetHeaderElements(); // reset all vars
             if ( flag )
@@ -175,6 +258,8 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
 
         if ( !this->createFileAndWrite( chunkedBody, request, server, flag ) )
             return 2;
+        if ( !this->getBHFilename().size() ) // for database cgi *not implemented yet*
+            return 3;
         this->body.erase( 0, CHUNKED ); // erase body
         if ( !flag )
             this->bodyFlag = true;
@@ -199,7 +284,7 @@ int  Response::parseBoundariesBody( Request const &request, Conf::Server const &
             
             if ( buffer == request.getEndBoundary() ) {
 
-                if ( !this->bodyFlag ) {
+                if ( !this->bodyFlag && !this->BHFilename.size() ) {
 
                     this->setStatusCode( 400 );
                     return 1;
@@ -224,6 +309,8 @@ int  Response::parseBoundariesBody( Request const &request, Conf::Server const &
                     return 0;
                 else if ( status == 2 )
                     return 1;
+                else if ( status == 3 ) // for database cgi
+                    return 3;
             }
         }
     } else {
@@ -268,12 +355,16 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
 
         } else if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) { // end of body
 
-            this->resetHeaderElements();
-            if ( !this->bodyFlag ) {
+            if ( !this->bodyFlag && !this->BHFilename.size() ) { // if body is empty
 
                 this->setStatusCode( 400 );
                 return 1;
+            } else if ( !this->bodyFlag && this->BHFilename.size() ) {
+
+                if ( !this->openFile( request, server ) )
+                    return 1;
             }
+            this->resetHeaderElements();
             close( this->fd );
             return 0;
 
@@ -283,11 +374,15 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
 
                 if ( !this->createFileAndWrite( chunked, request, server, false ) ) // first time create file
                     return 1;
+                if ( this->getBHFilename().empty() ) // for database cgi *not implemented yet*
+                    return 3;
                 this->bodyFlag = true;
             } else {
 
                 if ( !this->createFileAndWrite( chunked, request, server, true ) ) // just write file already exits
                     return 1;
+                if ( this->getBHFilename().empty() ) // for database cgi *not implemented yet*
+                    return 3;
             }
             this->body.erase( 0, lengthToRead + 2 );
         }
@@ -303,37 +398,27 @@ int  Response::parseLengthBody( void ) {
 
 int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
 
+    int status;
     if ( request.getPath().find( "cgi-bin/" ) != std::string::npos ) { // this is just before implimentation of cgi *must be removed later*
 
         return 3;
     }
+    if ( request.getBodyType() == ENCODING )
+        status = this->parseEncodingBody( request, server );
+    else if ( request.getBodyType() == BOUNDARIES )
+        status = this->parseBoundariesBody( request, server );
     if ( request.getConnection() == "close" ) {
 
-        if ( request.getBodyType() == ENCODING ) {
-
-            if ( !this->parseEncodingBody( request, server ) )
-                return 0;
-
-        } else if ( request.getBodyType() == BOUNDARIES ) {
-            
-            if ( !this->parseBoundariesBody( request, server ) )
-                return 0;
-                
-        }
+        if ( !status )
+            return 0;
+        else if ( status == 3 ) // for cgi
+            return 3; 
     } else {
 
-        if ( request.getBodyType() == ENCODING ) {
-
-            if ( !this->parseEncodingBody( request, server ) )
-                return 2;
-
-        } else if ( request.getBodyType() == BOUNDARIES ) {
-            
-            if ( !this->parseBoundariesBody( request, server ) )
-                return 2;
-                
-        }
-
+        if ( !status )
+            return 2;
+        else if ( status == 3 ) // for cgi
+            return 3;
     }
     return 1;
 }
