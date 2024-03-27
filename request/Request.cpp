@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/07 14:03:40 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:43:26 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,6 +197,7 @@ int Request::setRequestHeader( void ) {
     else
         return (0);
 }
+
 void Request::setRequestBody( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -206,7 +207,7 @@ void Request::setRequestBody( void ) {
 
 }
 
-int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
+int Request::parseRequestLine( Config conf, Conf::Server & server, Response & response ) {
 
     std::string requestLine;
 	std::istringstream headerStream(this->header);
@@ -231,16 +232,11 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         response.setStatusCode( 505 );
         return (0);
     }
+    return (1);
+}
 
-    // get location
-    std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
-    if (itLocation != server.getLocations().end()) {
-        this->location = itLocation->second;
-        this->stringLocation = itLocation->first;
-        this->checkLocation = true;
-    }
+int Request::checkMethod( Response & response ) {
 
-    // check method is valid !!!!!!
     if (this->checkLocation && !location.getLimitExcept().empty()) {
         std::set<std::string> setMethods = location.getLimitExcept().getMethods();
         std::set<std::string>::iterator itMethod = setMethods.find(this->method);
@@ -253,8 +249,11 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         response.setStatusCode( 405 );
         return (0);
     }
+    return (1);
+}
 
-    // get lines of request
+int Request::setMapRequestLines( Response & response ) {
+
     std::string line;
     std::string key;
     std::string value;
@@ -270,6 +269,29 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         }
         this->linesRequest[key] = value;
     }
+    return (1);
+}
+
+int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
+
+    if ( !this->parseRequestLine(conf, server, response) )
+        return (0);
+
+    // get location
+    std::map<std::string, Location>::iterator itLocation = server.getLocation(this->path);
+    if (itLocation != server.getLocations().end()) {
+        this->location = itLocation->second;
+        this->stringLocation = itLocation->first;
+        this->checkLocation = true;
+    }
+
+    // check method is valid !!!!!!
+    if ( !this->checkMethod( response ) )
+        return (0);
+
+    // get lines of request
+    if (!this->setMapRequestLines( response ) )
+        return (0);
 
     // get connection
     std::map<std::string, std::string>::iterator it = this->linesRequest.find("Connection:");
@@ -289,58 +311,24 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
             absolutPAth = server.getRoot().getPath() + this->url;
         if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
 
-            if (this->checkLocation)
-                this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
-            else
-                this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-            if (this->path.empty()) {
-                bool checkAutoIndex = server.getAutoIndex().getToggle();
-                if (this->checkLocation)
-                    checkAutoIndex = this->location.getAutoIndex().getToggle();
-                if (!checkAutoIndex) {
-                    response.setStatusCode( 403 );
-                    return (0);
-                }
-                else {
-                    response.setAutoIndexing( true );
-                    return (1);
-                }
-            }
+            if ( !this->checkDirectory( server, response ) )
+                return (0);
         }
         else {
-            if (this->checkLocation)
-                this->path = location.getRoot().getPath() + "/" + this->path;
-            else
-                this->path = server.getRoot().getPath() + "/" + this->path;
-            if (access(this->path.c_str(), F_OK) == -1) {
-                response.setStatusCode( 404 );
+            if ( !this->checkFile( server, response ) )
                 return (0);
-            }
-            response.setType( this->getPath().substr(this->getPath().rfind('.') + 1) );
-            response.setMimeType( getMimeType(response.getType()) );
         }
 
         // get content length
         response.setContentLength( get_size_fd(this->path) );
 
         //get Range
-        std::string range;
-        while (std::getline(headerStream, range)) {
-            if (range.substr(0, 13) == "Range: bytes=") {
-                int numS = range.find('-') - (range.find('=') + 1);
-                this->rangeStart = range.substr(range.find('=') + 1, numS);
-                this->rangeStartNum = stringToInt(this->rangeStart);
-                if (range.find('-') + 1 < range.length() - 1 )
-                    this->rangeEnd = range.substr(range.find('-') + 1);
-                if (this->rangeEnd.empty()) {
-                    this->rangeEndNum = get_size_fd(this->path) - 1;
-                    this->rangeEnd = intToString(this->rangeEndNum);
-                }
-                else
-                    this->rangeEndNum = stringToInt(this->rangeEnd);
-                break;
-            }
-        }
+        this->getRange();
+    }
+    else if (this->method == "DELETE") {
+        this->path.erase(0, 1);
+        if ( !this->checkFile( server, response ) )
+                return (0);
     }
 
     return (1);

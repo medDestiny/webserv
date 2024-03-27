@@ -12,7 +12,8 @@ SRC= config/Config.cpp \
 	 client/Tools.cpp \
 	 response/Response.cpp \
 	 response/MimeType.cpp \
-	 request/Request.cpp
+	 request/Request.cpp \
+	 request/GetMethod.cpp
 
 C= c++
 

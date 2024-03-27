@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:54:24 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 02:37:18 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
-#define SEND 1024
+#define SENDED 1024000
 
 class Request;
 
@@ -86,6 +86,7 @@ class Response {
         void displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
+        int deleteResource(int const sockfd, Request request);
 
 };
 

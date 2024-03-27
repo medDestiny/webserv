@@ -3,13 +3,12 @@ server {server_name test;
 	listen	localhost:8080;
 	server_name	www.google.com test.net parsing.tzb;
 	error_page	404 /404.html;
-	error_page	406 403 /404.html;
 	server_name	server.wa7d.a5or;
 	client_max_body_size	200k;
 	server_name	server.wa7d.a5or;
 
 	return 303 /test;
-	root	/;
+	root	/Users/amoukhle/Desktop/server_1;
 	autoindex	off;
 	index	var.html;
 	index	maindexmatal3ba.hh;
@@ -18,11 +17,13 @@ server {server_name test;
 
 
 	location /flexbox {
-		root	/Users/del-yaag/Desktop/server;
+		root	/Users/amoukhle/Desktop/server_1;
 		index index.html;
 	}
 	location /test2 {
 		root /test2;
+		
+		
 		index tst.test2;
 	autoindex	off;
 	upload_store	/uploads;
