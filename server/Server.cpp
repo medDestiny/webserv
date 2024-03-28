@@ -15,6 +15,7 @@
 Server::Server( Config const &config ) {
 
     this->yes = 1;
+    this->notBound = 0;
     this->addrInfo = NULL;
     this->newinfo = NULL;
     this->config = config;
@@ -67,7 +68,7 @@ int Server::createsocket( int &listener ) {
     return 0;
 }
 
-void Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator &it ) {
+int Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator &it ) {
 
     ( void ) it;
     for ( newinfo = addrInfo; newinfo; newinfo = newinfo->ai_next ) {
@@ -88,21 +89,20 @@ void Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator 
 
     if ( !newinfo ) {
 
-        // print the error of not bound address
         std::string error = strerror( errno );
         printinvalidopt(    "==> ERROR: " "socket '" + std::to_string( listener ) +
                             "' didn't get bound with '" + it->getListen().getHost() +
-                            ":" + it->getListen().getPort() + "' because: " + error );
-        exit( EXIT_FAILURE );
+                            ":" + it->getListen().getPort() + "' because: " + error ); // not bound address error
+        this->notBound++;
+        return 0;
     }
 
-    if ( listen( listener, BACKLOG ) == -1 ) {
-
-        std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
-        exit( EXIT_FAILURE );
-    }
-    printvalidoption( "listen" );
+    if ( listen( listener, BACKLOG ) == -1 )
+        std::cout << RED << "\t==> ERROR: " << strerror( errno ) << RESET << std::endl; // listen error
+    else
+        printvalidoption( "listen" ); // valid listen
     serverfds[listener] = *it;
+    return 1;
 }
 
 int Server::alreadyboundsock( std::vector<Conf::Server>::iterator const &server ) {
@@ -128,23 +128,28 @@ void Server::createServer( void ) {
     std::vector<Conf::Server>::iterator it = servers.begin();
     for ( ; it != servers.end(); ++it ) {
 
-        if ( this->alreadyboundsock( it ) )
+        if ( this->alreadyboundsock( it ) ) // check already bound sockets and ignore them
             continue;
+        
+        this->getInfoaddr( it->getListen().getHost(), it->getListen().getPort() ); // create socket
+        if ( this->bindlistensock( listener, it ) ) { // bind socket
+            
+            donehp.insert( std::make_pair( it->getListen().getHost(), it->getListen().getPort() ) ); // add bound host, port to the container
+            std::cout << DYELLO << "\tserver: " << it->getListen().getHost() << ":" << it->getListen().getPort() << RESET << std::endl << std::endl; // valid server bound
+        }
 
-        // create socket and bind it
-        this->getInfoaddr( it->getListen().getHost(), it->getListen().getPort() );
-        this->bindlistensock( listener, it );
-
-        // add bound host, port to the container
-        donehp.insert( std::make_pair( it->getListen().getHost(), it->getListen().getPort() ) );
-        std::cout << DYELLO << "\tserver: " << it->getListen().getHost() << ":" << it->getListen().getPort() << RESET << std::endl << std::endl;
     }
+
+    if ( this->notBound == servers.size() ) { // cannot bind any socket
+
+        printinvalidopt( "===> ERORR CANNOT BIND ANY SOCKET. it seems like all socket in use try with another config!!!" );
+        exit( EXIT_FAILURE );
+    }
+    
     this->addpollservers();
 
-    while ( 1 ) {
-        
+    while ( 1 )
         this->mainpoll();
-    }
 }
 
 void Server::addpollservers( void ) {
@@ -259,6 +264,7 @@ void Server::mainpoll( void ) {
                 itClient = clients.find( pfds[i].fd );
                 itClient->second.settimeout( std::time(NULL) );
                 if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
+
                     pfds[i].events = POLLOUT;
                 }
             }
@@ -271,13 +277,15 @@ void Server::mainpoll( void ) {
                 // POLLOUT revents in the clients side
                 int var;
                 itClient = clients.find( pfds[i].fd );
-                itClient->second.settimeout( std::time(NULL) );
+                // itClient->second.settimeout( std::time(NULL) );
                 var = itClient->second.sendresponse( pfds[i].fd );
                 if ( !var ) {
+                  
                     this->removeclient( pfds[i].fd );
                     this->removepollclient( i );
                 }
                 else if (var == 2) {
+                  
                     pfds[i].events = POLLIN;
                     Client client(itClient->second);
                     this->removeclient( pfds[i].fd );
@@ -285,10 +293,10 @@ void Server::mainpoll( void ) {
                 }
             }
         } else if ( pfds[i].revents == POLLHUP ) {
+          
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
-        }
-        else
+        } else
             this->checkclienttimeout();
     }
 }

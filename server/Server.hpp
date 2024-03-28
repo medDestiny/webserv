@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 13:26:06 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/05 15:46:23 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 23:30:04 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ class Server {
     private:
         std::set<std::pair<std::string, std::string> > donehp;
         Config config;
+        size_t notBound;
         int yes;
         
         struct addrinfo hints;
@@ -69,7 +70,7 @@ class Server {
         // socket methods
         void getInfoaddr( std::string const &host, std::string const &port );
         int createsocket( int &listener );
-        void bindlistensock( int &listener, std::vector<Conf::Server>::iterator &it );
+        int bindlistensock( int &listener, std::vector<Conf::Server>::iterator &it );
         int alreadyboundsock( std::vector<Conf::Server>::iterator const &server );
 
         // poll methods

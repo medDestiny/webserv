@@ -73,12 +73,12 @@ std::string Request::getBody( void ) const {
 
     return (this->body);
 }
-void Request::setBody( std::string const & body ) {
+void Request::setBody( char const *body, int const &size ) {
 
     if (this->body.empty())
-        this->body = body;
+        this->body.append( body, size );
     else
-        this->body += body;
+        this->body.append( body, size );
 }
 
 std::string Request::getConnection( void ) const {
@@ -191,7 +191,7 @@ int Request::setRequestHeader( void ) {
     size_t found = recString.find(subString);
     if (found != std::string::npos) {
         this->header = recString.substr(0, found + subString.length());
-        std::cout << "header request: " << this->header << std::endl;
+        std::cout << BLUE << this->header << RESET << std::endl;
         return (1);
     }
     else

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/18 18:11:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:29:57 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,13 @@
 
 #define SIZE 1024
 
+enum bodyType {
+
+    LENGTH,
+    ENCODING,
+    BOUNDARIES
+};
+
 class Response;
 
 class Request {
@@ -60,6 +67,15 @@ class Request {
         std::map<std::string, std::string> linesRequest;
         std::string url;
 
+        // post method
+        std::string startBoundary;
+        std::string endBoundary;
+        std::string contentType;
+        std::string postBodyHeader;
+        std::string transferEncoding;
+        int         bodyType;
+        size_t      contentLength;
+        
         // location
         Location location;
         bool checkLocation;
@@ -79,7 +95,7 @@ class Request {
         std::string getHeader( void ) const;
         void setHeader( std::string const & header );
         std::string getBody( void ) const;
-        void setBody( std::string const & body );
+        void setBody( char const *body, int const &size );
         std::string getConnection( void ) const;
         void setConnection( std::string const & connection );
         std::string getRangeStart( void ) const;
@@ -117,4 +133,25 @@ class Request {
         void getRange( void );
         int checkFile( Conf::Server & server, Response & response );
         int checkDirectory( Conf::Server & server, Response & response );
+
+        // ------------- POST ------------- //
+        int parsePostBody( std::string const &buffer );
+        int bufferPostBody( std::string const &buffer );
+        void parsePostHeader( void );
+        
+        std::string getStartBoundary( void ) const;
+        void setStartBoundary( std::string const &boundary );
+        std::string getEndBoundary( void ) const;
+        void setEndBoundary( std::string const &boundary );
+        std::string getContentType( void ) const;
+        void setContentType( std::string const &type );
+        size_t getContentLength( void ) const;
+        void setContentLength( size_t const &length );
+        std::string getPostBodyHeader( void ) const;
+        void setPostBodyHeader( std::string const &header );
+        std::string getTransferEncoding( void ) const;
+        void setTransferEncoding( std::string const &content );
+        int getBodyType( void ) const;
+        void setBodyType( int const &type );
 };
+

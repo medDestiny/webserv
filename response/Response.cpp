@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 00:57:49 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/25 21:18:54 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ Response::Response( void ) {
     this->file = -2;
     this->countBytesRead = 0;
     this->contentResponse = 0;
+
+    // ---- post ---- //
+    this->bodyFlag = false;
 }
 
 Response::~Response( void ) { }
@@ -202,7 +205,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
     char buffer[SENDED];
     char bufferS[1000000];
-    ssize_t sended;
+    ssize_t sended = 0;
     // --------seek the file-------- //
     if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {
         size_t bufferSize = 1000000;
@@ -217,13 +220,14 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
         std::string message = std::string(buffer, bytesRead);
-
-        while (!message.empty()) {
-
-            std::string tmp_msg;
-            tmp_msg = message.substr(0, 1024);
-            message.erase(0, 1024);
-            sended = send( sockfd, ( tmp_msg.c_str() ), tmp_msg.size(), 0 );
+        
+        // std::string tmp = message;
+        while ( !message.empty() ) {
+            
+            std::string str = message.substr( 0, 1024 );
+            // std::cout << RED << "HELLO" << RESET << std::endl;
+            sended = send( sockfd, str.c_str() , str.size(), 0 );
+            message.erase( 0, 1024 );
         }
         return (sended);
     }

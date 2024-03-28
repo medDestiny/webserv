@@ -84,8 +84,11 @@ void Client::setEndRecHeader( bool endRecHeader ) {
 
 int Client::recieveRequest( int const &sockfd ) {
 
+    int status;
+    std::string buffer;
     char recievebuff[SIZE];
     int recieved = recv( sockfd, recievebuff, SIZE, 0 );
+    
     if ( recieved < 0 ) {
         this->response.setStatusCode( 500 );
         return (0); // error
@@ -95,38 +98,71 @@ int Client::recieveRequest( int const &sockfd ) {
         if (recieved < SIZE)
             recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
+        
         if (!this->endRecHeader) {
+            
             if (this->request.setRequestHeader()) {
+                
                 if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
                     return (0); // error
                 }
+                
                 this->endRecHeader = true;
+                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" )
+                    return 0;
+                
+                // parse post body ( if body is too small )
                 this->request.setRequestBody();
-                if (request.getValue("Content-Length:").empty())
-                    return (0); // end recieve request
+                status = this->request.parsePostBody( this->request.getBody() );
+                if ( status == 2 ) {
+
+                    this->response.setStatusCode( 501 );
+                    return 0;
+                    
+                } else if ( !status ) {
+
+                    this->response.setBody( this->request.getBody() );
+                    return 0; // end recive
+                }
+                
             }
+            
+            // invalid header *error*
             if (recieved < SENDED && this->request.getHeader().empty()) {
                 this->response.setStatusCode( 400 );
                 return (0); // error
             }
+
         }
         else {
+            
             size_t maxSize = server.getClientMaxBodySize().getSize();
             if (this->request.getCheckLocation())
                 maxSize = request.getLocation().getClientMaxBodySize().getSize();
+            
             if (this->request.getRequestBodySize() > maxSize) {
+                
                 this->response.setStatusCode( 413 );
                 return (0); // error
             }
-            if (this->request.getRequestBodySize() >= stringToInt(request.getValue("Content-Length:"))) {
-                this->request.setRequestBody();
-                std::cout << "body : " << request.getBody() << std::endl;
-                return (0);
-            }
+            
+            this->request.setBody( recievebuff, recieved );
+            buffer = std::string( recievebuff, recieved );
+            this->settimeout( std::time( NULL ) );
+            
+            status = this->request.parsePostBody( buffer );
+            
+            if ( status == 2 ) {
+
+                this->response.setStatusCode( 400 );
+                return 0;
+                
+            } else if ( !status ) {
+
+                this->response.setBody( this->request.getBody() );
+                return 0; // end recive
+            } 
         }
-    }
-    if (!request.getBody().empty() && this->request.getRequestBodySize() >= stringToInt(request.getValue("Content-Length:"))) {
-        return (0); // end recieve request
     }
     return (1); // still read request
 }
@@ -175,6 +211,29 @@ int Client::sendresponse( int const &sockfd ) {
     }
     else if (this->request.getMethod() == "POST") {
         
+        int status = this->response.execPostMethod( this->request, this->server );
+        if ( !status ) {
+            
+            if ( !this->sendPostResponse( "data uploaded successfully" ) )
+                return 1;
+            std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
+            return 0;
+        }
+        else if ( status == 2 ) {
+            
+            if ( !this->sendPostResponse( "data uploaded successfully" ) )
+                return 1;
+            std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
+            return 2;
+        } else if ( status == 3 ) {
+
+            if ( !this->sendPostResponse( "all good but cgi not implemented yet" ) )
+                return 1;
+            std::cout << BLUE << "\tPOST done." << RESET << std::endl;
+            return 0;
+        }
+        else
+            this->settimeout( std::time( NULL ) );
     }
     else if (this->request.getMethod() == "DELETE") {
         if ( !this->response.deleteResource(this->sockfd, this->request) )
@@ -183,4 +242,34 @@ int Client::sendresponse( int const &sockfd ) {
             return (2); // change to PULLIN
     }
     return (1);
+}
+
+int Client::sendPostResponse( std::string const &message ) {
+
+    ssize_t bytes;
+    std::string header;
+    std::string body;
+    
+    body = "<!DOCTYPE html>\n";
+    body += "<html>\n";
+    body += "<head><title> POST METHOD </title>\n";
+    body += "<style> * { background-color: #1E1E1E; font-family: Fantasy; color: #2E8B57; } </style></head>\n";
+    body += "<body>\n";
+    body += "<center><h1>" + message + "</h1></center>\n";
+    body += "</body>\n";
+    body += "</html>";
+    
+    header = "HTTP/1.1 " + intToString( this->response.getStatusCode() ) + " " + this->response.getStatusMessage( this->response.getStatusCode() ) + "\r\n";
+    header += "Content-Type: text/plain\r\n";
+    header += "Content-Length: " + intToString( body.size() ) + "\r\n";
+    header += "Connection: " + request.getConnection() + "\r\n\r\n";
+    header += body;
+    
+    bytes = send( this->sockfd, header.c_str(), header.size(), 0 ); // send response
+    if ( bytes == -1 ) {
+
+        this->response.setStatusCode( 500 );
+        return 0;
+    }
+    return 1;
 }
