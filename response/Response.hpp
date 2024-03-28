@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
 /*   Updated: 2024/03/26 23:15:23 by del-yaag         ###   ########.fr       */
@@ -96,6 +96,7 @@ class Response {
         void displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
+        int deleteResource(int const sockfd, Request request);
 
         // ------------ post ------------ //
         void parsePostBodyHeader( std::string const &chunck );

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/27 00:21:58 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/27 19:56:36 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,6 @@ int Client::recieveRequest( int const &sockfd ) {
             
             // invalid header *error*
             if (recieved < SENDED && this->request.getHeader().empty()) {
-                
                 this->response.setStatusCode( 400 );
                 return (0); // error
             }
@@ -179,27 +178,32 @@ int Client::sendresponse( int const &sockfd ) {
     // display autoIndex
     if (response.getAutoIndexing()) {
         if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
-            response.displayErrorPage(this->server, sockfd, this->request);
-            return (0);
+            return (1);
         }
         return (2); // change to PULLIN
     }
 
+    
+    
     // send file 
     if (this->request.getMethod() == "GET") {
         if (this->response.getSendedHeader()) {
             ssize_t sended = this->response.sendBody( sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+                close( response.getFile() );
                 return (0); // remove client and fd
             }
             if (response.getContentResponse() == response.getContentLength()) {
+                std::cout << response.getContentResponse() << "==" << response.getContentLength() << std::endl;
+                close( response.getFile() );
                 return (2); // change to PULLIN
             }
         }
         else {
             ssize_t sended = this->response.sendHeader( sockfd, this->request );
             if ( (int)sended == -1) {
-                return (0); // remove client and fd
+                response.setStatusCode( 500 );
+                return (1); // remove client and fd
             }
             else
                 response.setSendedHeader( true );
@@ -230,6 +234,12 @@ int Client::sendresponse( int const &sockfd ) {
         }
         else
             this->settimeout( std::time( NULL ) );
+    }
+    else if (this->request.getMethod() == "DELETE") {
+        if ( !this->response.deleteResource(this->sockfd, this->request) )
+            return (1); // error
+        else
+            return (2); // change to PULLIN
     }
     return (1);
 }

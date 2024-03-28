@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 23:20:38 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 00:48:26 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,10 +280,12 @@ void Server::mainpoll( void ) {
                 // itClient->second.settimeout( std::time(NULL) );
                 var = itClient->second.sendresponse( pfds[i].fd );
                 if ( !var ) {
+                  
                     this->removeclient( pfds[i].fd );
                     this->removepollclient( i );
                 }
                 else if (var == 2) {
+                  
                     pfds[i].events = POLLIN;
                     Client client(itClient->second);
                     this->removeclient( pfds[i].fd );
@@ -291,10 +293,10 @@ void Server::mainpoll( void ) {
                 }
             }
         } else if ( pfds[i].revents == POLLHUP ) {
+          
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
-        } 
-        else
+        } else
             this->checkclienttimeout();
     }
 }

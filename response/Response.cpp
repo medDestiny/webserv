@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
 /*   Updated: 2024/03/25 21:18:54 by del-yaag         ###   ########.fr       */
@@ -133,6 +133,7 @@ void Response::setMimeType( std::string const & mimetype ){
 std::string Response::getStatusMessage(int const & statusCode) {
     std::map<int, std::string> statusMessages;
     statusMessages[200] = "OK";
+    statusMessages[204] = "No Content";
     statusMessages[206] = "Partial Content";
     statusMessages[400] = "Bad Request";
     statusMessages[403] = "Forbidden";
@@ -160,7 +161,6 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
         if (!request.getRangeStart().empty()) {
             this->statusCode = 206;
         }
-        // std::cout << "path: " << request.getLocation().getRoot().getPath() + request.getUrl() << std::endl;
         std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
         if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
             this->statusCode = 302;
@@ -198,7 +198,8 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         this->file = open( request.getPath().c_str(), O_RDONLY, 0777 );
         if ( this->file == -1 ) {
             std::cerr << "failed to open file" << std::endl;
-            return (-1); // to remove client and poll
+            this->statusCode = 500;
+            return (1); // error
         }
     }
 
@@ -223,7 +224,6 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         // std::string tmp = message;
         while ( !message.empty() ) {
             
-        
             std::string str = message.substr( 0, 1024 );
             // std::cout << RED << "HELLO" << RESET << std::endl;
             sended = send( sockfd, str.c_str() , str.size(), 0 );
@@ -276,12 +276,14 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
         body += "</html>";
     }
     else {
-        std::istringstream errorStream(errorPage);
+        std::ifstream streamFile;
         std::string tmp;
-        while (std::getline( errorStream, tmp)) {
+        streamFile.open(errorPage);
+        while (std::getline( streamFile, tmp)) {
             body += tmp;
             body += '\n';
         }
+        streamFile.close();
     }
 
     header += "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
@@ -316,7 +318,9 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
         return (0);
     }
     while ((entry = readdir(dir)) != NULL) {
-            fileNames.push_back(std::string(entry->d_name));
+        std::string str = std::string(entry->d_name);
+            if (str != "." && str != "..")
+                fileNames.push_back( str );
     }
     closedir(dir);
 
@@ -341,12 +345,41 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     body += "</pre><hr></body>\n";
     body += "</html>";
 
-    header = "HTTP/1.1" + intToString(this->statusCode) + getStatusMessage(this->statusCode) + "\r\n";
+    header = "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: " + intToString(body.length());
     header += "\r\nConnection: " + request.getConnection() + "\r\n\r\n";
 
     message = header + body;
-    send( sockfd, message.c_str(), message.length(), 0);
+    ssize_t sended = send( sockfd, message.c_str(), message.length(), 0);
+    if (sended == -1) {
+        this->statusCode = 500;
+        return (0); // error
+    }
+    return (1);
+}
+
+int Response::deleteResource(int const sockfd, Request request) {
+    if ( isDirectory( request.getPath().c_str()) ) {
+        if ( rmdir( request.getPath().c_str() ) ) {
+            this->statusCode = 500;
+            return (0); //error
+        }
+    }
+    else
+        if ( remove( request.getPath().c_str() ) ) {
+            this->statusCode = 500;
+            return (0); //error
+        }
+    std::string header;
+
+    header = "HTTP/1.1 " + intToString(204) + " " + getStatusMessage(204) + "\r\n";
+    header += "Connection: " + request.getConnection() + "\r\n\r\n";
+
+    ssize_t sended = send( sockfd, header.c_str(), header.length(), 0);
+    if (sended == -1) {
+        this->statusCode = 500;
+        return (0); // error
+    }
     return (1);
 }

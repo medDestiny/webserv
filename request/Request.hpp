@@ -125,6 +125,14 @@ class Request {
         void setRequestBody( void );
         std::string getValue( std::string const & key ) const;
         std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
+        int parseRequestLine( Config conf, Conf::Server & server, Response & response );
+        int checkMethod( Response & response );
+        int setMapRequestLines( Response & response );
+
+        // Get Method
+        void getRange( void );
+        int checkFile( Conf::Server & server, Response & response );
+        int checkDirectory( Conf::Server & server, Response & response );
 
         // ------------- POST ------------- //
         int parsePostBody( std::string const &buffer );
@@ -146,3 +154,4 @@ class Request {
         int getBodyType( void ) const;
         void setBodyType( int const &type );
 };
+
