@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   postMethod.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
+/*   Updated: 2024/03/28 22:17:24 by del-yaag         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Response.hpp"
 #include "../server/Server.hpp"
 #include "../request/Request.hpp"
@@ -324,6 +336,31 @@ int  Response::parseBoundariesBody( Request const &request, Conf::Server const &
     return 1;
 }
 
+int Response::parseEncodingBodyCgi( Request const &request ) {
+
+    std::string buffer;
+    std::string chunked;
+    size_t lengthToRead;
+    size_t find;
+
+    find = this->body.find( "\r\n" );
+    if ( find != std::string::npos ) {
+        
+        buffer = this->body.substr( 0, find );
+        lengthToRead = hexadecimalToDecimal( buffer );
+        this->body.erase( 0, find + 2 );
+        chunked = this->body.substr( 0, lengthToRead );
+        this->cgiBody += chunked;
+        this->body.erase( 0, lengthToRead + 2 );
+        if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) {
+            
+            // SET FLAG 
+            return 0;
+        }
+    }
+    return 1;
+}
+
 int Response::parseEncodingBody( Request const &request, Conf::Server const &server ) {
 
     std::string buffer;
@@ -399,26 +436,36 @@ int  Response::parseLengthBody( void ) {
 int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
 
     int status;
-    if ( request.getPath().find( "cgi-bin/" ) != std::string::npos ) { // this is just before implimentation of cgi *must be removed later*
+    if ( request.getCgi().isSet() ) {
+        
+        if ( request.getBodyType() == ENCODING ) {
+            if ( !this->parseEncodingBodyCgi( request ) ) { // parse body and put it ina file
 
-        return 3;
-    }
-    if ( request.getBodyType() == ENCODING )
-        status = this->parseEncodingBody( request, server );
-    else if ( request.getBodyType() == BOUNDARIES )
-        status = this->parseBoundariesBody( request, server );
-    if ( request.getConnection() == "close" ) {
-
-        if ( !status )
-            return 0;
-        else if ( status == 3 ) // for cgi
-            return 3; 
+                // cgi work here
+            }
+        } else if ( request.getBodyType() == BOUNDARIES || request.getBodyType() == LENGTH ) {
+            // open a file and fill it with the body
+        }
+        
     } else {
+        
+        if ( request.getBodyType() == ENCODING )
+            status = this->parseEncodingBody( request, server );
+        else if ( request.getBodyType() == BOUNDARIES )
+            status = this->parseBoundariesBody( request, server );
+        if ( request.getConnection() == "close" ) {
 
-        if ( !status )
-            return 2;
-        else if ( status == 3 ) // for cgi
-            return 3;
+            if ( !status )
+                return 0;
+            else if ( status == 3 ) // for cgi
+                return 3; 
+        } else {
+
+            if ( !status )
+                return 2;
+            else if ( status == 3 ) // for cgi
+                return 3;
+        }
     }
     return 1;
 }

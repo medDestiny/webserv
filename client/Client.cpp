@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 00:49:39 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/28 22:25:43 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,6 @@ int Client::recieveRequest() {
                     this->response.setBody( this->request.getBody() );
                     return 0; // end recive
                 }
-                
             }
             
             // invalid header *error*

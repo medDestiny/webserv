@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 00:40:02 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/28 21:54:39 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,7 @@ class Request {
         void		setHeader( std::string const & header );
         std::string	getBody( void ) const;
         void		setBody( char const *body, int const &size );
+        void        setBodyForCgi( std::string const &body );
         std::string	getConnection( void ) const;
         void		setConnection( std::string const & connection );
         std::string	getRangeStart( void ) const;
@@ -163,4 +164,3 @@ class Request {
         int getBodyType( void ) const;
         void setBodyType( int const &type );
 };
-
