@@ -1,6 +1,3 @@
-server {
-	root /Users/mmisskin/goinfre/server;
-	index index.html;
 
 server {
 	server_name test1;
@@ -9,14 +6,10 @@ server {
 	root	/Users/del-yaag/Desktop/server;
 	upload_store /tmp;
 
-	location /flexbox {
-
-		root	/Users/del-yaag/Desktop/server;
-		upload_store	/uploaded;
-	location / {
-		cgi_pass .sh /bin/bash;
-		cgi_pass .cgi;
-	}
+	# location / {
+	# 	cgi_pass .sh /bin/bash;
+	# 	cgi_pass .cgi;
+	# }
 
 	location /flexbox {
 		cgi_pass .sh /bin/bash;

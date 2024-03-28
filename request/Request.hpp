@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/27 02:34:31 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/28 00:40:02 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ class Request {
         std::string	getHeader( void ) const;
         void		setHeader( std::string const & header );
         std::string	getBody( void ) const;
-        void		setBody( std::string const & body );
+        void		setBody( char const *body, int const &size );
         std::string	getConnection( void ) const;
         void		setConnection( std::string const & connection );
         std::string	getRangeStart( void ) const;
