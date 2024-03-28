@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
 /*   Updated: 2024/03/25 02:41:53 by mmisskin         ###   ########.fr       */
@@ -35,7 +35,8 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
-#define SEND 1024
+#define SENDED 1000000
+#define CHUNKED 2621440
 
 class Request;
 
@@ -53,6 +54,15 @@ class Response {
         size_t 		contentResponse;
         std::string type;
         std::string mimeType;
+
+        // post method
+        std::string body;
+        std::string BHName;
+        std::string BHFilename;
+        std::string BHContentDispo;
+        std::string BHContentType;
+        int         fd;
+        bool        bodyFlag;
 
     public:
         Response( void );
@@ -80,15 +90,39 @@ class Response {
         std::string	getMimeType( void ) const;
         void		setMimeType( std::string const & mimetype );
 
+        ssize_t sendHeader( int const &sockfd, Request const & request);
+        ssize_t sendBody( int const &sockfd, Request const & request);
+        std::string getStatusMessage(int const & statusCode);
+        void displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
+        int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
+        std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
+        int deleteResource(int const sockfd, Request request);
         ssize_t 	sendCgiHeader( int const sockfd, Request const & request );
 
-        ssize_t		sendHeader( int const &sockfd, Request const & request);
-        ssize_t 	sendBody( int const &sockfd, Request const & request);
-        std::string	getStatusMessage(int const & statusCode);
-        void		displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
-        int			displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
-        std::string	getErrorPage(std::map<std::string, std::string> ErrorPages);
 
+        // ------------ post ------------ //
+        void parsePostBodyHeader( std::string const &chunck );
+        int parseEncodingBody( Request const &request, Conf::Server const &server);
+        int parseBoundariesBody( Request const &request, Conf::Server const &server);
+        int parseLengthBody( void );
+        std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
+        int createFileAndWrite( std::string const &str, Request const &request, Conf::Server const &server, bool const flag );
+        int execPostMethod( Request const &request, Conf::Server const &server );
+        int PutChunkedBodyToFile( Request const &request, Conf::Server const &server, bool const flag );
+        void resetHeaderElements( void );
+        int  openFile( Request const &request, Conf::Server const &server );
+        
+        std::string getBHName( void ) const;
+        void setBHName( std::string const &name );
+        std::string getBHFilename( void ) const;
+        void setBHFilename( std::string const &filename );
+        std::string getBHContentDispo( void ) const;
+        void setBHContentDispo( std::string const &content );
+        std::string getBHContentType( void ) const;
+        void setBHContentType( std::string const &type );
+        std::string getBody( void ) const;
+        void setBody( std::string const &body );
 };
 
 std::string getMimeType(const std::string& extension);
+int hexadecimalToDecimal( std::string hexVal );

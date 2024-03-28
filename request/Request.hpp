@@ -41,6 +41,13 @@
 
 #define SIZE 1024
 
+enum bodyType {
+
+    LENGTH,
+    ENCODING,
+    BOUNDARIES
+};
+
 class Response;
 
 class Request {
@@ -61,6 +68,15 @@ class Request {
         size_t 		rangeEndNum;
         std::map<std::string, std::string> linesRequest;
 
+        // post method
+        std::string startBoundary;
+        std::string endBoundary;
+        std::string contentType;
+        std::string postBodyHeader;
+        std::string transferEncoding;
+        int         bodyType;
+        size_t      contentLength;
+        
         // location
         Location	location;
         bool		checkLocation;
@@ -112,10 +128,39 @@ class Request {
 		bool		isCgi(void) const;
 		Cgi const &	getCgi(void) const;
 
-        size_t		getRequestBodySize( void ) const;
-        int			setRequestHeader( void );
-        int			parseRequestHeader(Config conf, Conf::Server & server, Response & response);
-        void		setRequestBody( void );
-        std::string	getValue( std::string const & key ) const;
-        std::string	getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
+        size_t getRequestBodySize( void ) const;
+        int setRequestHeader( void );
+        int parseRequestHeader(Config conf, Conf::Server & server, Response & response );
+        void setRequestBody( void );
+        std::string getValue( std::string const & key ) const;
+        std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
+        int parseRequestLine( Config conf, Conf::Server & server, Response & response );
+        int checkMethod( Response & response );
+        int setMapRequestLines( Response & response );
+
+        // Get Method
+        void getRange( void );
+        int checkFile( Conf::Server & server, Response & response );
+        int checkDirectory( Conf::Server & server, Response & response );
+
+        // ------------- POST ------------- //
+        int parsePostBody( std::string const &buffer );
+        int bufferPostBody( std::string const &buffer );
+        void parsePostHeader( void );
+        
+        std::string getStartBoundary( void ) const;
+        void setStartBoundary( std::string const &boundary );
+        std::string getEndBoundary( void ) const;
+        void setEndBoundary( std::string const &boundary );
+        std::string getContentType( void ) const;
+        void setContentType( std::string const &type );
+        size_t getContentLength( void ) const;
+        void setContentLength( size_t const &length );
+        std::string getPostBodyHeader( void ) const;
+        void setPostBodyHeader( std::string const &header );
+        std::string getTransferEncoding( void ) const;
+        void setTransferEncoding( std::string const &content );
+        int getBodyType( void ) const;
+        void setBodyType( int const &type );
 };
+

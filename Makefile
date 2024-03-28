@@ -12,6 +12,9 @@ SRC= config/Config.cpp \
 	 response/Response.cpp \
 	 response/MimeType.cpp \
 	 request/Request.cpp \
+	 request/GetMethod.cpp \
+	 response/postMethod.cpp \
+	 request/postMethod.cpp \
 	 cgi/Cgi.cpp \
 	 main.cpp
 

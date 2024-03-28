@@ -48,10 +48,9 @@ class Client {
         void setConfig( Config config );
         bool getEndRecHeader( void );
         void setEndRecHeader( bool endRecHeader );
-
+        int sendPostResponse( std::string const &message );
         int recieveRequest();
         int sendresponse();
-
 };
 
 size_t stringToInt(const std::string& str);
