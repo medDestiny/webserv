@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 17:54:34 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/24 02:31:46 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,9 @@ class Client {
         void setConfig( Config config );
         bool getEndRecHeader( void );
         void setEndRecHeader( bool endRecHeader );
-
-        int recieveRequest( int const &sockfd );
-        int sendresponse( int const &sockfd );
         int sendPostResponse( std::string const &message );
+        int recieveRequest();
+        int sendresponse();
 };
 
 size_t stringToInt(const std::string& str);

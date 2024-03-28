@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/13 17:03:42 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/23 18:12:12 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,11 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 			host = token.content().substr(0, separator);
 			port = token.content().substr(separator + 1);
 
-			if (!isNumber(port))
+			if (port.empty())
+				throw Parser::Error("empty port number: ", port, token.line());
+			else if (host.empty())
+				throw Parser::Error("empty host: ", host, token.line());
+			else if (!isNumber(port))
 				throw Parser::Error("invalid port number: ", port, token.line());
 
 			listen.setHost(host);
@@ -551,7 +555,9 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 
 Server	ParseServer(std::vector<Token> & Tokens)
 {
-	Server				server;
+	Server								server;
+	std::pair<std::string, Location>	location;
+	std::map<std::string, Location>		locations;
 
 	/* Check opening bracket */
 	if (Tokens.empty() || Tokens.front().type() != OPEN_BR)
@@ -564,8 +570,6 @@ Server	ParseServer(std::vector<Token> & Tokens)
 	{
 		if (Tokens.front().type() == LOCATION)
 		{
-			std::pair<std::string, Location>	location;
-			std::map<std::string, Location>		locations;
 			Tokens.erase(Tokens.begin());	// delete the location token
 
 			location = ParseLocation(Tokens);

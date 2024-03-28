@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 23:15:23 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/25 02:41:53 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,15 +43,15 @@ class Request;
 class Response {
 
     private:
-        int receivedcontent;
-        int statusCode;
-        int file;
-        bool sendedHeader;
-        bool displayError;
-        bool autoIndexing;
-        size_t contentLength;
-        size_t countBytesRead;
-        size_t contentResponse;
+        int			receivedcontent;
+        int 		statusCode;
+        int 		file;
+        bool		sendedHeader;
+        bool 		displayError;
+        bool 		autoIndexing;
+        size_t		contentLength;
+        size_t 		countBytesRead;
+        size_t 		contentResponse;
         std::string type;
         std::string mimeType;
 
@@ -67,28 +67,28 @@ class Response {
     public:
         Response( void );
         ~Response( void );
-        int getreceivedcontent( void ) const;
-        void setreceivedcontent( int const & receivedcontent );
-        void setStatusCode( int const & statusCode );
-        int getStatusCode( void ) const;
-        void setSendedHeader( bool const & sendedHeader );
-        bool getSendedHeader( void ) const;
-        void setDisplayError( bool const & displayError );
-        bool getDisplayError( void ) const;
-        void setAutoIndexing( bool const & autoIndexing );
-        bool getAutoIndexing( void ) const;
-        void setContentLength( size_t const & contentLength );
-        size_t getContentLength( void ) const;
-        void setCountBytesRead( size_t const & countBytesRead );
-        size_t getCountBytesRead( void ) const;
-        void setContentResponse( size_t const & contentResponse );
-        size_t getContentResponse( void ) const;
-        void setFile( int const & file );
-        int getFile( void ) const;
-        std::string getType( void ) const;
-        void setType( std::string const & type );
-        std::string getMimeType( void ) const;
-        void setMimeType( std::string const & mimetype );
+        int			getreceivedcontent( void ) const;
+        void		setreceivedcontent( int const & receivedcontent );
+        void 		setStatusCode( int const & statusCode );
+        int			getStatusCode( void ) const;
+        void		setSendedHeader( bool const & sendedHeader );
+        bool 		getSendedHeader( void ) const;
+        void 		setDisplayError( bool const & displayError );
+        bool 		getDisplayError( void ) const;
+        void 		setAutoIndexing( bool const & autoIndexing );
+        bool 		getAutoIndexing( void ) const;
+        void 		setContentLength( size_t const & contentLength );
+        size_t		getContentLength( void ) const;
+        void		setCountBytesRead( size_t const & countBytesRead );
+        size_t		getCountBytesRead( void ) const;
+        void		setContentResponse( size_t const & contentResponse );
+        size_t		getContentResponse( void ) const;
+        void		setFile( int const & file );
+        int			getFile( void ) const;
+        std::string	getType( void ) const;
+        void		setType( std::string const & type );
+        std::string	getMimeType( void ) const;
+        void		setMimeType( std::string const & mimetype );
 
         ssize_t sendHeader( int const &sockfd, Request const & request);
         ssize_t sendBody( int const &sockfd, Request const & request);
@@ -97,6 +97,8 @@ class Response {
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
         int deleteResource(int const sockfd, Request request);
+        ssize_t 	sendCgiHeader( int const sockfd, Request const & request );
+
 
         // ------------ post ------------ //
         void parsePostBodyHeader( std::string const &chunck );

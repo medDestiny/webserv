@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 21:43:26 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/27 03:20:39 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,6 +300,23 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
+	// cgi
+	if (this->checkLocation && !itLocation->second.getCgiPass().empty())
+	{
+		size_t 		extension = this->path.rfind('.');
+		std::string	cgiExtension;
+
+		if (extension != std::string::npos)
+			cgiExtension = this->path.substr(extension, this->path.find_first_of("?/", extension) - extension);
+		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
+		if (itLocation->second.getCgiPass().found(cgiExtension))
+		{
+			handleCgiRequest(itLocation, itLocation->second.getCgiPass().getCgi(cgiExtension));
+			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
+			this->cgi.enable();
+			return (1);
+		}
+	}
 
     if (this->method == "GET") {
         // check path is valid !!!!!

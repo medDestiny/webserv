@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 15:30:01 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/17 15:00:58 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/27 03:12:55 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,6 @@ std::map<std::string, Location>::iterator	Server::getLocation(std::string const 
 			if (tmp != _locations.end())
 				it = tmp;
 		}
-		return (it);
 	}
 
 	return (it);
