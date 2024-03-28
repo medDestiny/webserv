@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/27 03:20:39 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/28 00:53:10 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,6 +346,9 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->path.erase(0, 1);
         if ( !this->checkFile( server, response ) )
                 return (0);
+    } else if ( this->method == "POST" ) {
+         
+        this->parsePostHeader();
     }
 
     return (1);
