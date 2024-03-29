@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 00:40:02 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:36:25 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,10 +123,10 @@ class Request {
         void		setUrl( std::string url );
 
 		/* cgi functions */
-		void		handleCgiRequest(std::map<std::string, Location>::iterator itLocation, std::string const & cgi);
-		void		setCgiFileSuffix(std::string const & suffix);
+		bool		handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response);
+		void		setCgiFiles(std::string const & suffix);
 		bool		isCgi(void) const;
-		Cgi const &	getCgi(void) const;
+		Cgi &		getCgi(void);
 
         size_t getRequestBodySize( void ) const;
         int setRequestHeader( void );
@@ -163,4 +163,3 @@ class Request {
         int getBodyType( void ) const;
         void setBodyType( int const &type );
 };
-

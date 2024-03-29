@@ -31,6 +31,7 @@ HEADER=	config/Config.hpp \
 		server/Server.hpp \
 		server/Colors.hpp \
 		client/Client.hpp \
+		client/Tools.hpp \
 	 	response/Response.hpp \
 	 	request/Request.hpp \
 	 	cgi/Cgi.hpp

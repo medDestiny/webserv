@@ -6,14 +6,13 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 00:53:10 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:47:48 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include "../response/Response.hpp"
 #include "../client/Client.hpp"
-
 
 Request::Request( void ) {
 
@@ -207,6 +206,10 @@ void Request::setRequestBody( void ) {
 
 }
 
+void		Request::setCgiFiles(std::string const & suffix) { cgi.setFiles(suffix); }
+bool		Request::isCgi(void) const { return (cgi.isSet()); }
+Cgi &		Request::getCgi(void) { return (cgi); }
+
 int Request::parseRequestLine( Config conf, Conf::Server & server, Response & response ) {
 
     std::string requestLine;
@@ -300,10 +303,10 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
-	// cgi
+	// detect cgi requests
 	if (this->checkLocation && !itLocation->second.getCgiPass().empty())
 	{
-		size_t 		extension = this->path.rfind('.');
+		size_t 		extension = this->path.find('.');
 		std::string	cgiExtension;
 
 		if (extension != std::string::npos)
@@ -311,7 +314,8 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
 		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
 		if (itLocation->second.getCgiPass().found(cgiExtension))
 		{
-			handleCgiRequest(itLocation, itLocation->second.getCgiPass().getCgi(cgiExtension));
+			if (!handleCgiRequest(itLocation->second.getRoot().getPath(), itLocation->first, itLocation->second.getCgiPass().getCgi(cgiExtension), response))
+				return (0);
 			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
 			this->cgi.enable();
 			return (1);

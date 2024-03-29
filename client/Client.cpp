@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 00:49:39 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:44:31 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,13 +102,13 @@ int Client::recieveRequest() {
         if (!this->endRecHeader) {
             
             if (this->request.setRequestHeader()) {
-				this->request.setCgiFileSuffix(intToString(this->sockfd));
+				this->request.setCgiFiles(intToString(this->sockfd));
                 if ( !this->request.parseRequestHeader(this->config, this->server, this->response)) {
                     return (0); // error
                 }
                 
                 this->endRecHeader = true;
-                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" )
+                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" || request.getCgi().isSet())
                     return 0;
                 
                 // parse post body ( if body is too small )
@@ -183,56 +183,27 @@ int Client::sendresponse() {
         return (2); // change to PULLIN
     }
 
+	if (this->request.isCgi() && !this->response.getSendedHeader())
+	{
+		if (!this->request.getCgi().isStarted())
+			this->request.getCgi().launch();
+		return (monitorCgiProcess(request, response, sockfd));
+	}
+
 	if (this->request.getMethod() == "GET") {
 
-		if (this->request.isCgi() && !this->response.getSendedHeader())
-		{
-			/* 
-			 * check if the script has finished
-			 * if it finished send the response header
-			 * otherwise if the timeout or an error occurs kill it
-			 * if none of the above return 1
-			 */
-			Cgi		cgi = this->request.getCgi();
-			char	tmp[1025] = {0};
-			int		err = read(cgi.getCgiStdErr(), tmp, 1024);
-			if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
-			{
-				std::cout << "Cgi finished" << std::endl;
-				close(cgi.getCgiStdErr());
-				if (response.sendCgiHeader(this->sockfd, this->request) == -1)
-					return (0);
-				else
-					response.setSendedHeader( true );
-			}
-			else if (std::time(NULL) - cgi.getCgiTime() >= 30
-					|| err > 0)
-			{
-				std::cout << RED << "stderr: " << err << " \'" << tmp << "\'"<< RESET << std::endl;
-				std::cout << "killed" << std::endl;
-				close(cgi.getCgiStdErr());
-				kill(cgi.getPid(), SIGKILL);
-				remove(cgi.getCgiTmpFile().c_str());
-
-				if (err > 0)
-					response.setStatusCode(500);
-				else
-					response.setStatusCode(504);
-			}
-			return (1);
-		}
         if (this->response.getSendedHeader()) {
             ssize_t sended = this->response.sendBody( this->sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
 				close(this->response.getFile());
-				if (this->request.getCgi().isSet())
-					remove(this->request.getCgi().getCgiTmpFile().c_str());
+				if (this->request.isCgi())
+					remove(this->request.getCgi().getCgiOutFile().c_str());
                 return (0);
             }
             if (response.getContentResponse() == response.getContentLength()) {
 				close(this->response.getFile());
-				if (this->request.getCgi().isSet())
-					remove(this->request.getCgi().getCgiTmpFile().c_str());
+				if (this->request.isCgi())
+					remove(this->request.getCgi().getCgiOutFile().c_str());
                 return (2); // change to PULLIN
             }
         }

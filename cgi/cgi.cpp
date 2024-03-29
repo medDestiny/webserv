@@ -6,33 +6,20 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/27 02:59:57 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:47:11 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../client/Client.hpp"
+#include "../request/Request.hpp"
+#include "../response/Response.hpp"
+#include "../client/Tools.hpp"
 #include <unistd.h>
+#include <signal.h>
 
-# define TMP "/tmp/.webservtmp"
+# define CGIIN "/tmp/.cgiInput"
+# define CGIOUT "/tmp/.cgiOutput"
 
-/* cgi methods */
-Cgi::Cgi(void) : _isSet(false) {}
-bool				Cgi::isSet(void) const { return (_isSet); }
-void				Cgi::enable(void) { _isSet = true; }
-void				Cgi::setPid(pid_t const pid) { _pid = pid; }
-void				Cgi::setCgiTime(size_t time) { _cgiTime = time; }
-void				Cgi::setCgiStdErr(int stdErr) { _cgiStdErr = stdErr; }
-void				Cgi::setCgiTmpFile(std::string const & tmp) { _cgiTmpFile = tmp + _cgiTmpFileSuffix; }
-void				Cgi::setFileSuffix(std::string const & suffix) { _cgiTmpFileSuffix = suffix; }
-pid_t				Cgi::getPid(void) const { return (_pid); }
-size_t				Cgi::getCgiTime(void) const { return (_cgiTime); }
-int					Cgi::getCgiStdErr(void) const { return (_cgiStdErr); }
-std::string const &	Cgi::getCgiTmpFile(void) const { return (_cgiTmpFile); }
-
-void		Request::setCgiFileSuffix(std::string const & suffix) { cgi.setFileSuffix(suffix); }
-bool		Request::isCgi(void) const { return (cgi.isSet()); }
-Cgi	const &	Request::getCgi(void) const { return (cgi); }
-
+/* ********************************************* utility functions *************************************** */
 std::string	getIdentifier(std::string header)
 {
 	/* remove the : at the end (Header':') */
@@ -50,11 +37,26 @@ std::string	getIdentifier(std::string header)
 	return (header);
 }
 
-char **buildEnv(std::map<std::string, std::string> & req, std::string const & method, std::string const & protocol, std::string const & url)
+std::vector<std::string>	buildArgv(std::string const & cgi, std::string const & script)
+{
+	std::vector<std::string>	argv;
+
+	if (cgi.empty())
+		argv.push_back("./" + script);
+	else
+	{
+		argv.push_back(cgi);
+		argv.push_back(script);
+	}
+	return (argv);
+}
+
+std::vector<std::string>	buildEnv(std::map<std::string, std::string> & req, std::string const & method, std::string const & protocol, std::string const & url)
 {
 	/* setup meta-variables */
 	std::vector<std::string>	environment;
-	std::string	queryString;
+	std::string					queryString;
+
 	environment.push_back("REQUEST_METHOD=" + method);
 	environment.push_back("SERVER_PROTOCOL=" + protocol);
 	if (url.find('?') != std::string::npos)
@@ -66,7 +68,6 @@ char **buildEnv(std::map<std::string, std::string> & req, std::string const & me
 	{
 		environment.push_back("QUERY_STRING");
 		environment.push_back("PATH_INFO=" + url);
-		/* environment.push_back("PATH_INFO=8301983091"); */
 	}
 
 	std::string	entry;
@@ -78,18 +79,22 @@ char **buildEnv(std::map<std::string, std::string> & req, std::string const & me
 			entry = getIdentifier(it->first) + "=" + it->second;
 		environment.push_back(entry);
 	}
+	return (environment);
+}
 
-	/* convert the vector to a (char **) */
-	size_t	size = environment.size() + 1;
-	char **env = new char *[size];
-	env[size - 1] = NULL;
-	for (size_t i = 0; i < environment.size(); i++)
+/* converts a vector to a (char **) */
+char	**Convert(std::vector<std::string> const & vec)
+{
+	size_t	size = vec.size() + 1;
+	char **newVec = new char *[size];
+	newVec[size - 1] = NULL;
+	for (size_t i = 0; i < vec.size(); i++)
 	{
-		env[i] = new char [environment[i].length() + 1];
-		env[i][environment[i].length()] = 0;
-		environment[i].copy(env[i], environment[i].length());
+		newVec[i] = new char [vec[i].length() + 1];
+		newVec[i][vec[i].length()] = 0;
+		vec[i].copy(newVec[i], vec[i].length());
 	}
-	return (env);
+	return (newVec);
 }
 
 std::string	getScriptName(std::string path)
@@ -109,15 +114,44 @@ std::string	getScriptName(std::string path)
 
 	return (path.substr(start, len));
 }
+/* ***************************************************************************************************** */
 
-void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocation, std::string const & cgi)
+/* cgi methods */
+Cgi::Cgi(void) : _isSet(false), _started(false), _post(false), _ready(false) {}
+bool				Cgi::isSet(void) const { return (_isSet); }
+void				Cgi::enable(void) { _isSet = true; }
+bool				Cgi::isStarted(void) const { return (_started); }
+void				Cgi::setPid(pid_t const pid) { _pid = pid; }
+void				Cgi::setCgiTime(size_t time) { _cgiTime = time; }
+void				Cgi::setCgiStdErr(int stdErr) { _cgiStdErr = stdErr; }
+void				Cgi::setScriptName(std::string const & name) { _scriptName = name; }
+void				Cgi::setCwd(std::string const & cwd) { _cwd = cwd; }
+void				Cgi::setEnv(std::vector<std::string> const & env) { _env = env; }
+void				Cgi::setArgv(std::vector<std::string> const & argv) { _argv = argv; }
+void				Cgi::setPost(bool post) { _post = post; }
+void				Cgi::setReady(bool ready) { _ready = ready; }
+pid_t				Cgi::getPid(void) const { return (_pid); }
+size_t				Cgi::getCgiTime(void) const { return (_cgiTime); }
+int					Cgi::getCgiStdErr(void) const { return (_cgiStdErr); }
+std::string const &	Cgi::getCgiInFile(void) const { return (_cgiInFile); }
+std::string const &	Cgi::getCgiOutFile(void) const { return (_cgiOutFile); }
+void				Cgi::setFiles(std::string const & suffix)
 {
-	this->cgi.setCgiTmpFile(TMP);
-	std::cout << this->cgi.getCgiTmpFile() << std::endl;
+	_cgiInFile = CGIIN + suffix;
+	_cgiOutFile = CGIOUT + suffix;
+}
+
+void				Cgi::launch(void)
+{
+	if (_post && !_ready)
+		return ;
 
 	int	end[2];
 	if (pipe(end) == -1)
+	{
 		std::cerr << "Error: cgi pipe: " << strerror(errno) << std::endl;
+		return ;
+	}
 
 	if (fcntl(end[0], F_SETFL, O_NONBLOCK) == -1)
 	{
@@ -134,69 +168,60 @@ void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocat
 
 	pid_t	pid = fork();
 	if (pid == -1)
+	{
 		std::cerr << "Error: cgi: " << strerror(errno) << std::endl;
+		close(end[1]);
+		close(end[0]);
+		return ;
+	}
 	if (!pid)
 	{
 		/* std::cout << this->path << std::endl; */
 		/* std::cout << this->url << std::endl; */
 		/* std::cout << cgi << std::endl; */
 		/* std::cout << path.substr(path.find('.')) << std::endl; */
-		std::string	script = getScriptName(path);
 		/* std::string	cwd = itLocation->second.getRoot().getPath() + itLocation->first + path.substr(1, path.rfind('/')); */
-		std::string	cwd;
-		if (!isDirectory(itLocation->first.c_str()))
-			cwd = itLocation->second.getRoot().getPath() + '/';
-		else
-	   		cwd = itLocation->second.getRoot().getPath() + itLocation->first;
 		/* std::cout << cwd << std::endl; */
 		/* std::cout << script << std::endl; */
 
 		/* change the child's working directory */
-		chdir(cwd.c_str());
+		chdir(_cwd.c_str());
 
 		/* set the script's environment */
-		char **env = buildEnv(this->linesRequest, this->method, this->httpVersion, this->url);
+		char **env = Convert(_env);
 
-		char **av;
-		if (cgi.empty())
-		{
-			av = new char *[2];
-			av[0] = (char *)("./" + script).c_str();
-			av[1] = NULL;
-		}
-		else
-		{
-			av = new char *[3];
-			av[0] = (char *)cgi.c_str();
-			av[1] = (char *)script.c_str();
-			av[2] = NULL;
-		}
-		
-		/* int in = open("/tmp/.test", O_RDONLY); */
-		/* if (in == -1) */
-		/* { */
-		/* 	std::cerr << RED << "file opening failed" << RESET << std::endl; */
-		/* 	exit(1); */
-		/* } */
-		/* dup2(in, STDIN_FILENO); */
-		/* close(in); */
-
-		/* setup and change child's standart output */
-		int fd = open(this->cgi.getCgiTmpFile().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (fd == -1)
-		{
-			std::cerr << RED << "file opening failed" << RESET << std::endl;
-			exit(1);
-		}
-		std::cout << fd << std::endl;
-		dup2(fd, STDOUT_FILENO);
-		close(fd);
+		char **av = Convert(_argv);
 
 		/* std::cerr << "before" << std::endl; */
 		close(end[0]);
 		dup2(end[1], STDERR_FILENO);
 		close(end[1]);
 		/* std::cerr << "after" << std::endl; */
+
+		std::cout << "hahowa hna: " << _post << std::endl;
+		if (_post)
+		{
+			std::cout << "hahowa hna\n";
+			int in = open(_cgiInFile.c_str(), O_RDONLY);
+			if (in == -1)
+			{
+				std::cerr << "cgi: input file opening failed" << std::endl;
+				exit(1);
+			}
+			dup2(in, STDIN_FILENO);
+			close(in);
+		}
+
+		/* setup and change child's standart output */
+		int fd = open(_cgiOutFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd == -1)
+		{
+			std::cerr << "cgi: output file opening failed" << std::endl;
+			exit(1);
+		}
+		std::cout << fd << std::endl;
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
 
 		execve(av[0], av, env);
 		std::cerr << "execve: " << strerror(errno) << std::endl;
@@ -206,7 +231,84 @@ void	Request::handleCgiRequest(std::map<std::string, Location>::iterator itLocat
 	/* close the write end since we're not gonna use it */
 	close(end[1]);
 
-	this->cgi.setPid(pid);
-	this->cgi.setCgiTime(std::time(NULL));
-	this->cgi.setCgiStdErr(end[0]);
+	_pid = pid;
+	_cgiTime = std::time(NULL);
+	_cgiStdErr = end[0];
+	_started = true;
+}
+
+bool	Request::handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response)
+{
+	if (this->method == "DELETE")
+	{
+		response.setStatusCode(501);
+		return (false);
+	}
+	else if (this->method == "POST")
+		this->cgi.setPost(true);
+
+	std::string	script = getScriptName(path);
+	std::string	cwd;
+	if (!isDirectory(location.c_str()))
+		cwd = root + '/';
+	else
+		cwd = root + location;
+
+	if (access((cwd + script).c_str(), F_OK) != 0)
+	{
+		response.setStatusCode(404);
+		return (false);
+	}
+
+	this->cgi.setScriptName(script);
+	this->cgi.setCwd(cwd);
+	this->cgi.setEnv(buildEnv(this->linesRequest, this->method, this->httpVersion, this->url));
+	this->cgi.setArgv(buildArgv(cgi, script));
+
+	return (true);
+}
+
+/* 
+ * check if the script has finished
+ * if it finished send the response header
+ * otherwise if the timeout or an error occurs kill it
+ * if none of the above return 1
+ */
+int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
+{
+	Cgi		cgi = request.getCgi();
+	char	tmp[1025] = {0};
+	int		err = read(cgi.getCgiStdErr(), tmp, 1024);
+
+	if (!cgi.isStarted())
+	{
+		response.setStatusCode(500);
+		return (0);
+	}
+
+	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
+	{
+		/* std::cout << "Cgi finished" << std::endl; */
+		close(cgi.getCgiStdErr());
+		if (response.sendCgiHeader(sockfd, request) == -1)
+			return (0);
+		else
+			response.setSendedHeader( true );
+	}
+	else if (std::time(NULL) - cgi.getCgiTime() >= 15
+			|| err > 0)
+	{
+		/* std::cout << RED << "stderr: " << err << " \'" << tmp << "\'"<< RESET << std::endl; */
+		/* std::cout << "killed" << std::endl; */
+		close(cgi.getCgiStdErr());
+		kill(cgi.getPid(), SIGTERM);
+		remove(cgi.getCgiOutFile().c_str());
+
+		if (err > 0)
+			response.setStatusCode(500);
+		else
+			response.setStatusCode(504);
+	}
+	return (1);
+
 }
