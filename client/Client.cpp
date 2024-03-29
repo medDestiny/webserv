@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 16:53:50 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 17:47:55 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,10 @@ int Client::recieveRequest() {
 
                     this->response.setBody( this->request.getBody() );
                     return 0; // end recive
+                } else if ( status == 3 ) {
+
+                    this->response.setStatusCode( 411 );
+                    return 0; // error Content-Length required
                 }
             }
             
@@ -160,7 +164,11 @@ int Client::recieveRequest() {
 				
                 this->response.setBody( this->request.getBody() );
                 return 0; // end recive
-            } 
+			} else if ( status == 3 ) {
+			
+			    this->response.setStatusCode( 411 );
+			    return 0; // error Content-Length required
+			}
         }
     }
     return (1); // still read request

@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 15:58:58 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 18:19:54 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,9 @@ std::vector<std::string>	buildArgv(std::string const & cgi, std::string const & 
 std::vector<std::string>	buildEnv(std::map<std::string, std::string> & req, std::string const & method, std::string const & protocol, std::string const & url)
 {
 	/* setup meta-variables */
-	std::vector<std::string>	environment;
-	std::string					queryString;
+	std::map<std::string, std::string>::iterator	it;
+	std::vector<std::string>						environment;
+	std::string										queryString;
 
 	environment.push_back("REQUEST_METHOD=" + method);
 	environment.push_back("SERVER_PROTOCOL=" + protocol);
@@ -69,10 +70,14 @@ std::vector<std::string>	buildEnv(std::map<std::string, std::string> & req, std:
 		environment.push_back("QUERY_STRING");
 		environment.push_back("PATH_INFO=" + url);
 	}
+	if ((it = req.find("Content-Type:")) != req.end())
+		environment.push_back("CONTENT_TYPE=" + it->second);
 
 	std::string	entry;
-	for (std::map<std::string, std::string>::iterator it = req.begin(); it != req.end(); it++)
+	for (it = req.begin(); it != req.end(); it++)
 	{
+		if (it->first == "Content-Type:" || it->first == "Content-Length:")
+			continue ;
 		if (it->second.empty())
 			entry = getIdentifier(it->first);
 		else
@@ -146,6 +151,18 @@ void				Cgi::launch(void)
 {
 	if (_post && !_ready)
 		return ;
+	else if (_post)
+	{
+		/* calculate content-length and add it to the meta variables */
+		std::ifstream	cgiIn(_cgiInFile);
+
+		if (!cgiIn.good())
+			return ;
+		cgiIn.seekg(0, cgiIn.end);
+		std::streampos	length = cgiIn.tellg();
+		_env.push_back("CONTENT_LENGTH=" + intToString(static_cast<size_t>(length)));
+		cgiIn.close();
+	}
 
 	int	end[2];
 	if (pipe(end) == -1)
@@ -159,12 +176,14 @@ void				Cgi::launch(void)
 		std::cerr << strerror(errno) << std::endl;
 		close(end[0]);
 		close(end[1]);
+		return ;
 	}
 	if (fcntl(end[1], F_SETFL, O_NONBLOCK) == -1)
 	{
 		std::cerr << strerror(errno) << std::endl;
 		close(end[0]);
 		close(end[1]);
+		return ;
 	}
 
 	pid_t	pid = fork();
@@ -290,6 +309,7 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
 	{
 		close(cgi.getCgiStdErr());
+		remove(cgi.getCgiInFile().c_str());
 		if (response.sendCgiHeader(sockfd, request) == -1)
 			return (0);
 		else
