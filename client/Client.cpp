@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
 /*   Updated: 2024/03/29 20:59:41 by amoukhle         ###   ########.fr       */
