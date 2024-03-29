@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/27 02:39:24 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:38:07 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,9 +154,9 @@ std::string Response::getStatusMessage(int const & statusCode) {
     }
 }
 
-ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
+ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
 
-	std::ifstream	cgiFile(request.getCgi().getCgiTmpFile());
+	std::ifstream	cgiFile(request.getCgi().getCgiOutFile());
 
 	if (!cgiFile.good())
 	{
@@ -195,7 +195,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 		cgiHeader += "\r\n" + tmp;
 	}
 	cgiHeader = statusLine + cgiHeader;
-		std::streampos	currentPos = cgiFile.tellg();
+	std::streampos	currentPos = cgiFile.tellg();
 	if (cgiHeader.find("Content-Length:") == std::string::npos)
 	{
 		cgiFile.seekg(0, cgiFile.end);
@@ -210,7 +210,7 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request const & request ) {
 	std::cout << GREEN << cgiHeader << RESET << std::endl;
 
 	/* open the file for later body reading */
-	this->file = open( request.getCgi().getCgiTmpFile().c_str(), O_RDONLY );
+	this->file = open( request.getCgi().getCgiOutFile().c_str(), O_RDONLY );
 	if ( this->file == -1 ) {
 		std::cerr << "failed to open file" << std::endl;
 		return (-1); // to remove client and poll

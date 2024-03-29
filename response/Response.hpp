@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 23:42:33 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:38:21 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ class Response {
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
         int deleteResource(int const sockfd, Request request);
-        ssize_t 	sendCgiHeader( int const sockfd, Request const & request );
+        ssize_t 	sendCgiHeader( int const sockfd, Request & request );
 
 
         // ------------ post ------------ //

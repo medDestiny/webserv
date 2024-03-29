@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 02:32:01 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/28 01:43:18 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,7 +276,7 @@ void Server::mainpoll( void ) {
                 // POLLOUT revents in the clients side
                 int var;
                 itClient = clients.find( pfds[i].fd );
-                // itClient->second.settimeout( std::time(NULL) );
+                itClient->second.settimeout( std::time(NULL) );
                 var = itClient->second.sendresponse();
                 if ( !var ) {
                   
