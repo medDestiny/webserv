@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/27 01:57:29 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 01:39:40 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 02:19:44 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ class	Cgi
 		void				setPost(bool post);
 		void				setReady(bool ready);
 
+		bool				ready(void) const;
 		pid_t				getPid(void) const;
 		size_t				getCgiTime(void) const;
 		int					getCgiStdErr(void) const;

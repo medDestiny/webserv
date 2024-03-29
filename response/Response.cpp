@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 01:38:07 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 15:41:27 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,6 +172,8 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
 	{
 		if (!std::getline(cgiFile, tmp) || tmp.empty() || tmp == "\r")
 			break;
+		if (tmp.back() == '\r')
+			tmp.pop_back();
 		if (tmp.find("Status:") != std::string::npos)
 		{
 			std::string	status = tmp.substr(tmp.find(':') + 1);

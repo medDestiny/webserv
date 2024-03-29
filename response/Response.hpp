@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 01:38:21 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 02:03:00 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ class Response {
         int parseLengthBody( void );
         std::string getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim );
         int createFileAndWrite( std::string const &str, Request const &request, Conf::Server const &server, bool const flag );
-        int execPostMethod( Request const &request, Conf::Server const &server );
+        int execPostMethod( Request &request, Conf::Server const &server );
         int PutChunkedBodyToFile( Request const &request, Conf::Server const &server, bool const flag );
         void resetHeaderElements( void );
         int  openFile( Request const &request, Conf::Server const &server );

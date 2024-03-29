@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 01:47:48 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:53:34 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,8 +309,11 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
+    if ( this->method == "POST" )
+        this->parsePostHeader();
+
 	// detect cgi requests
-	if (this->checkLocation && !itLocation->second.getCgiPass().empty())
+    if (this->checkLocation && !itLocation->second.getCgiPass().empty())
 	{
 		size_t 		extension = this->path.find('.');
 		std::string	cgiExtension;
@@ -356,10 +359,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->path.erase(0, 1);
         if ( !this->checkFile( server, response ) )
                 return (0);
-    } else if ( this->method == "POST" ) {
-         
-        this->parsePostHeader();
-    }
+	}
 
     return (1);
 }

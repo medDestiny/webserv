@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 01:44:31 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:53:50 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ int Client::recieveRequest() {
                 }
                 
                 this->endRecHeader = true;
-                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" || request.getCgi().isSet())
+                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE")
                     return 0;
                 
                 // parse post body ( if body is too small )
@@ -157,7 +157,7 @@ int Client::recieveRequest() {
                 return 0;
                 
             } else if ( !status ) {
-
+				
                 this->response.setBody( this->request.getBody() );
                 return 0; // end recive
             } 
@@ -182,7 +182,8 @@ int Client::sendresponse() {
         return (2); // change to PULLIN
     }
 
-	if (this->request.isCgi() && !this->response.getSendedHeader())
+	//	Cgi
+	if (this->request.isCgi() && this->request.getCgi().ready() && !this->response.getSendedHeader())
 	{
 		if (!this->request.getCgi().isStarted())
 			this->request.getCgi().launch();
@@ -217,8 +218,31 @@ int Client::sendresponse() {
         }
     }
     else if (this->request.getMethod() == "POST") {
-        
-        int status = this->response.execPostMethod( this->request, this->server );
+
+		int status = -1;
+       	if (!this->response.getSendedHeader())
+        	status = this->response.execPostMethod( this->request, this->server );
+
+		if (this->request.isCgi())
+		{
+        	if (this->response.getSendedHeader()) {
+        	    ssize_t sended = this->response.sendBody( this->sockfd, this->request );
+        	    if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+					close(this->response.getFile());
+					if (this->request.isCgi())
+						remove(this->request.getCgi().getCgiOutFile().c_str());
+        	        return (0);
+        	    }
+        	    if (response.getContentResponse() == response.getContentLength()) {
+					close(this->response.getFile());
+					if (this->request.isCgi())
+						remove(this->request.getCgi().getCgiOutFile().c_str());
+        	        return (2); // change to PULLIN
+        	    }
+        	}
+			return (1);
+		}
+
         if ( !status ) {
             
             if ( !this->sendPostResponse( "data uploaded successfully" ) )
@@ -232,12 +256,6 @@ int Client::sendresponse() {
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 2;
-        } else if ( status == 3 ) { // cgi response
-
-            if ( !this->sendPostResponse( "all good but cgi not implemented yet" ) )
-                return 1;
-            std::cout << BLUE << "\tPOST done." << RESET << std::endl;
-            return 0;
         }
         else
             this->settimeout( std::time( NULL ) );
