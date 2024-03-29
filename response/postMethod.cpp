@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 00:23:17 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:54:38 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,7 @@ int  Response::openFile( Request const &request, Conf::Server const &server ) {
 
 int Response::openCgiFile( std::string const &path, std::string const &body ) {
 
-    int fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+    int fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
     if ( fd == -1 ) {
 
         std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
@@ -257,15 +257,13 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
 
             if ( !this->bodyFlag && !this->BHFilename.size() ) {
 
-                this->setStatusCode( 400 );
+                this->setStatusCode( 501 );
                 return 1;
             }
 
             chunked = chunkedBody.substr( 0, find - 2 );
             if ( !this->createFileAndWrite( chunked, request, server, flag ) )
                 return 2; // error
-            if ( !this->getBHFilename().size() ) // for database cgi *not implemented yet*
-                return 3;
             this->body.erase( 0, find ); // erase body
             this->resetHeaderElements(); // reset all vars
             if ( flag )
@@ -279,8 +277,6 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
             chunked = chunkedBody.substr( 0, find - 2 );
             if ( !this->createFileAndWrite( chunked, request, server, flag ) )
                 return 2;
-            if ( !this->getBHFilename().size() ) // for database cgi *not implemented yet*
-                return 3;
             this->body.erase( 0, find ); // erase body
             this->resetHeaderElements(); // reset all vars
             if ( flag )
@@ -291,8 +287,6 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
 
         if ( !this->createFileAndWrite( chunkedBody, request, server, flag ) )
             return 2;
-        if ( !this->getBHFilename().size() ) // for database cgi *not implemented yet*
-            return 3;
         this->body.erase( 0, CHUNKED ); // erase body
         if ( !flag )
             this->bodyFlag = true;
@@ -319,7 +313,7 @@ int  Response::parseBoundariesBody( Request const &request, Conf::Server const &
 
                 if ( !this->bodyFlag && !this->BHFilename.size() ) {
 
-                    this->setStatusCode( 400 );
+                    this->setStatusCode( 501 );
                     return 1;
                 }
                 return 0;
@@ -414,7 +408,7 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
 
             if ( !this->bodyFlag && !this->BHFilename.size() ) { // if body is empty
 
-                this->setStatusCode( 400 );
+                this->setStatusCode( 501 );
                 return 1;
             } else if ( !this->bodyFlag && this->BHFilename.size() ) {
 
@@ -431,15 +425,11 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
 
                 if ( !this->createFileAndWrite( chunked, request, server, false ) ) // first time create file
                     return 1;
-                if ( this->getBHFilename().empty() ) // for database cgi *not implemented yet*
-                    return 3;
                 this->bodyFlag = true;
             } else {
 
                 if ( !this->createFileAndWrite( chunked, request, server, true ) ) // just write file already exits
                     return 1;
-                if ( this->getBHFilename().empty() ) // for database cgi *not implemented yet*
-                    return 3;
             }
             this->body.erase( 0, lengthToRead + 2 );
         }
@@ -453,24 +443,26 @@ int  Response::parseLengthBody( void ) {
     return 1;
 }
 
-int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
+int Response::execPostMethod( Request &request, Conf::Server const &server ) {
 
     int status;
-    if ( !request.getCgi().isSet() ) {
-        
+    if ( request.isCgi() ) {
+
         if ( request.getBodyType() == ENCODING ) {
             if ( !this->parseEncodingBodyCgi( request ) ) { // parse body by removing enconding
 
-                if ( !this->openCgiFile( "/tmp/file", this->cgiBody ) ) // open file and put the body inside it
+                if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                     return 1; // error
                 // cgi work here
+				request.getCgi().setReady(true);
                 return 0; // send response to the client
             }
         } else if ( request.getBodyType() == BOUNDARIES || request.getBodyType() == LENGTH ) {
             
-            if ( !this->openCgiFile( "/tmp/file2", this->body ) ) // open file and put the body inside it
+            if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->body ) ) // open file and put the body inside it
                 return 1; //error
             // cgi work here
+			request.getCgi().setReady(true);
             return 0; // send response to the client
         }
         
@@ -480,19 +472,10 @@ int Response::execPostMethod( Request const &request, Conf::Server const &server
             status = this->parseEncodingBody( request, server );
         else if ( request.getBodyType() == BOUNDARIES )
             status = this->parseBoundariesBody( request, server );
-        if ( request.getConnection() == "close" ) {
-
-            if ( !status )
-                return 0;
-            else if ( status == 3 ) // for cgi
-                return 3; 
-        } else {
-
-            if ( !status )
-                return 2;
-            else if ( status == 3 ) // for cgi
-                return 3;
-        }
+        if ( request.getConnection() == "close" && !status )
+			return 0;
+        else if ( !status )
+			return 2;
     }
     return 1;
 }

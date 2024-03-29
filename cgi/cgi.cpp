@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 01:47:11 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 15:58:58 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,10 +117,11 @@ std::string	getScriptName(std::string path)
 /* ***************************************************************************************************** */
 
 /* cgi methods */
-Cgi::Cgi(void) : _isSet(false), _started(false), _post(false), _ready(false) {}
+Cgi::Cgi(void) : _isSet(false), _started(false), _post(false), _ready(true) {}
 bool				Cgi::isSet(void) const { return (_isSet); }
 void				Cgi::enable(void) { _isSet = true; }
 bool				Cgi::isStarted(void) const { return (_started); }
+bool				Cgi::ready(void) const { return (_ready); }
 void				Cgi::setPid(pid_t const pid) { _pid = pid; }
 void				Cgi::setCgiTime(size_t time) { _cgiTime = time; }
 void				Cgi::setCgiStdErr(int stdErr) { _cgiStdErr = stdErr; }
@@ -198,10 +199,8 @@ void				Cgi::launch(void)
 		close(end[1]);
 		/* std::cerr << "after" << std::endl; */
 
-		std::cout << "hahowa hna: " << _post << std::endl;
 		if (_post)
 		{
-			std::cout << "hahowa hna\n";
 			int in = open(_cgiInFile.c_str(), O_RDONLY);
 			if (in == -1)
 			{
@@ -219,7 +218,6 @@ void				Cgi::launch(void)
 			std::cerr << "cgi: output file opening failed" << std::endl;
 			exit(1);
 		}
-		std::cout << fd << std::endl;
 		dup2(fd, STDOUT_FILENO);
 		close(fd);
 
@@ -245,7 +243,10 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & loc
 		return (false);
 	}
 	else if (this->method == "POST")
+	{
 		this->cgi.setPost(true);
+		this->cgi.setReady(false);
+	}
 
 	std::string	script = getScriptName(path);
 	std::string	cwd;
@@ -283,26 +284,23 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 	if (!cgi.isStarted())
 	{
 		response.setStatusCode(500);
-		return (0);
+		return (1);
 	}
 
 	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
 	{
-		/* std::cout << "Cgi finished" << std::endl; */
 		close(cgi.getCgiStdErr());
 		if (response.sendCgiHeader(sockfd, request) == -1)
 			return (0);
 		else
 			response.setSendedHeader( true );
 	}
-	else if (std::time(NULL) - cgi.getCgiTime() >= 15
-			|| err > 0)
+	else if (std::time(NULL) - cgi.getCgiTime() >= 15 || err > 0)
 	{
-		/* std::cout << RED << "stderr: " << err << " \'" << tmp << "\'"<< RESET << std::endl; */
-		/* std::cout << "killed" << std::endl; */
 		close(cgi.getCgiStdErr());
 		kill(cgi.getPid(), SIGTERM);
 		remove(cgi.getCgiOutFile().c_str());
+		remove(cgi.getCgiInFile().c_str());
 
 		if (err > 0)
 			response.setStatusCode(500);

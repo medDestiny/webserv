@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 21:54:12 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:53:48 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ int Request::bufferPostBody( std::string const &buffer ) {
     std::string body;
     if ( size > 200 )
         body = this->body.substr( size - 200, 200 );
-    if ( this->getContentType() != "multipart/form-data;" && this->getPath().find("cgi-bin/") != std::string::npos )
+    if ( this->getContentType() != "multipart/form-data;" && !isCgi() )
         return 2;
     if ( !this->getTransferEncoding().empty() ) {
         
@@ -144,8 +144,15 @@ int Request::bufferPostBody( std::string const &buffer ) {
             return 0;
         }
         
-    } else if ( !this->getContentLength() )
+    } else if ( !this->getContentLength() ) {
+
+		if ( isCgi() ) {
+
+            this->setBodyType( LENGTH );
+            return 0;
+		}
         return 2;
+	}
     return 1;
 }
 
