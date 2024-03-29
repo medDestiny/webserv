@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 01:36:25 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 20:06:41 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,9 @@ class Request {
         bool		checkLocation;
         std::string	stringLocation;
 
+        // return
+        int returnCode;
+        std::string returnUrl;
 		// Cgi
 		Cgi			cgi;
 
@@ -122,6 +125,10 @@ class Request {
         void		setStringLocation( std::string const & stringLocation );
         std::string	getUrl( void ) const;
         void		setUrl( std::string url );
+        int         getReturnCode( void ) const;
+        void        setReturnCode( int returnCode );
+        std::string getReturnUrl( void ) const;
+        void        setReturnUrl( std::string const & returnUrl );
 
 		/* cgi functions */
 		bool		handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response);

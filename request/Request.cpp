@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 16:53:34 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 21:53:06 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ Request::Request( void ) {
 
     this->sendedcontent = 0;
     this->checkLocation = false;
+    this->returnCode = -1;
 }
 
 Request::~Request( void ) { }
@@ -189,6 +190,23 @@ void Request::setUrl( std::string url ) {
     this->url = url;
 }
 
+int         Request::getReturnCode( void ) const {
+    
+    return (this->returnCode);
+}
+void        Request::setReturnCode( int returnCode ) {
+    
+    this->returnCode = returnCode;
+}
+std::string Request::getReturnUrl( void ) const {
+    
+    return (this->returnUrl);
+}
+void        Request::setReturnUrl( std::string const & returnUrl ) {
+    
+    this->returnUrl = returnUrl;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -292,6 +310,16 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->location = itLocation->second;
         this->stringLocation = itLocation->first;
         this->checkLocation = true;
+    }
+
+    // get return
+    if (this->checkLocation) {
+        this->returnCode = this->location.getReturn().getCode();
+        this->returnUrl = this->location.getReturn().getUrl();
+    }
+    else {
+        this->returnCode = server.getReturn().getCode();
+        this->returnUrl = server.getReturn().getUrl();
     }
 
     // check method is valid !!!!!!
