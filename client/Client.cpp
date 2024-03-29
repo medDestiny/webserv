@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 22:25:43 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 00:16:49 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,7 +261,7 @@ int Client::sendresponse() {
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 2;
-        } else if ( status == 3 ) {
+        } else if ( status == 3 ) { // cgi response
 
             if ( !this->sendPostResponse( "all good but cgi not implemented yet" ) )
                 return 1;

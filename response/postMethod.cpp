@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 22:17:24 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 00:23:17 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,27 @@ int  Response::openFile( Request const &request, Conf::Server const &server ) {
     return 1;
 }
 
+int Response::openCgiFile( std::string const &path, std::string const &body ) {
+
+    int fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+    if ( fd == -1 ) {
+
+        std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
+        this->setStatusCode( 500 );
+        return 0;
+    }
+    int bytes = write( fd, body.c_str(), body.size() );
+    if ( bytes == -1 ) {
+
+        close( fd );
+        std::cerr << RED << "\tERROR: write: cannot write in " << path << RESET << std::endl;
+        this->setStatusCode( 500 );
+        return 0;
+    }
+    close( fd );;
+    return 1;
+}
+
 void Response::resetHeaderElements( void ) {
 
     this->setBHContentDispo( "" );
@@ -342,7 +363,6 @@ int Response::parseEncodingBodyCgi( Request const &request ) {
     std::string chunked;
     size_t lengthToRead;
     size_t find;
-
     find = this->body.find( "\r\n" );
     if ( find != std::string::npos ) {
         
@@ -436,15 +456,22 @@ int  Response::parseLengthBody( void ) {
 int Response::execPostMethod( Request const &request, Conf::Server const &server ) {
 
     int status;
-    if ( request.getCgi().isSet() ) {
+    if ( !request.getCgi().isSet() ) {
         
         if ( request.getBodyType() == ENCODING ) {
-            if ( !this->parseEncodingBodyCgi( request ) ) { // parse body and put it ina file
+            if ( !this->parseEncodingBodyCgi( request ) ) { // parse body by removing enconding
 
+                if ( !this->openCgiFile( "/tmp/file", this->cgiBody ) ) // open file and put the body inside it
+                    return 1; // error
                 // cgi work here
+                return 0; // send response to the client
             }
         } else if ( request.getBodyType() == BOUNDARIES || request.getBodyType() == LENGTH ) {
-            // open a file and fill it with the body
+            
+            if ( !this->openCgiFile( "/tmp/file2", this->body ) ) // open file and put the body inside it
+                return 1; //error
+            // cgi work here
+            return 0; // send response to the client
         }
         
     } else {

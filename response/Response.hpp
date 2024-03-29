@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 22:02:01 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/28 23:42:33 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,7 @@ class Response {
         void resetHeaderElements( void );
         int  openFile( Request const &request, Conf::Server const &server );
         int parseEncodingBodyCgi( Request const &request );
+        int openCgiFile( std::string const &path, std::string const &body );
         
         std::string getBHName( void ) const;
         void setBHName( std::string const &name );
