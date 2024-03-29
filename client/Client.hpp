@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/26 17:54:34 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 01:06:48 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "../request/Request.hpp"
 #include "../config/Server.hpp"
 #include "../config/Config.hpp"
+#include "../client/Tools.hpp"
 
 #include <ctime>
 
@@ -48,14 +49,7 @@ class Client {
         void setConfig( Config config );
         bool getEndRecHeader( void );
         void setEndRecHeader( bool endRecHeader );
-
-        int recieveRequest( int const &sockfd );
-        int sendresponse( int const &sockfd );
         int sendPostResponse( std::string const &message );
+        int recieveRequest();
+        int sendresponse();
 };
-
-size_t stringToInt(const std::string& str);
-std::string intToString(size_t num);
-size_t get_size_fd(std::string fileD);
-bool isDirectory(const char* path);
-bool isRegularFile(const char* path);

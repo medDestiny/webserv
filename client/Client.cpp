@@ -6,11 +6,12 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/27 19:56:36 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/29 20:59:41 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+#include<signal.h>
 
 Client::Client( void ) {
 
@@ -82,13 +83,12 @@ void Client::setEndRecHeader( bool endRecHeader ) {
     this->endRecHeader = endRecHeader;
 }
 
-int Client::recieveRequest( int const &sockfd ) {
+int Client::recieveRequest() {
 
     int status;
     std::string buffer;
     char recievebuff[SIZE];
-    int recieved = recv( sockfd, recievebuff, SIZE, 0 );
-    
+    int recieved = recv( this->sockfd, recievebuff, SIZE, 0 );
     if ( recieved < 0 ) {
         this->response.setStatusCode( 500 );
         return (0); // error
@@ -98,17 +98,17 @@ int Client::recieveRequest( int const &sockfd ) {
         if (recieved < SIZE)
             recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
-        
+
         if (!this->endRecHeader) {
             
             if (this->request.setRequestHeader()) {
-                
-                if ( !this->request.parseRequestHeader(this->config, this->server, this->response )) {
+				this->request.setCgiFiles(intToString(this->sockfd));
+                if ( !this->request.parseRequestHeader(this->config, this->server, this->response)) {
                     return (0); // error
                 }
                 
                 this->endRecHeader = true;
-                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE" )
+                if ( this->request.getMethod() == "GET" || this->request.getMethod() == "DELETE")
                     return 0;
                 
                 // parse post body ( if body is too small )
@@ -123,8 +123,11 @@ int Client::recieveRequest( int const &sockfd ) {
 
                     this->response.setBody( this->request.getBody() );
                     return 0; // end recive
+                } else if ( status == 3 ) {
+
+                    this->response.setStatusCode( 411 );
+                    return 0; // error Content-Length required
                 }
-                
             }
             
             // invalid header *error*
@@ -158,20 +161,24 @@ int Client::recieveRequest( int const &sockfd ) {
                 return 0;
                 
             } else if ( !status ) {
-
+				
                 this->response.setBody( this->request.getBody() );
                 return 0; // end recive
-            } 
+			} else if ( status == 3 ) {
+			
+			    this->response.setStatusCode( 411 );
+			    return 0; // error Content-Length required
+			}
         }
     }
     return (1); // still read request
 }
 
-int Client::sendresponse( int const &sockfd ) {
+int Client::sendresponse() {
 
     // display error
     if (response.getStatusCode() >= 400) {
-        response.displayErrorPage(this->server, sockfd, this->request);
+        response.displayErrorPage(this->server, this->sockfd, this->request);
         return (0);
     }
 
@@ -183,24 +190,33 @@ int Client::sendresponse( int const &sockfd ) {
         return (2); // change to PULLIN
     }
 
-    
-    
-    // send file 
-    if (this->request.getMethod() == "GET") {
+	//	Cgi
+	if (this->request.isCgi() && this->request.getCgi().ready() && !this->response.getSendedHeader())
+	{
+		if (!this->request.getCgi().isStarted())
+			this->request.getCgi().launch();
+		return (monitorCgiProcess(request, response, sockfd));
+	}
+
+	if (this->request.getMethod() == "GET") {
+
         if (this->response.getSendedHeader()) {
-            ssize_t sended = this->response.sendBody( sockfd, this->request );
+            ssize_t sended = this->response.sendBody( this->sockfd, this->request );
             if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-                close( response.getFile() );
-                return (0); // remove client and fd
+				close(this->response.getFile());
+				if (this->request.isCgi())
+					remove(this->request.getCgi().getCgiOutFile().c_str());
+                return (0);
             }
             if (response.getContentResponse() == response.getContentLength()) {
-                std::cout << response.getContentResponse() << "==" << response.getContentLength() << std::endl;
-                close( response.getFile() );
+				close(this->response.getFile());
+				if (this->request.isCgi())
+					remove(this->request.getCgi().getCgiOutFile().c_str());
                 return (2); // change to PULLIN
             }
         }
         else {
-            ssize_t sended = this->response.sendHeader( sockfd, this->request );
+            ssize_t sended = this->response.sendHeader( this->sockfd, this->request );
             if ( (int)sended == -1) {
                 response.setStatusCode( 500 );
                 return (1); // remove client and fd
@@ -210,8 +226,31 @@ int Client::sendresponse( int const &sockfd ) {
         }
     }
     else if (this->request.getMethod() == "POST") {
-        
-        int status = this->response.execPostMethod( this->request, this->server );
+
+		int status = -1;
+       	if (!this->response.getSendedHeader())
+        	status = this->response.execPostMethod( this->request, this->server );
+
+		if (this->request.isCgi())
+		{
+        	if (this->response.getSendedHeader()) {
+        	    ssize_t sended = this->response.sendBody( this->sockfd, this->request );
+        	    if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+					close(this->response.getFile());
+					if (this->request.isCgi())
+						remove(this->request.getCgi().getCgiOutFile().c_str());
+        	        return (0);
+        	    }
+        	    if (response.getContentResponse() == response.getContentLength()) {
+					close(this->response.getFile());
+					if (this->request.isCgi())
+						remove(this->request.getCgi().getCgiOutFile().c_str());
+        	        return (2); // change to PULLIN
+        	    }
+        	}
+			return (1);
+		}
+
         if ( !status ) {
             
             if ( !this->sendPostResponse( "data uploaded successfully" ) )
@@ -225,12 +264,6 @@ int Client::sendresponse( int const &sockfd ) {
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 2;
-        } else if ( status == 3 ) {
-
-            if ( !this->sendPostResponse( "all good but cgi not implemented yet" ) )
-                return 1;
-            std::cout << BLUE << "\tPOST done." << RESET << std::endl;
-            return 0;
         }
         else
             this->settimeout( std::time( NULL ) );

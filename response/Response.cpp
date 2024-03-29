@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 21:18:54 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/29 22:12:51 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,14 +135,18 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[200] = "OK";
     statusMessages[204] = "No Content";
     statusMessages[206] = "Partial Content";
+    statusMessages[301] = "Moved Permanently";
+    statusMessages[302] = "Found";
     statusMessages[400] = "Bad Request";
     statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";
     statusMessages[405] = "Method Not Allowed";
+    statusMessages[411] = "Length Required";
     statusMessages[413] = "Payload Too Large";
     statusMessages[415] = "Unsupported Media Type";
     statusMessages[500] = "Internal Server Error";
     statusMessages[501] = "Not Implemented"; // The request method is not supported
+    statusMessages[504] = "Gateway Timeout";
     statusMessages[505] = "HTTP Version Not Supported";
 
     std::map<int, std::string>::iterator it = statusMessages.find(statusCode);
@@ -153,18 +157,94 @@ std::string Response::getStatusMessage(int const & statusCode) {
     }
 }
 
+ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
+
+	std::ifstream	cgiFile(request.getCgi().getCgiOutFile());
+
+	if (!cgiFile.good())
+	{
+		std::cerr << "unable to open cgi tmp file: " << strerror(errno) << std::endl;
+		return (-1);
+	}
+
+	std::string	cgiHeader;
+	std::string	tmp;
+
+	std::string	statusLine = request.getHttpVersion() + " 200 OK";
+	while (1)
+	{
+		if (!std::getline(cgiFile, tmp) || tmp.empty() || tmp == "\r")
+			break;
+		if (tmp.back() == '\r')
+			tmp.pop_back();
+		if (tmp.find("Status:") != std::string::npos)
+		{
+			std::string	status = tmp.substr(tmp.find(':') + 1);
+			std::string message;
+
+			if (status[0] == ' ' || status[0] == '\t')
+				status.erase(0, 1);
+
+			message = status.substr(4);
+			status = status.substr(0, 3);
+			statusLine = request.getHttpVersion() + ' ' + status + ' ' + message;
+
+			/* prevent header sending on failure statusCode */
+			size_t	statusCode = stringToInt(status);
+			this->statusCode = statusCode;
+			if (statusCode >= 400)
+				return (0);
+
+			continue ;
+		}
+		cgiHeader += "\r\n" + tmp;
+	}
+	cgiHeader = statusLine + cgiHeader;
+	std::streampos	currentPos = cgiFile.tellg();
+	if (cgiHeader.find("Content-Length:") == std::string::npos)
+	{
+		cgiFile.seekg(0, cgiFile.end);
+		std::streampos	length = cgiFile.tellg() - currentPos;
+
+		cgiHeader += "\r\nContent-Length: " + intToString(length);
+		setContentLength(static_cast<size_t>(length));
+	}
+	cgiHeader += "\r\nConnection: " + request.getConnection();
+	cgiHeader += "\r\n\r\n";
+	cgiFile.close();
+	std::cout << GREEN << cgiHeader << RESET << std::endl;
+
+	/* open the file for later body reading */
+	this->file = open( request.getCgi().getCgiOutFile().c_str(), O_RDONLY );
+	if ( this->file == -1 ) {
+		std::cerr << "failed to open file" << std::endl;
+		return (-1); // to remove client and poll
+	}
+	/* skip the header part of the file */
+	char	buff[static_cast<size_t>(currentPos)];
+	read(this->file, buff, currentPos);
+
+    ssize_t sended;
+    sended = send( sockfd, cgiHeader.c_str(), cgiHeader.length(), 0 );
+	return (sended);
+}
+
 ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
     std::string statusLine;
 
     // ----------status line----------- //
-        if (!request.getRangeStart().empty()) {
-            this->statusCode = 206;
-        }
-        std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
-        if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
-            this->statusCode = 302;
-        }
+    if (!request.getRangeStart().empty()) {
+        this->statusCode = 206;
+    }
+    std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
+    if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
+        this->statusCode = 302;
+    }
+    else if (!request.getReturnUrl().empty()) {
+        this->statusCode = request.getReturnCode();
+    }
+
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
     std::string headerResponse;
@@ -184,6 +264,12 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
         headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
     }
+    else if (!request.getReturnUrl().empty()) {
+        headerResponse += "\r\nLocation: " + request.getReturnUrl();
+    }
+    // test
+    // headerResponse += "\r\nSet-Cookie: session-id=1234";
+
     headerResponse += "\r\n\r\n";
 
     ssize_t sended;
@@ -345,10 +431,17 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     body += "</pre><hr></body>\n";
     body += "</html>";
 
+    if (!request.getReturnUrl().empty()) {
+        this->statusCode = request.getReturnCode();
+    }
     header = "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: " + intToString(body.length());
-    header += "\r\nConnection: " + request.getConnection() + "\r\n\r\n";
+    header += "\r\nConnection: " + request.getConnection();
+    if (!request.getReturnUrl().empty()) {
+        header += "\r\nLocation: " + request.getReturnUrl();
+    }
+    header += "\r\n\r\n";
 
     message = header + body;
     ssize_t sended = send( sockfd, message.c_str(), message.length(), 0);

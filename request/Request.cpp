@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/24 21:43:26 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/29 21:53:06 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 #include "../response/Response.hpp"
 #include "../client/Client.hpp"
 
-
 Request::Request( void ) {
 
     this->sendedcontent = 0;
     this->checkLocation = false;
+    this->returnCode = -1;
 }
 
 Request::~Request( void ) { }
@@ -73,12 +73,18 @@ std::string Request::getBody( void ) const {
 
     return (this->body);
 }
+
 void Request::setBody( char const *body, int const &size ) {
 
     if (this->body.empty())
         this->body.append( body, size );
     else
         this->body.append( body, size );
+}
+
+void Request::setBodyForCgi( std::string const &body ) {
+
+    this->body = body;
 }
 
 std::string Request::getConnection( void ) const {
@@ -184,6 +190,23 @@ void Request::setUrl( std::string url ) {
     this->url = url;
 }
 
+int         Request::getReturnCode( void ) const {
+    
+    return (this->returnCode);
+}
+void        Request::setReturnCode( int returnCode ) {
+    
+    this->returnCode = returnCode;
+}
+std::string Request::getReturnUrl( void ) const {
+    
+    return (this->returnUrl);
+}
+void        Request::setReturnUrl( std::string const & returnUrl ) {
+    
+    this->returnUrl = returnUrl;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -206,6 +229,10 @@ void Request::setRequestBody( void ) {
     this->body = recString.substr(found + subString.length());
 
 }
+
+void		Request::setCgiFiles(std::string const & suffix) { cgi.setFiles(suffix); }
+bool		Request::isCgi(void) const { return (cgi.isSet()); }
+Cgi &		Request::getCgi(void) { return (cgi); }
 
 int Request::parseRequestLine( Config conf, Conf::Server & server, Response & response ) {
 
@@ -285,6 +312,16 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->checkLocation = true;
     }
 
+    // get return
+    if (this->checkLocation) {
+        this->returnCode = this->location.getReturn().getCode();
+        this->returnUrl = this->location.getReturn().getUrl();
+    }
+    else {
+        this->returnCode = server.getReturn().getCode();
+        this->returnUrl = server.getReturn().getUrl();
+    }
+
     // check method is valid !!!!!!
     if ( !this->checkMethod( response ) )
         return (0);
@@ -300,6 +337,27 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     else
         this->connection = "close";
 
+    if ( this->method == "POST" )
+        this->parsePostHeader();
+
+	// detect cgi requests
+    if (this->checkLocation && !itLocation->second.getCgiPass().empty())
+	{
+		size_t 		extension = this->path.find('.');
+		std::string	cgiExtension;
+
+		if (extension != std::string::npos)
+			cgiExtension = this->path.substr(extension, this->path.find_first_of("?/", extension) - extension);
+		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
+		if (itLocation->second.getCgiPass().found(cgiExtension))
+		{
+			if (!handleCgiRequest(itLocation->second.getRoot().getPath(), itLocation->first, itLocation->second.getCgiPass().getCgi(cgiExtension), response))
+				return (0);
+			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
+			this->cgi.enable();
+			return (1);
+		}
+	}
 
     if (this->method == "GET") {
         // check path is valid !!!!!
@@ -329,7 +387,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->path.erase(0, 1);
         if ( !this->checkFile( server, response ) )
                 return (0);
-    }
+	}
 
     return (1);
 }

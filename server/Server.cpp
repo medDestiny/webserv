@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/25 00:48:26 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/28 01:43:18 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,8 +263,7 @@ void Server::mainpoll( void ) {
                 // POLLIN revent int the clients side
                 itClient = clients.find( pfds[i].fd );
                 itClient->second.settimeout( std::time(NULL) );
-                if ( itClient->second.recieveRequest( pfds[i].fd ) == 0 ) {
-
+                if ( itClient->second.recieveRequest() == 0 ) {
                     pfds[i].events = POLLOUT;
                 }
             }
@@ -277,8 +276,8 @@ void Server::mainpoll( void ) {
                 // POLLOUT revents in the clients side
                 int var;
                 itClient = clients.find( pfds[i].fd );
-                // itClient->second.settimeout( std::time(NULL) );
-                var = itClient->second.sendresponse( pfds[i].fd );
+                itClient->second.settimeout( std::time(NULL) );
+                var = itClient->second.sendresponse();
                 if ( !var ) {
                   
                     this->removeclient( pfds[i].fd );

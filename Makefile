@@ -6,17 +6,17 @@ SRC= config/Config.cpp \
 	 config/Parser.cpp \
 	 config/Server.cpp \
 	 config/Token.cpp \
-	 main.cpp \
 	 server/Server.cpp \
 	 client/Client.cpp \
 	 client/Tools.cpp \
 	 response/Response.cpp \
 	 response/MimeType.cpp \
 	 request/Request.cpp \
-	 request/GetMethod.cpp
+	 request/GetMethod.cpp \
 	 response/postMethod.cpp \
-	 request/postMethod.cpp
-
+	 request/postMethod.cpp \
+	 cgi/cgi.cpp \
+	 main.cpp
 
 C= c++
 
@@ -31,8 +31,10 @@ HEADER=	config/Config.hpp \
 		server/Server.hpp \
 		server/Colors.hpp \
 		client/Client.hpp \
+		client/Tools.hpp \
 	 	response/Response.hpp \
-	 	request/Request.hpp
+	 	request/Request.hpp \
+	 	cgi/Cgi.hpp
 
 OBJ= $(SRC:.cpp=.o)
 
