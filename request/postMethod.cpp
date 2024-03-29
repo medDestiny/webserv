@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 16:53:48 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 17:46:20 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,11 +146,8 @@ int Request::bufferPostBody( std::string const &buffer ) {
         
     } else if ( !this->getContentLength() ) {
 
-		if ( isCgi() ) {
-
-            this->setBodyType( LENGTH );
-            return 0;
-		}
+		if ( isCgi() )
+            return 3;
         return 2;
 	}
     return 1;
@@ -168,7 +165,6 @@ int Request::parsePostBody( std::string const &buffer ) {
             return 0;
         else if ( this->getBodyType() == LENGTH )
             return 0;
-    } else if ( status == 2 )
-        return 2;
-    return 1;
+    }
+    return status;
 }

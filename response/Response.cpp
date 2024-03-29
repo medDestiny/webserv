@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 15:41:27 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 17:49:20 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,7 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";
     statusMessages[405] = "Method Not Allowed";
+    statusMessages[411] = "Length Required";
     statusMessages[413] = "Payload Too Large";
     statusMessages[415] = "Unsupported Media Type";
     statusMessages[500] = "Internal Server Error";
