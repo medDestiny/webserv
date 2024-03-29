@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 17:49:20 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 22:12:51 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,8 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[200] = "OK";
     statusMessages[204] = "No Content";
     statusMessages[206] = "Partial Content";
+    statusMessages[301] = "Moved Permanently";
+    statusMessages[302] = "Found";
     statusMessages[400] = "Bad Request";
     statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";
@@ -232,13 +234,17 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     std::string statusLine;
 
     // ----------status line----------- //
-        if (!request.getRangeStart().empty()) {
-            this->statusCode = 206;
-        }
-        std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
-        if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
-            this->statusCode = 302;
-        }
+    if (!request.getRangeStart().empty()) {
+        this->statusCode = 206;
+    }
+    std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
+    if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
+        this->statusCode = 302;
+    }
+    else if (!request.getReturnUrl().empty()) {
+        this->statusCode = request.getReturnCode();
+    }
+
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
     std::string headerResponse;
@@ -258,6 +264,12 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
         headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
     }
+    else if (!request.getReturnUrl().empty()) {
+        headerResponse += "\r\nLocation: " + request.getReturnUrl();
+    }
+    // test
+    // headerResponse += "\r\nSet-Cookie: session-id=1234";
+
     headerResponse += "\r\n\r\n";
 
     ssize_t sended;
@@ -419,10 +431,17 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     body += "</pre><hr></body>\n";
     body += "</html>";
 
+    if (!request.getReturnUrl().empty()) {
+        this->statusCode = request.getReturnCode();
+    }
     header = "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: " + intToString(body.length());
-    header += "\r\nConnection: " + request.getConnection() + "\r\n\r\n";
+    header += "\r\nConnection: " + request.getConnection();
+    if (!request.getReturnUrl().empty()) {
+        header += "\r\nLocation: " + request.getReturnUrl();
+    }
+    header += "\r\n\r\n";
 
     message = header + body;
     ssize_t sended = send( sockfd, message.c_str(), message.length(), 0);

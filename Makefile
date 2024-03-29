@@ -15,7 +15,7 @@ SRC= config/Config.cpp \
 	 request/GetMethod.cpp \
 	 response/postMethod.cpp \
 	 request/postMethod.cpp \
-	 cgi/Cgi.cpp \
+	 cgi/cgi.cpp \
 	 main.cpp
 
 C= c++

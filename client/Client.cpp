@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 17:47:55 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/29 20:59:41 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ int Client::recieveRequest() {
         if (recieved < SIZE)
             recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
-        
+
         if (!this->endRecHeader) {
             
             if (this->request.setRequestHeader()) {
