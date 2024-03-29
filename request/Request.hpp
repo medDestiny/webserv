@@ -100,6 +100,7 @@ class Request {
         void		setHeader( std::string const & header );
         std::string	getBody( void ) const;
         void		setBody( char const *body, int const &size );
+        void        setBodyForCgi( std::string const &body );
         std::string	getConnection( void ) const;
         void		setConnection( std::string const & connection );
         std::string	getRangeStart( void ) const;

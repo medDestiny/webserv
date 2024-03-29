@@ -14,7 +14,7 @@ server {
 	location /flexbox {
 		cgi_pass .sh /bin/bash;
 		cgi_pass .py /usr/bin/python;
-		index index.html;
+		# index index.html;
 		limit_except POST GET;
 	}
 	autoindex	on;

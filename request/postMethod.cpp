@@ -6,11 +6,12 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 15:19:45 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 00:54:29 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/28 21:54:12 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include "../response/Response.hpp"
         
 std::string Request::getStartBoundary( void ) const {
     

@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
 /*   Updated: 2024/03/29 01:38:21 by mmisskin         ###   ########.fr       */
@@ -61,6 +61,7 @@ class Response {
         std::string BHFilename;
         std::string BHContentDispo;
         std::string BHContentType;
+        std::string cgiBody;
         int         fd;
         bool        bodyFlag;
 
@@ -111,6 +112,8 @@ class Response {
         int PutChunkedBodyToFile( Request const &request, Conf::Server const &server, bool const flag );
         void resetHeaderElements( void );
         int  openFile( Request const &request, Conf::Server const &server );
+        int parseEncodingBodyCgi( Request const &request );
+        int openCgiFile( std::string const &path, std::string const &body );
         
         std::string getBHName( void ) const;
         void setBHName( std::string const &name );

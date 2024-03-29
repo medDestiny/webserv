@@ -124,7 +124,6 @@ int Client::recieveRequest() {
                     this->response.setBody( this->request.getBody() );
                     return 0; // end recive
                 }
-                
             }
             
             // invalid header *error*
@@ -233,7 +232,7 @@ int Client::sendresponse() {
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 2;
-        } else if ( status == 3 ) {
+        } else if ( status == 3 ) { // cgi response
 
             if ( !this->sendPostResponse( "all good but cgi not implemented yet" ) )
                 return 1;

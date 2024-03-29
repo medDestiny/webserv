@@ -72,12 +72,18 @@ std::string Request::getBody( void ) const {
 
     return (this->body);
 }
+
 void Request::setBody( char const *body, int const &size ) {
 
     if (this->body.empty())
         this->body.append( body, size );
     else
         this->body.append( body, size );
+}
+
+void Request::setBodyForCgi( std::string const &body ) {
+
+    this->body = body;
 }
 
 std::string Request::getConnection( void ) const {
