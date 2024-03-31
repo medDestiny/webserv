@@ -382,7 +382,8 @@ int Response::parseSessionsBody( Request &request ) {
                         Session::addSession( this->sessionId ); // add a session if the id is not in the map
                         return 1;
                     }
-                }
+                } else
+					return 1;
             }
             else if ( !this->getBHFilename().empty() ) { // ignore files
                 
@@ -391,6 +392,7 @@ int Response::parseSessionsBody( Request &request ) {
                     this->body.erase( 0, find );
             }
         }
+		std::cout << "ready\n";
     }
     return 1;
 }
@@ -552,8 +554,7 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
 
         if ( request.getBodyType() == ENCODING ) {
             if ( !this->parseEncodingBodyCgi( request ) ) { // parse body by removing enconding
-                if ( request.getUrl().find( "cgi.cgi" ) ) 
-                    this->parseSessionsBody( request );
+                this->parseSessionsBody( request );
                 if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                     return 1; // error
                 // cgi work here

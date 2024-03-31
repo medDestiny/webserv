@@ -470,6 +470,7 @@ void	fillServerLocations(Server & server)
 		if (it->second.getUploadPath().empty())
 			it->second.setUploadPath(server.getUploadPath());
 	}
+	server.setLocations(locations);
 }
 
 std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)

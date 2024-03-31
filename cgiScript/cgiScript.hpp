@@ -33,7 +33,6 @@ class ParseData {
         std::string password;
         bool islogin;
         bool ispassword;
-        int fd;
     
     public:
         ParseData( void );

@@ -147,7 +147,7 @@ void				Cgi::setFiles(std::string const & suffix)
 	_cgiOutFile = CGIOUT + suffix;
 }
 
-void				Cgi::launch(void)
+void				Cgi::launch(std::string const & sessionId, std::string const & cookie)
 {
 	if (_post && !_ready)
 		return ;
@@ -163,6 +163,12 @@ void				Cgi::launch(void)
 		_env.push_back("CONTENT_LENGTH=" + intToString(static_cast<size_t>(length)));
 		cgiIn.close();
 	}
+
+	/* set session id meta variable */
+	if (!sessionId.empty())
+		_env.push_back("X_ID=" + sessionId);
+	else
+		_env.push_back("X_ID=" + cookie);
 
 	int	end[2];
 	if (pipe(end) == -1)
@@ -309,7 +315,7 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
 	{
 		close(cgi.getCgiStdErr());
-		// remove(cgi.getCgiInFile().c_str());
+		remove(cgi.getCgiInFile().c_str());
 		if (response.sendCgiHeader(sockfd, request) == -1)
 			return (0);
 		else
