@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/31 05:14:38 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 05:16:15 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,6 @@ void	ParseListen(Listen & listen, std::vector<Token> & Tokens)
 		separator = Tokens.front().content().find(':', 0);
 		if (separator != std::string::npos)
 		{
-			/* warning: additional checks for port and host may be required */
 			host = token.content().substr(0, separator);
 			port = token.content().substr(separator + 1);
 
