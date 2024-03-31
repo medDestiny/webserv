@@ -26,7 +26,7 @@ class	Cgi
 
 		void				enable(void);
 		bool				isSet(void) const;
-		void				launch(void);
+		void				launch(std::string const & sessionId, std::string const & cookie);
 		bool				isStarted(void) const;
 
 		void				setPid(pid_t const pid);

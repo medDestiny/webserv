@@ -396,6 +396,7 @@ int Response::parseSessionsBody( Request &request ) {
                 return 0; // error
             }
         }
+		std::cout << "ready\n";
     }
     return 1;
 }
@@ -557,7 +558,7 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
 
         if ( request.getBodyType() == ENCODING ) {
             if ( !this->parseEncodingBodyCgi( request ) ) { // parse body by removing enconding
-                // if ( request.getUrl().find( "cgi.cgi" ) ) 
+              
                 this->parseSessionsBody( request );
                 if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                     return 1; // error

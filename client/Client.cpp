@@ -194,7 +194,7 @@ int Client::sendresponse() {
 	if (this->request.isCgi() && this->request.getCgi().ready() && !this->response.getSendedHeader())
 	{
 		if (!this->request.getCgi().isStarted())
-			this->request.getCgi().launch();
+			this->request.getCgi().launch(response.getSessionId(), request.getCookie());
 		return (monitorCgiProcess(request, response, sockfd));
 	}
 
