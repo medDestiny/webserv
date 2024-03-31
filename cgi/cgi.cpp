@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 18:19:54 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 05:23:29 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,7 +309,7 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
 	{
 		close(cgi.getCgiStdErr());
-		remove(cgi.getCgiInFile().c_str());
+		// remove(cgi.getCgiInFile().c_str());
 		if (response.sendCgiHeader(sockfd, request) == -1)
 			return (0);
 		else

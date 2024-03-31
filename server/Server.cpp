@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/28 01:43:18 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 06:49:59 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "../session/Session.hpp"
 
 Server::Server( Config const &config ) {
 
@@ -297,6 +298,7 @@ void Server::mainpoll( void ) {
             this->removepollclient( i );
         } else
             this->checkclienttimeout();
+        Session::deleteSessionIdTimeOut();
     }
 }
 

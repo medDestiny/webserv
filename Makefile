@@ -16,6 +16,7 @@ SRC= config/Config.cpp \
 	 response/postMethod.cpp \
 	 request/postMethod.cpp \
 	 cgi/cgi.cpp \
+	 session/Session.cpp \
 	 main.cpp
 
 C= c++
@@ -34,6 +35,7 @@ HEADER=	config/Config.hpp \
 		client/Tools.hpp \
 	 	response/Response.hpp \
 	 	request/Request.hpp \
+		session/Session.hpp \
 	 	cgi/Cgi.hpp
 
 OBJ= $(SRC:.cpp=.o)

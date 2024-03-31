@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 21:53:06 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 07:23:45 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,6 +207,15 @@ void        Request::setReturnUrl( std::string const & returnUrl ) {
     this->returnUrl = returnUrl;
 }
 
+std::string Request::getCookie( void ) const {
+    
+    return (this->cookie);
+}
+void    Request::setCookie( std::string const cookie ) {
+    
+    this->cookie = cookie;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -325,6 +334,13 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     // check method is valid !!!!!!
     if ( !this->checkMethod( response ) )
         return (0);
+    
+    // get cookie
+    this->cookie = getValue("Cookie:");
+    // if ( this->cookie.find( "id=" ) != std::string::npos ) {
+
+    // }
+    std::cout << "test cookie: " << this->cookie << std::endl;
 
     // get lines of request
     if (!this->setMapRequestLines( response ) )
