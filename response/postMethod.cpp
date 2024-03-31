@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 02:54:43 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:07:16 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,16 @@ std::string Response::getBody( void ) const {
 void Response::setBody( std::string const &body ) {
 
     this->body = body;
+}
+
+std::string Response::getSessionId( void ) const {
+    
+    return this->sessionId;
+}
+
+void Response::setSessionId( std::string const &id ) {
+    
+    this->sessionId = id;
 }
 
 std::string  Response::getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim ) {
@@ -321,7 +331,7 @@ int Response::generateSessionId( std::string &login, std::string &password, bool
         if ( loginFlag && passFlag ) {
             
             this->sessionId = login + password;
-            std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
+            // std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
             return 0;
         }
     } else { // ignore 
@@ -333,7 +343,7 @@ int Response::generateSessionId( std::string &login, std::string &password, bool
     return 1;
 }
 
-int Response::parseSessionsBody( Request const &request ) {
+int Response::parseSessionsBody( Request &request ) {
     
     std::string buffer;
     std::string chunked;
@@ -365,11 +375,13 @@ int Response::parseSessionsBody( Request const &request ) {
             }
             if ( !this->BHName.empty() && this->BHFilename.empty() ) { // get the login or password
 
-                if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
+                if ( !Session::findSessionId( request.getCookie() ) ) {
                     
-                    if ( !Session::findSessionId( this->sessionId ) ) // search for the session id
+                    if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
+                        
                         Session::addSession( this->sessionId ); // add a session if the id is not in the map
-                    return 1;
+                        return 1;
+                    }
                 }
             }
             else if ( !this->getBHFilename().empty() ) { // ignore files

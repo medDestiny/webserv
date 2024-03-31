@@ -6,13 +6,14 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 07:23:45 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:02:24 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include "../response/Response.hpp"
 #include "../client/Client.hpp"
+#include "../session/Session.hpp"
 
 Request::Request( void ) {
 
@@ -337,10 +338,12 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     
     // get cookie
     this->cookie = getValue("Cookie:");
-    // if ( this->cookie.find( "id=" ) != std::string::npos ) {
+    size_t find = this->cookie.find( "id=" );
+    if ( find != std::string::npos )
+        this->cookie = this->cookie.substr( find + 3, this->cookie.find( ";" ) - ( find + 3 ) );
 
-    // }
-    std::cout << "test cookie: " << this->cookie << std::endl;
+    if ( !Session::findSessionId( this->cookie ) ) // search for the session id
+        this->setCookie( "" );
 
     // get lines of request
     if (!this->setMapRequestLines( response ) )

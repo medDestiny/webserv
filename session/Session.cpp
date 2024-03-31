@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:15:35 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 07:06:17 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:06:42 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,17 +19,14 @@ std::map<std::string, std::time_t> Session::sessions;
 void Session::addSession( std::string const &id ) {
 
     Session::sessions[id] = std::time( NULL );
-    std::cout << "count: " << Session::sessions.size() << std::endl;
+    // std::cout << "count: " << Session::sessions.size() << std::endl;
 }
 
 bool Session::findSessionId( std::string const &id ) {
 
-    std::map<std::string, std::time_t>::iterator it = Session::sessions.begin();
-    for ( ; it != sessions.end(); ++it ) {
-
-        if ( it->first == id )
-            return true;
-    }
+    std::map<std::string, std::time_t>::iterator it = Session::sessions.find( id );
+    if ( it != Session::sessions.end() )
+        return true;
     return false;
 }
 

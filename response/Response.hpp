@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 01:28:58 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:03:43 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,8 +117,10 @@ class Response {
         int parseEncodingBodyCgi( Request const &request );
         int openCgiFile( std::string const &path, std::string const &body );
 
-        int parseSessionsBody( Request const &request );
+        int parseSessionsBody( Request &request );
         int generateSessionId( std::string &login, std::string &password, bool &loginFlag, bool &passFlag );
+        std::string getSessionId( void ) const;
+        void setSessionId( std::string const &id );
         
         std::string getBHName( void ) const;
         void setBHName( std::string const &name );
