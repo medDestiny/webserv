@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 20:59:41 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 06:48:32 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,6 +187,8 @@ int Client::sendresponse() {
         if ( !response.displayAutoIndex(this->server, sockfd, this->request) ) {
             return (1);
         }
+        if (this->request.getConnection() == "close")
+            return (0);
         return (2); // change to PULLIN
     }
 
