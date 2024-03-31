@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 10:27:14 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 11:10:32 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,10 +331,11 @@ int Response::generateSessionId( std::string &login, std::string &password, bool
         if ( loginFlag && passFlag ) {
             
             this->sessionId = login + password;
-            std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
+            // std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
         }
-    } else
+    } else {
         return 0; // error
+    }
     return 1;
 }
 
@@ -356,14 +357,14 @@ int Response::parseSessionsBody( Request &request ) {
             buffer = this->body.substr( 0, find );
             
             if ( buffer == request.getEndBoundary() ) { // end of the body
-            
-                if ( !loginFlag || !passFlag ) {
 
-                    this->sessionId = "";
+                if ( !loginFlag || !passFlag ) {
+                    
                     request.setCookie( "" );
-                    return 0; // error
+                    this->sessionId = "";
+                    return 0;
                 }
-                return 1;
+                break;
             } else if ( buffer == request.getStartBoundary() ) { // get body header
 
                 this->body.erase( 0, find + std::strlen( "\r\n" ) );
@@ -376,18 +377,13 @@ int Response::parseSessionsBody( Request &request ) {
                 this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
             }
             if ( !this->BHName.empty() && this->BHFilename.empty() ) { // get the login or password
-
-                if ( !Session::findSessionId( request.getCookie() ) ) { // not find cookie's id in the sessions
                     
-                    if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
-                        
-                        this->sessionId = "";
-                        request.setCookie( "" );
-                        return 0; //error
-                    } else 
-                        Session::addSession( this->sessionId ); // add a session if the id is not in the map
-                } else // found cookie's id in the sessions
-                    return 1;
+                if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
+
+                    this->sessionId = "";
+                    request.setCookie( "" );
+                    return 0; // error
+                }
             }
             else if ( !this->getBHFilename().empty() ) { // ignore files
                 
@@ -396,7 +392,14 @@ int Response::parseSessionsBody( Request &request ) {
                 return 0; // error
             }
         }
-		std::cout << "ready\n";
+    }
+    if ( !Session::findSessionId( request.getCookie() ) ) { // not find cookie's id in the sessions
+    
+        Session::addSession( this->sessionId );
+        request.setCookie( "" );
+    } else { // found cookie's id in the sessions
+    
+        this->sessionId = "";
     }
     return 1;
 }
@@ -568,6 +571,7 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
             }
         } else if ( request.getBodyType() == BOUNDARIES || request.getBodyType() == LENGTH ) {
             
+            this->parseSessionsBody( request );
             if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->body ) ) // open file and put the body inside it
                 return 1; //error
             // cgi work here
