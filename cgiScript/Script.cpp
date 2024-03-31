@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:11:40 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/03/31 12:59:10 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 21:35:06 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void addNewUser(std::string sessionId, std::string login, std::string password) 
 	dataFd.close();
 }
 
-int main(int ac, char **av, char **env) {
+int main( void ) {
 
 	std::string login;
 	std::string password;

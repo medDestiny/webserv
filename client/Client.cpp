@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 06:48:32 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 21:31:25 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Client	&Client::operator=(Client const & obj) {
         this->sockfd = obj.sockfd;
         this->timeout = obj.timeout;
         this->server = obj.server;
+        this->defaultServer = obj.defaultServer;
         this->config = obj.config;
     }
     return (*this);
@@ -83,6 +84,16 @@ void Client::setEndRecHeader( bool endRecHeader ) {
     this->endRecHeader = endRecHeader;
 }
 
+Conf::Server const &Client::getDefaultServer( void ) const {
+    
+    return this->defaultServer;
+}
+
+void Client::setDefaultServer( Conf::Server const &server ) {
+    
+    this->defaultServer = server;
+}
+
 int Client::recieveRequest() {
 
     int status;
@@ -103,7 +114,7 @@ int Client::recieveRequest() {
             
             if (this->request.setRequestHeader()) {
 				this->request.setCgiFiles(intToString(this->sockfd));
-                if ( !this->request.parseRequestHeader(this->config, this->server, this->response)) {
+                if ( !this->request.parseRequestHeader(this->config, this->server, this->defaultServer, this->response)) {
                     return (0); // error
                 }
                 

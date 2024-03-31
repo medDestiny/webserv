@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 06:49:59 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 21:31:47 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,14 +180,14 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
 
     client.setsockfd( sockfd );
     client.settimeout( std::time(NULL) );
+    client.setDefaultServer( server );
+    client.setserver( server );
+    client.setConfig( config );
 
     if ( clients.size() == 0 ) {
 
         std::cout << DMAGENTA << "\t-> add first client" << RESET << std::endl;
         clients[sockfd] = client;
-        std::map<int, Client>::iterator clientit = clients.find( sockfd );
-        if ( clientit != clients.end() )
-            clientit->second.setserver( server );
     } else {
 
         it = clients.find( sockfd );
@@ -195,11 +195,6 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
 
             std::cout << MAGENTA << "\t-> add more clients" << RESET << std::endl;
             clients[sockfd] = client;
-            std::map<int, Client>::iterator clientit = clients.find( sockfd );
-            if ( clientit != clients.end() ) {
-                clientit->second.setserver( server );
-                clientit->second.setConfig( config );
-            }
         }
     }
 }

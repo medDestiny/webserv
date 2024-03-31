@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 09:01:49 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 21:15:26 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,11 +141,11 @@ class Request {
 
         size_t getRequestBodySize( void ) const;
         int setRequestHeader( void );
-        int parseRequestHeader(Config conf, Conf::Server & server, Response & response );
+        int parseRequestHeader( Config conf, Conf::Server & server, Conf::Server & defaultServer, Response & response );
         void setRequestBody( void );
         std::string getValue( std::string const & key ) const;
         std::string getIndex( std::vector<std::string> const & indexes, std::string const & root ) const ;
-        int parseRequestLine( Config conf, Conf::Server & server, Response & response );
+        int parseRequestLine( Config conf, Conf::Server & server, Conf::Server & defaultServer, Response & response );
         int checkMethod( Response & response );
         int setMapRequestLines( Response & response );
 

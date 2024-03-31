@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 12:58:51 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 21:16:47 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,13 +244,13 @@ void		Request::setCgiFiles(std::string const & suffix) { cgi.setFiles(suffix); }
 bool		Request::isCgi(void) const { return (cgi.isSet()); }
 Cgi &		Request::getCgi(void) { return (cgi); }
 
-int Request::parseRequestLine( Config conf, Conf::Server & server, Response & response ) {
+int Request::parseRequestLine( Config conf, Conf::Server & server, Conf::Server & defaultServer, Response & response ) {
 
     std::string requestLine;
 	std::istringstream headerStream(this->header);
 
     std::string host = getValue("Host:");
-    server = conf.getServer(server, host);
+    server = conf.getServer(defaultServer, host);
 
     //get request line "GET / HTTP/1.1"
 	std::getline(headerStream, requestLine);
@@ -309,9 +309,9 @@ int Request::setMapRequestLines( Response & response ) {
     return (1);
 }
 
-int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
+int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Server & defaultServer, Response & response ) {
 
-    if ( !this->parseRequestLine(conf, server, response) )
+    if ( !this->parseRequestLine(conf, server, defaultServer, response) )
         return (0);
 
     // get location
