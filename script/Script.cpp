@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:11:40 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/03/31 07:11:15 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 11:21:52 by amoukhle         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,12 +88,11 @@ void addNewUser(std::string sessionId, std::string login, std::string password) 
 
 int main(int ac, char **av, char **env) {
 
-	std::string login = "miskin";
+	std::string login = "amoukhle";
 	std::string password = "44444";
-	std::string flagValue = std::string( getenv("X_FLAG") );
-	std::string sessionId = std::string( getenv("X_ID") );
+	std::string sessionId = std::string( getenv("X_ID"));
 
-	if (flagValue == "-1")
+	if (sessionId.empty())
 		displayLoginPage(sessionId);
 	else {
 		if (access("data.csv", F_OK) != 0) {
