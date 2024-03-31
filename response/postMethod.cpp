@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 09:07:16 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 10:27:14 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,15 +331,10 @@ int Response::generateSessionId( std::string &login, std::string &password, bool
         if ( loginFlag && passFlag ) {
             
             this->sessionId = login + password;
-            // std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
-            return 0;
+            std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
         }
-    } else { // ignore 
-        
-        find = this->body.find( "\r\n" );
-        if ( find != std::string::npos )
-            this->body.erase( 0, find + 2 );
-    }
+    } else
+        return 0; // error
     return 1;
 }
 
@@ -360,9 +355,16 @@ int Response::parseSessionsBody( Request &request ) {
             
             buffer = this->body.substr( 0, find );
             
-            if ( buffer == request.getEndBoundary() ) // end of the body
+            if ( buffer == request.getEndBoundary() ) { // end of the body
+            
+                if ( !loginFlag || !passFlag ) {
+
+                    this->sessionId = "";
+                    request.setCookie( "" );
+                    return 0; // error
+                }
                 return 1;
-            else if ( buffer == request.getStartBoundary() ) { // get body header
+            } else if ( buffer == request.getStartBoundary() ) { // get body header
 
                 this->body.erase( 0, find + std::strlen( "\r\n" ) );
                 find = this->body.find( "\r\n\r\n" );
@@ -375,21 +377,23 @@ int Response::parseSessionsBody( Request &request ) {
             }
             if ( !this->BHName.empty() && this->BHFilename.empty() ) { // get the login or password
 
-                if ( !Session::findSessionId( request.getCookie() ) ) {
+                if ( !Session::findSessionId( request.getCookie() ) ) { // not find cookie's id in the sessions
                     
                     if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
                         
+                        this->sessionId = "";
+                        request.setCookie( "" );
+                        return 0; //error
+                    } else 
                         Session::addSession( this->sessionId ); // add a session if the id is not in the map
-                        return 1;
-                    }
-                } else
-					return 1;
+                } else // found cookie's id in the sessions
+                    return 1;
             }
             else if ( !this->getBHFilename().empty() ) { // ignore files
                 
-                find = this->body.find( request.getStartBoundary() );
-                if ( find != std::string::npos )
-                    this->body.erase( 0, find );
+                this->sessionId = "";
+                request.setCookie( "" );
+                return 0; // error
             }
         }
 		std::cout << "ready\n";
@@ -554,6 +558,7 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
 
         if ( request.getBodyType() == ENCODING ) {
             if ( !this->parseEncodingBodyCgi( request ) ) { // parse body by removing enconding
+              
                 this->parseSessionsBody( request );
                 if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                     return 1; // error
