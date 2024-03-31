@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 02:03:00 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:03:43 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,8 @@ class Response {
         int         fd;
         bool        bodyFlag;
 
+        std::string sessionId;
+
     public:
         Response( void );
         ~Response( void );
@@ -114,6 +116,11 @@ class Response {
         int  openFile( Request const &request, Conf::Server const &server );
         int parseEncodingBodyCgi( Request const &request );
         int openCgiFile( std::string const &path, std::string const &body );
+
+        int parseSessionsBody( Request &request );
+        int generateSessionId( std::string &login, std::string &password, bool &loginFlag, bool &passFlag );
+        std::string getSessionId( void ) const;
+        void setSessionId( std::string const &id );
         
         std::string getBHName( void ) const;
         void setBHName( std::string const &name );
@@ -129,3 +136,4 @@ class Response {
 
 std::string getMimeType(const std::string& extension);
 int hexadecimalToDecimal( std::string hexVal );
+std::string stringToAscii( std::string const &str );

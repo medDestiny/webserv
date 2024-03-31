@@ -6,13 +6,14 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 21:53:06 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:02:24 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include "../response/Response.hpp"
 #include "../client/Client.hpp"
+#include "../session/Session.hpp"
 
 Request::Request( void ) {
 
@@ -207,6 +208,15 @@ void        Request::setReturnUrl( std::string const & returnUrl ) {
     this->returnUrl = returnUrl;
 }
 
+std::string Request::getCookie( void ) const {
+    
+    return (this->cookie);
+}
+void    Request::setCookie( std::string const cookie ) {
+    
+    this->cookie = cookie;
+}
+
 int Request::setRequestHeader( void ) {
 
     std::string subString = "\r\n\r\n";
@@ -325,6 +335,15 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
     // check method is valid !!!!!!
     if ( !this->checkMethod( response ) )
         return (0);
+    
+    // get cookie
+    this->cookie = getValue("Cookie:");
+    size_t find = this->cookie.find( "id=" );
+    if ( find != std::string::npos )
+        this->cookie = this->cookie.substr( find + 3, this->cookie.find( ";" ) - ( find + 3 ) );
+
+    if ( !Session::findSessionId( this->cookie ) ) // search for the session id
+        this->setCookie( "" );
 
     // get lines of request
     if (!this->setMapRequestLines( response ) )

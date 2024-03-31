@@ -6,13 +6,14 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 18:18:45 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:07:16 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 #include "../server/Server.hpp"
 #include "../request/Request.hpp"
+#include "../session/Session.hpp"
 
 std::string Response::getBHName( void ) const {
     
@@ -62,6 +63,16 @@ std::string Response::getBody( void ) const {
 void Response::setBody( std::string const &body ) {
 
     this->body = body;
+}
+
+std::string Response::getSessionId( void ) const {
+    
+    return this->sessionId;
+}
+
+void Response::setSessionId( std::string const &id ) {
+    
+    this->sessionId = id;
 }
 
 std::string  Response::getHeaderValue( std::string const &chunck, std::string const &findStr, std::string const &delim ) {
@@ -294,6 +305,96 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
     return 1;
 }
 
+int Response::generateSessionId( std::string &login, std::string &password, bool &loginFlag, bool &passFlag ) {
+    
+    std::string chunked;
+    size_t find;
+
+    if ( ( this->BHName == "login" && !loginFlag) || ( this->BHName == "password" && !passFlag ) ) {
+                    
+        find = this->body.find( "\r\n" );
+        if ( find != std::string::npos ) {
+
+            chunked = this->body.substr( 0, find ); // get the login or password value
+            this->body.erase( 0, find + 2 );
+        }
+        if ( this->BHName == "login" ) {
+            
+            loginFlag = true;
+            login = stringToAscii( chunked );
+        }
+        else if ( this->BHName == "password" ) {
+            
+            passFlag = true;
+            password = stringToAscii( chunked );
+        }
+        if ( loginFlag && passFlag ) {
+            
+            this->sessionId = login + password;
+            // std::cout << GREEN << "session ID = " << this->sessionId << RESET << std::endl << std::endl;
+            return 0;
+        }
+    } else { // ignore 
+        
+        find = this->body.find( "\r\n" );
+        if ( find != std::string::npos )
+            this->body.erase( 0, find + 2 );
+    }
+    return 1;
+}
+
+int Response::parseSessionsBody( Request &request ) {
+    
+    std::string buffer;
+    std::string chunked;
+    std::string login;
+    std::string password;
+    size_t find;
+    bool loginFlag = false;
+    bool passFlag = false;
+
+    while ( !this->body.empty() ) {
+        
+        find = this->body.find( "\r\n" );
+        if ( find != std::string::npos ) {
+            
+            buffer = this->body.substr( 0, find );
+            
+            if ( buffer == request.getEndBoundary() ) // end of the body
+                return 1;
+            else if ( buffer == request.getStartBoundary() ) { // get body header
+
+                this->body.erase( 0, find + std::strlen( "\r\n" ) );
+                find = this->body.find( "\r\n\r\n" );
+                if ( find != std::string::npos ) { // get header.
+
+                    chunked = this->body.substr( 0, find );
+                    this->parsePostBodyHeader( chunked ); // parse the header body
+                }
+                this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
+            }
+            if ( !this->BHName.empty() && this->BHFilename.empty() ) { // get the login or password
+
+                if ( !Session::findSessionId( request.getCookie() ) ) {
+                    
+                    if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
+                        
+                        Session::addSession( this->sessionId ); // add a session if the id is not in the map
+                        return 1;
+                    }
+                }
+            }
+            else if ( !this->getBHFilename().empty() ) { // ignore files
+                
+                find = this->body.find( request.getStartBoundary() );
+                if ( find != std::string::npos )
+                    this->body.erase( 0, find );
+            }
+        }
+    }
+    return 1;
+}
+
 int  Response::parseBoundariesBody( Request const &request, Conf::Server const &server ) {
 
     std::string buffer;
@@ -368,6 +469,7 @@ int Response::parseEncodingBodyCgi( Request const &request ) {
         this->body.erase( 0, lengthToRead + 2 );
         if ( chunked.find( request.getEndBoundary() ) != std::string::npos ) {
             
+            this->body = this->cgiBody;
             // SET FLAG 
             return 0;
         }
@@ -450,7 +552,8 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
 
         if ( request.getBodyType() == ENCODING ) {
             if ( !this->parseEncodingBodyCgi( request ) ) { // parse body by removing enconding
-
+                if ( request.getUrl().find( "cgi.cgi" ) ) 
+                    this->parseSessionsBody( request );
                 if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                     return 1; // error
                 // cgi work here
@@ -505,4 +608,18 @@ int hexadecimalToDecimal( std::string hexVal ) {
         } 
     }
     return dec_val;
+}
+
+std::string stringToAscii( std::string const &str ) {
+
+    std::string ascii;
+
+    for ( size_t i = 0; i < str.size(); i++ ) {
+
+        std::stringstream stream;
+        stream << static_cast<int>( str[i] );
+        ascii += stream.str();
+    }
+
+    return ascii;
 }
