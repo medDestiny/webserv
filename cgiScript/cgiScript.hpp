@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 03:10:20 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 06:36:04 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 10:28:26 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ class ParseData {
         std::string password;
         bool islogin;
         bool ispassword;
-        int fd;
     
     public:
         ParseData( void );
