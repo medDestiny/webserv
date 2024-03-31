@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/27 01:57:29 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 02:19:44 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 03:24:11 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class	Cgi
 
 		void				enable(void);
 		bool				isSet(void) const;
-		void				launch(void);
+		void				launch(std::string const & sessionId, std::string const & cookie);
 		bool				isStarted(void) const;
 
 		void				setPid(pid_t const pid);

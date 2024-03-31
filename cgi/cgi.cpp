@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 18:19:54 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/03/31 05:23:29 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,7 +147,7 @@ void				Cgi::setFiles(std::string const & suffix)
 	_cgiOutFile = CGIOUT + suffix;
 }
 
-void				Cgi::launch(void)
+void				Cgi::launch(std::string const & sessionId, std::string const & cookie)
 {
 	if (_post && !_ready)
 		return ;
@@ -163,6 +163,12 @@ void				Cgi::launch(void)
 		_env.push_back("CONTENT_LENGTH=" + intToString(static_cast<size_t>(length)));
 		cgiIn.close();
 	}
+
+	/* set session id meta variable */
+	if (!sessionId.empty())
+		_env.push_back("X_ID=" + sessionId);
+	else
+		_env.push_back("X_ID=" + cookie);
 
 	int	end[2];
 	if (pipe(end) == -1)

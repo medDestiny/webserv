@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 06:44:21 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 09:01:49 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ class Request {
         std::string rangeEnd;
         std::string httpVersion;
         std::string url;
+        std::string cookie;
         size_t		rangeStartNum;
         size_t 		rangeEndNum;
         std::map<std::string, std::string> linesRequest;
@@ -129,6 +130,8 @@ class Request {
         void        setReturnCode( int returnCode );
         std::string getReturnUrl( void ) const;
         void        setReturnUrl( std::string const & returnUrl );
+        std::string getCookie( void ) const;
+        void    setCookie( std::string const cookie );
 
 		/* cgi functions */
 		bool		handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response);
