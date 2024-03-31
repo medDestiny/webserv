@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/29 22:12:51 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 05:11:04 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,6 +137,9 @@ std::string Response::getStatusMessage(int const & statusCode) {
     statusMessages[206] = "Partial Content";
     statusMessages[301] = "Moved Permanently";
     statusMessages[302] = "Found";
+    statusMessages[303] = "See Other";
+    statusMessages[307] = "Temporary Redirect";
+    statusMessages[308] = "Permanent Redirect";
     statusMessages[400] = "Bad Request";
     statusMessages[403] = "Forbidden";
     statusMessages[404] = "Not Found";

@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 22:03:59 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/03/31 05:14:38 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,11 +50,41 @@ bool	isNumber(std::string const & num)
 	return (true);
 }
 
-Listen	ParseListen(std::vector<Token> & Tokens)
+bool	isValidPort(std::string port)
+{
+	std::stringstream	ss;
+	size_t				portNumber;
+
+	ss << port;
+	if (!(ss >> portNumber) || ss.peek() != EOF)
+		return (false);
+
+	if (portNumber < 1024 || portNumber > 65535)
+		return (false);
+	return (true);
+}
+
+bool	isValidErrorCode(std::string code)
+{
+	std::stringstream	ss;
+	size_t				errorCode;
+
+	ss << code;
+	if (!(ss >> errorCode) || ss.peek() != EOF)
+		return (false);
+
+	if (errorCode < 300 || errorCode > 599)
+		return (false);
+	return (true);
+}
+
+void	ParseListen(Listen & listen, std::vector<Token> & Tokens)
 {
 	std::string	host;
 	std::string	port;
-	Listen		listen;
+
+	if (!listen.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
 
 	Tokens.erase(Tokens.begin()); // delete listen token
 
@@ -74,7 +104,7 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 				throw Parser::Error("empty port number: ", port, token.line());
 			else if (host.empty())
 				throw Parser::Error("empty host: ", host, token.line());
-			else if (!isNumber(port))
+			else if (!isNumber(port) || !isValidPort(port))
 				throw Parser::Error("invalid port number: ", port, token.line());
 
 			listen.setHost(host);
@@ -84,8 +114,8 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 			listen.setHost(token.content());
 		else
 		{
-			if (!isNumber(token.content()))
-				throw Parser::Error("invalid port number: ", port, token.line());
+			if (!isNumber(token.content()) || !isValidPort(token.content()))
+				throw Parser::Error("invalid port number: ", token.content(), token.line());
 
 			listen.setPort(token.content());
 		}
@@ -99,21 +129,17 @@ Listen	ParseListen(std::vector<Token> & Tokens)
 	}
 	else
 		throw Parser::Error("invalid number of arguments in listen");
-
-	return (listen);
 }
 
-std::vector<std::string>	ParseServerName(std::vector<Token> & Tokens)
+void	ParseServerName(ServerName & server_name, std::vector<Token> & Tokens)
 {
-	std::vector<std::string>	hosts;
-
 	Tokens.erase(Tokens.begin()); // delete server_name token
 
 	if (Tokens.empty() || Tokens.front().type() == DIRECTIVE)
 	{
 		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 		{
-			hosts.push_back(Tokens.front().content());
+			server_name.addHost(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete host token after adding it
 		}
 
@@ -124,13 +150,10 @@ std::vector<std::string>	ParseServerName(std::vector<Token> & Tokens)
 	}
 	else
 		throw Parser::Error("invalid number of arguments in server_name");
-
-	return (hosts);
 }
 
-void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
+void	ParseErrorPage(ErrorPage	error_pages, std::vector<Token> & Tokens)
 {
-	ErrorPage		error_pages = server.getErrorPage();
 	std::string		code;
 	std::string		path;
 
@@ -153,7 +176,7 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
 	{
 		code = Tokens.front().content();
 
-		if (!isNumber(code))
+		if (!isNumber(code) || !isValidErrorCode(code))
 			throw Parser::Error("invalid error code: ", code, Tokens.front().line());
 
 		/* Protect against duplicate error codes with the same path */
@@ -161,7 +184,7 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
 			&& error_pages.getErrorPages().find(code)->second != path)
 			throw Parser::Error("conflicting error_page for error code: ", code, Tokens.front().line());
 
-		server.addErrorPage(std::make_pair(code, path));
+		error_pages.addErrorPage(std::make_pair(code, path));
 		Tokens.erase(Tokens.begin()); // delete code token
 	}
 
@@ -171,52 +194,10 @@ void	ParseErrorPage(std::vector<Token> & Tokens, Server & server)
 		throw Parser::Error("missing semicolon at end of directive: error_page");
 }
 
-void	ParseErrorPage(std::vector<Token> & Tokens, Location & location)
+void	ParseClientMaxBodySize(ClientMaxBodySize & max_size, std::vector<Token> & Tokens)
 {
-	ErrorPage		error_pages = location.getErrorPage();
-	std::string		code;
-	std::string		path;
-
-	Tokens.erase(Tokens.begin()); // delete error_page token
-
-	for (std::vector<Token>::iterator it = Tokens.begin(); it != Tokens.end() && it + 1 != Tokens.end(); it++)
-	{
-		if ((it + 1)->type() == SEMICOLON)
-		{
-			path = it->content();
-			Tokens.erase(it); // delete path token
-			break ;
-		}
-	}
-	
-	if (Tokens.empty() || Tokens.front().type() != DIRECTIVE)
-		throw Parser::Error("invalid number of arguments in error_page");
-
-	while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
-	{
-		code = Tokens.front().content();
-
-		if (!isNumber(code))
-			throw Parser::Error("invalid error code: ", code, 1);
-
-		/* Protect against duplicate error codes with the same path */
-		if (error_pages.getErrorPages().find(code) != error_pages.getErrorPages().end()
-			&& error_pages.getErrorPages().find(code)->second != path)
-			throw Parser::Error("conflicting error_page for error code: ", code, Tokens.front().line());
-
-		location.addErrorPage(std::make_pair(code, path));
-		Tokens.erase(Tokens.begin()); // delete code token
-	}
-
-	if (!Tokens.empty() && Tokens.front().type() == SEMICOLON)
-		Tokens.erase(Tokens.begin()); // delete semicolon
-	else
-		throw Parser::Error("missing semicolon at end of directive: error_page");
-}
-
-ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
-{
-	ClientMaxBodySize	max_size;
+	if (!max_size.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
 
 	Tokens.erase(Tokens.begin()); // delete client_max_body_size token
 
@@ -256,13 +237,12 @@ ClientMaxBodySize	ParseClientMaxBodySize(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
 		throw Parser::Error("missing semicolon at end of directive: client_max_body_size");
-
-	return (max_size);
 }
 
-Return	ParseReturn(std::vector<Token> & Tokens)
+void	ParseReturn(Return & _return, std::vector<Token> & Tokens)
 {
-	Return	_return;
+	if (!_return.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
 
 	Tokens.erase(Tokens.begin()); // delete return token
 
@@ -275,9 +255,10 @@ Return	ParseReturn(std::vector<Token> & Tokens)
 		if (!(ss >> code) || ss.peek() != EOF)
 			throw Parser::Error("invalid return code: ", Tokens.front().content(), Tokens.front().line());
 
-		if (code != 300 && code != 301 && code != 302 && code != 303
-			&& code != 304 && code != 307 && code != 308)
+		if (code < 300 || code > 399)
 			throw Parser::Error("invalid http redirection code: ", Tokens.front().content(), Tokens.front().line()); // invalid redirection code
+		else if (code != 301 && code != 302 && code != 303 && code != 307 && code != 308)
+			throw Parser::Error("unsupported http redirection code: ", Tokens.front().content(), Tokens.front().line()); // unsupported redirection code
 
 		_return.setCode(code);
 		Tokens.erase(Tokens.begin()); // delete return code token
@@ -296,19 +277,17 @@ Return	ParseReturn(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
 		throw Parser::Error("missing semicolon at end of directive: return");
-
-	return (_return);
 }
 
-Root	ParseRoot(std::vector<Token> & Tokens)
+void	ParseRoot(Root & root, std::vector<Token> & Tokens)
 {
-	Root	root;
+	if (!root.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
 
 	Tokens.erase(Tokens.begin()); // delete root token
 
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
-		/* warning: some additionnal checks on the path validity needed */
 		std::string	path = Tokens.front().content();
 		size_t		slash = path.find_last_not_of('/');
 
@@ -323,13 +302,12 @@ Root	ParseRoot(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
 		throw Parser::Error("missing semicolon at end of directive: root");
-
-	return (root);
 }
 
-AutoIndex	ParseAutoIndex(std::vector<Token> & Tokens)
+void	ParseAutoIndex(AutoIndex & autoindex, std::vector<Token> & Tokens)
 {
-	AutoIndex	autoindex;
+	if (!autoindex.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
 
 	Tokens.erase(Tokens.begin()); // delete autoindex token
 
@@ -353,21 +331,17 @@ AutoIndex	ParseAutoIndex(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
 		throw Parser::Error("missing semicolon at end of directive: autoindex");
-
-	return (autoindex);
 }
 
-std::vector<std::string>	ParseIndex(std::vector<Token> & Tokens)
+void	ParseIndex(Index & indexes, std::vector<Token> & Tokens)
 {
-	std::vector<std::string>	indexes;
-
 	Tokens.erase(Tokens.begin()); // delete index token
 
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
 		while (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 		{
-			indexes.push_back(Tokens.front().content());
+			indexes.addIndex(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete each index token after adding it
 		}
 
@@ -378,20 +352,22 @@ std::vector<std::string>	ParseIndex(std::vector<Token> & Tokens)
 	}
 	else
 		throw Parser::Error("invalid number of arguments in index");
-
-	return (indexes);
 }
 
-UploadStore	ParseUploadStore(std::vector<Token> & Tokens)
+void	ParseUploadStore(UploadStore & upload, std::vector<Token> & Tokens)
 {
-	UploadStore	upload;
+	if (!upload.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
 
 	Tokens.erase(Tokens.begin()); // delete upload_store token
 
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
-		/* warning: some additionnal checks on the path validity needed */
-		upload.setPath(Tokens.front().content());
+		std::string	path = Tokens.front().content();
+		size_t		slash = path.find_last_not_of('/');
+
+		path = path.substr(0, slash + 1);
+		upload.setPath(path);
 		Tokens.erase(Tokens.begin()); // delete upload path token
 	}
 	else
@@ -401,13 +377,13 @@ UploadStore	ParseUploadStore(std::vector<Token> & Tokens)
 		Tokens.erase(Tokens.begin()); // delete semicolon
 	else
 		throw Parser::Error("missing semicolon at end of directive: upload_store");
-
-	return (upload);
 }
 
-LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
+void	ParseLimitExcept(LimitExcept & limit_except, std::vector<Token> & Tokens)
 {
-	LimitExcept				limit_except;
+	if (!limit_except.empty())
+		throw Parser::Error("duplicate directive: ", Tokens.front().content(), Tokens.front().line());
+
 	std::set<std::string>	allowed_methods;
 
 	Tokens.erase(Tokens.begin()); // delete limit_except token
@@ -421,7 +397,7 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 
 			/* Detect unknown methods */
 			if (token != "GET" && token != "POST" && token != "DELETE")
-				throw Parser::Error("unknow http method ", token, Tokens.front().line());
+				throw Parser::Error("unknown http method ", token, Tokens.front().line());
 
 			allowed_methods.insert(Tokens.front().content());
 			Tokens.erase(Tokens.begin()); // delete method token after adding it
@@ -436,10 +412,9 @@ LimitExcept	ParseLimitExcept(std::vector<Token> & Tokens)
 		throw Parser::Error("invalid number of arguments in limit_except");
 
 	limit_except.setMethods(allowed_methods);
-	return (limit_except);
 }
 
-std::pair<std::string, std::string>	ParseCgiPass(std::vector<Token> & Tokens)
+void	ParseCgiPass(CgiPass & cgi_pass, std::vector<Token> & Tokens)
 {
 	std::string extension;
 	std::string cgi;
@@ -448,10 +423,11 @@ std::pair<std::string, std::string>	ParseCgiPass(std::vector<Token> & Tokens)
 
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
-		/* warning: some additionnal checks on the extension validity needed */
 		extension = Tokens.front().content();
 		if (extension[0] != '.')
 			throw Parser::Error("invalid file extension: ", extension, Tokens.front().line());
+		else if (cgi_pass.found(extension))
+			throw Parser::Error("duplicate cgi for existing extension: ", extension, Tokens.front().line());
 		Tokens.erase(Tokens.begin()); // delete cgi extension token
 	}
 	else
@@ -459,7 +435,6 @@ std::pair<std::string, std::string>	ParseCgiPass(std::vector<Token> & Tokens)
 
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
-		/* warning: some additionnal checks on the path validity needed */
 		cgi = Tokens.front().content();
 		Tokens.erase(Tokens.begin()); // delete cgi path token
 	}
@@ -472,7 +447,7 @@ std::pair<std::string, std::string>	ParseCgiPass(std::vector<Token> & Tokens)
 	else
 		throw Parser::Error("missing semicolon at end of directive: cgi_pass");
 
-	return (std::make_pair(extension, cgi));
+	cgi_pass.addCgi(std::make_pair(extension, cgi));
 }
 
 void	fillServerLocations(Server & server)
@@ -496,7 +471,6 @@ void	fillServerLocations(Server & server)
 		if (it->second.getUploadPath().empty())
 			it->second.setUploadPath(server.getUploadPath());
 	}
-	server.setLocations(locations);
 }
 
 std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
@@ -523,23 +497,23 @@ std::pair<std::string, Location>	ParseLocation(std::vector<Token> & Tokens)
 	{
 		/* add directive to the directives list */
 		if (Tokens.front().content() == "error_page")
-			ParseErrorPage(Tokens, location.second);
+			ParseErrorPage(location.second.getErrorPage(), Tokens);
 		else if (Tokens.front().content() == "client_max_body_size")
-			location.second.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
+			ParseClientMaxBodySize(location.second.getClientMaxBodySize(), Tokens);
 		else if (Tokens.front().content() == "return")
-			location.second.setReturn(ParseReturn(Tokens));
+			ParseReturn(location.second.getReturn(), Tokens);
 		else if (Tokens.front().content() == "root")
-			location.second.setRoot(ParseRoot(Tokens));
+			ParseRoot(location.second.getRoot(), Tokens);
 		else if (Tokens.front().content() == "autoindex")
-			location.second.setAutoIndex(ParseAutoIndex(Tokens));
+			ParseAutoIndex(location.second.getAutoIndex(), Tokens);
 		else if (Tokens.front().content() == "index")
-			location.second.addIndex(ParseIndex(Tokens));
+			ParseIndex(location.second.getIndex(), Tokens);
 		else if (Tokens.front().content() == "upload_store")
-			location.second.setUploadPath(ParseUploadStore(Tokens));
+			ParseUploadStore(location.second.getUploadPath(), Tokens);
 		else if (Tokens.front().content() == "limit_except")
-			location.second.setLimitExcept(ParseLimitExcept(Tokens));
+			ParseLimitExcept(location.second.getLimitExcept(), Tokens);
 		else if (Tokens.front().content() == "cgi_pass")
-			location.second.addCgiPass(ParseCgiPass(Tokens));
+			ParseCgiPass(location.second.getCgiPass(), Tokens);
 		else
 			throw Parser::Error("unknown directive in location context: ", Tokens.front().content(), Tokens.front().line());
 	}
@@ -582,28 +556,29 @@ Server	ParseServer(std::vector<Token> & Tokens)
 		{
 			/* add directive to the directives list */
 			if (Tokens.front().content() == "listen")
-				server.setListen(ParseListen(Tokens));
+				ParseListen(server.getListen(), Tokens);
 			else if (Tokens.front().content() == "server_name")
-				server.addServerName(ParseServerName(Tokens));
+				ParseServerName(server.getServerName(), Tokens);
 			else if (Tokens.front().content() == "error_page")
-				ParseErrorPage(Tokens, server);
+				ParseErrorPage(server.getErrorPage(), Tokens);
 			else if (Tokens.front().content() == "client_max_body_size")
-				server.setClientMaxBodySize(ParseClientMaxBodySize(Tokens));
+				ParseClientMaxBodySize(server.getClientMaxBodySize(), Tokens);
 			else if (Tokens.front().content() == "return")
-				server.setReturn(ParseReturn(Tokens));
+				ParseReturn(server.getReturn(), Tokens);
 			else if (Tokens.front().content() == "root")
-				server.setRoot(ParseRoot(Tokens));
+				ParseRoot(server.getRoot(), Tokens);
 			else if (Tokens.front().content() == "autoindex")
-				server.setAutoIndex(ParseAutoIndex(Tokens));
+				ParseAutoIndex(server.getAutoIndex(), Tokens);
 			else if (Tokens.front().content() == "index")
-				server.addIndex(ParseIndex(Tokens));
+				ParseIndex(server.getIndex(), Tokens);
 			else if (Tokens.front().content() == "upload_store")
-				server.setUploadPath(ParseUploadStore(Tokens));
+				ParseUploadStore(server.getUploadPath(), Tokens);
 			else
 				throw Parser::Error("unknown directive in server context: ", Tokens.front().content(), Tokens.front().line());
 		}
 	}
 
+	/* Make sure locations inherit server's config */
 	fillServerLocations(server);
 
 	/* Check closing bracket */
@@ -634,7 +609,7 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 		}
 		else
 		{
-			std::cout << "uknown directive in main context: " 
+			std::cerr << "unknown directive in main context: " 
 			<< Tokens.front().content() << " (line: "
 			<< Tokens.front().line() << ")"<< std::endl;
 			return (false);
@@ -695,7 +670,10 @@ std::vector<Token>	Tokenize(std::ifstream & configFile)
 				Tokens.push_back(Token(CLOSE_BR, "}", count));
 			else if (line[i] == ';')
 			{
-				len = line.find_last_of(';') - i + 1;
+				len = line.find_first_not_of(';', i);
+				if (len == std::string::npos)
+					len = line.length();
+			   	len -= i;
 				Tokens.push_back(Token(SEMICOLON, line.substr(i, len), count));
 				i += len - 1;
 			}
@@ -715,6 +693,11 @@ Config	Parser::importConfig(char const *path)
 		return (config);
 
 	std::vector<Token>	Tokens = Tokenize(configFile);
+	/* for (std::vector<Token>::iterator it = Tokens.begin(); it != Tokens.end(); it++) */
+	/* { */
+	/* 	std::cout << it->content() << std::endl; */
+	/* } */
+	/* exit(0); */
 	if (!Parse(config, Tokens))
 		return (config);
 
