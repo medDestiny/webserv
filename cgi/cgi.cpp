@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 16:00:06 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 21:33:05 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,8 +324,11 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 	{
 		close(cgi.getCgiStdErr());
 		remove(cgi.getCgiInFile().c_str());
-		if (response.sendCgiHeader(sockfd, request) == -1)
-			return (0);
+		if (response.sendCgiHeader(sockfd, request) == -1) {
+			
+			response.setStatusCode( 500 );
+			return (1);
+		}
 		else
 			response.setSendedHeader( true );
 	}

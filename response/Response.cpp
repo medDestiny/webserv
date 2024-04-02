@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 18:13:14 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:09:14 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,9 +277,6 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
         headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
     }
-    // test
-    // headerResponse += "\r\nSet-Cookie: session-id=1234";
-
     headerResponse += "\r\n\r\n";
 
     ssize_t sended;
@@ -308,21 +305,22 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         size_t bufferSize = 1000000;
         if (request.getRangeStartNum() - this->countBytesRead < 1000000)
             bufferSize = request.getRangeStartNum() - this->countBytesRead;
-        size_t bytesRead = read(this->file, bufferS, bufferSize);
+        ssize_t bytesRead = read(this->file, bufferS, bufferSize);
+        if ( bytesRead == -1 )
+            return -1;
         this->countBytesRead += bytesRead;
     }
     else { // --------read file to send----------//
         ssize_t bytesRead = read(this->file, buffer, SENDED);
-        if ( bytesRead == -1 ) {
+        if ( bytesRead == -1 )
             return -1;
-        }
         if (bytesRead < SENDED)
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
         std::string message = std::string(buffer, bytesRead);
         sended = send( sockfd, message.c_str() , message.size(), 0 );
         
-        return (sended);
+        return (sended); // !!what
     }
     return (1);
 }
@@ -341,7 +339,7 @@ void checkSlash( std::string &errorPage ) {
         errorPage = '/' + errorPage;
 }
 
-void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Request request) {
+int Response::displayErrorPage( Conf::Server & server, int const &sockfd, Request request) {
 
     std::string header;
     std::string message;
@@ -371,7 +369,7 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
                 "        <title>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title>\n"
                 "        <style>\n"
                 "           @import url('https://fonts.googleapis.com/css?family=Fira+Mono:400');\n"
-                "            body{ display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; margin: 0; background: #131313; color: #fff;\n"
+                "            body{ display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; margin: 0; background: #0F1C2E; color: #fff;\n"
                 "                font-size: 96px; font-family: 'Fira Mono', monospace; letter-spacing: -7px; }\n"
                 "            .error{ animation: glitch 1s linear infinite; }\n"
                 "            @media (max-width: 992px) { .error{ font-size: 50px;} }\n"
@@ -395,6 +393,11 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
         std::ifstream streamFile;
         std::string tmp;
         streamFile.open(errorPage);
+        if ( !streamFile.is_open() ) {
+            
+            this->setStatusCode( 500 );
+            return 1;
+        }
         while (std::getline( streamFile, tmp)) {
             body += tmp;
             body += '\n';
@@ -412,8 +415,13 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
     header += "\r\nConnection: close\r\n\r\n";
 
     message = header + body;
-    send( sockfd, message.c_str(), message.length(), 0);
+    ssize_t bytesSended = send( sockfd, message.c_str(), message.length(), 0);
+    if ( bytesSended == -1 ) {
 
+        this->setStatusCode( 500 );
+        return 1;
+    }
+    return 0;
 }
 
 int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Request request ) {
@@ -453,25 +461,23 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
         "        <title>Index Of</title>\n"
         "        <style>\n"
         "            :root{\n"
-        "                --primary-100:#1976D2;\n"
-        "                --primary-200:#63a4ff;\n"
-        "                --primary-300:#d3ffff;\n"
-        "                --accent-100:#64B5F6;\n"
-        "                --accent-200:#005992;\n"
+        "                --primary-100:#1F3A5F;\n"
+        "                --primary-300:#acc2ef;\n"
+        "                --accent-100:#3D5A80;\n"
+        "                --accent-200:#cee8ff;\n"
         "                --text-100:#FFFFFF;\n"
         "                --text-200:#e0e0e0;\n"
-        "                --bg-100:#121212;\n"
-        "                --bg-200:#212121;\n"
-        "                --bg-300:#383838;\n"
+        "                --bg-100:#0F1C2E;\n"
+        "                --bg-200:#1f2b3e;\n"
         "            }\n"
         "            *{ margin: 0; padding: 0; font-family: Verdana, Geneva, Tahoma, sans-serif; box-sizing: border-box; }\n"
         "            body{ background-color:  var(--bg-100); }\n"
         "            h3{ padding: 15px; background-color: var(--bg-200); color: var(--text-100); text-align: center;}\n"
-        "            span{ color: var(--primary-200); font-weight: lighter; display: block; padding-top: 10px; font-size: 15px; word-wrap: break-word; }\n"
+        "            span{ color: var(--accent-200); font-weight: lighter; display: block; padding-top: 10px; font-size: 15px; word-wrap: break-word; }\n"
         "            a{ display: block; text-decoration: none; padding: 15px 20px; margin: 10px 20px; border-color: var(--primary-100);\n"
-        "                background-color: var(--bg-200); color: var(--text-200); border-radius: 5px; font-weight: bold; word-wrap: break-word; }\n"
-        "            a:hover { background-color: var(--bg-300); transform: scaleX(1.01); border: 0.2px solid var(--primary-100); transition: transform 450ms ease-in-out; }\n"
-        "            .parent { color: var(--primary-200); background-color: var(--bg-300); }\n"
+        "                background-color: var(--bg-200); color: var(--accent-200); border-radius: 5px; font-weight: bold; word-wrap: break-word; }\n"
+        "            a:hover { background-color: var(--primary-100); transform: scaleX(1.01); border: 0.2px solid var(--accent-200); transition: transform 450ms ease-in-out; }\n"
+        "            .parent { color: var(--text-200); background-color: var(--primary-100); }\n"
         "        </style>\n"
         "    </head>\n"
         "    <body>\n";
