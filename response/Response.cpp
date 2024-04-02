@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 04:00:45 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 16:13:23 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -313,10 +313,12 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
     }
     else { // --------read file to send----------//
         ssize_t bytesRead = read(this->file, buffer, SENDED);
+        if ( bytesRead == -1 ) {
+            return -1;
+        }
         if (bytesRead < SENDED)
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
-		std::cout << bytesRead << std::endl;
         std::string message = std::string(buffer, bytesRead);
         sended = send( sockfd, message.c_str() , message.size(), 0 );
         
@@ -330,8 +332,13 @@ std::string Response::getErrorPage(std::map<std::string, std::string> ErrorPages
     std::map<std::string, std::string>::iterator it = ErrorPages.find(intToString(this->statusCode));
     if (it != ErrorPages.end())
         return (it->second);
-    else
-        return ("");
+    return ("");
+}
+
+void checkSlash( std::string &errorPage ) {
+    
+    if ( errorPage.front() != '/' )
+        errorPage = '/' + errorPage;
 }
 
 void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Request request) {
@@ -340,23 +347,23 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
     std::string message;
     std::string body;
 
-    std::string errorPage = getErrorPage(server.getErrorPage().getErrorPages());
+    std::string errorPage;
+    if (request.getCheckLocation())
+        errorPage = getErrorPage(request.getLocation().getErrorPage().getErrorPages());
+    else
+        errorPage = getErrorPage(server.getErrorPage().getErrorPages());
+
     if (!errorPage.empty()) {
-        errorPage = server.getRoot().getPath() + errorPage;
+        checkSlash( errorPage );
+        if (request.getCheckLocation())
+            errorPage = request.getLocation().getRoot().getPath() + errorPage;
+        else
+            errorPage = server.getRoot().getPath() + errorPage;
         if (access(errorPage.c_str(), F_OK) == -1) {
             errorPage = "";
         }
     }
-    if (request.getCheckLocation()) {
-        errorPage = getErrorPage(request.getLocation().getErrorPage().getErrorPages());
-        if (!errorPage.empty()) {
-            errorPage = request.getLocation().getRoot().getPath() + errorPage;
-            if (access(errorPage.c_str(), F_OK) == -1) {
-                errorPage = "";
-            }
-        }
-    }
-
+    
     if (errorPage.empty()) {
         body += "<!DOCTYPE html>\n"
                 "<html lang=\"en\">\n"

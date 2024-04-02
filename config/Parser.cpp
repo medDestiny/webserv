@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/31 05:16:15 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 15:55:57 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,7 @@ void	ParseServerName(ServerName & server_name, std::vector<Token> & Tokens)
 		throw Parser::Error("invalid number of arguments in server_name");
 }
 
-void	ParseErrorPage(ErrorPage	error_pages, std::vector<Token> & Tokens)
+void	ParseErrorPage(ErrorPage &error_pages, std::vector<Token> & Tokens)
 {
 	std::string		code;
 	std::string		path;
