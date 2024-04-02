@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 17:54:02 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 15:51:41 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 18:01:24 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,19 @@
 int	main(int ac, char **av)
 {
 	signal(SIGPIPE, SIG_IGN);
-	if (ac != 2)
-		return (1);
 
-	Config	config = Parser::importConfig(av[1]);
-	Server serv( config ); 
-	
-	config.print();
+	std::string	conf = DEFAULT_CONF;
+	if (ac > 2)
+		return (1);
+	else if (ac == 2)
+		conf = av[1];
+
+	Config	config = Parser::importConfig(conf);
 	if (!config.isValid())
 		return (1);
+	config.print();
 
+	Server serv( config ); 
 	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; 
 	serv.createServer(); 
 }
