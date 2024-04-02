@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 00:47:39 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 18:12:50 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -318,7 +318,7 @@ int Client::sendPostResponse( std::string const &message ) {
     body += "</html>";
     
     header = "HTTP/1.1 " + intToString( this->response.getStatusCode() ) + " " + this->response.getStatusMessage( this->response.getStatusCode() ) + "\r\n";
-    header += "Content-Type: text/plain\r\n";
+    header += "Content-Type: text/html\r\n";
     header += "Content-Length: " + intToString( body.size() ) + "\r\n";
     header += "Connection: " + request.getConnection() + "\r\n\r\n";
     header += body;

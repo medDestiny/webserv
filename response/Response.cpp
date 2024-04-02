@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 16:13:23 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 18:13:14 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -374,7 +374,7 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
                 "            body{ display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; margin: 0; background: #131313; color: #fff;\n"
                 "                font-size: 96px; font-family: 'Fira Mono', monospace; letter-spacing: -7px; }\n"
                 "            .error{ animation: glitch 1s linear infinite; }\n"
-                "            @media (max-width: 768px) { .error{ font-size: 50px;} }\n"
+                "            @media (max-width: 992px) { .error{ font-size: 50px;} }\n"
                 "            @keyframes glitch{ 2%,64%{ transform: translate(2px,0) skew(0deg); } 4%,60%{ transform: translate(-2px,0) skew(0deg); }\n"
                 "                62%{ transform: translate(0,0) skew(5deg); } }\n"
                 "            .error:before, .error:after{ content: attr(title); position: absolute; left: 0; }\n"
