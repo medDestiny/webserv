@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 21:08:53 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 00:47:41 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,8 @@ class Client {
         void setConfig( Config config );
         bool getEndRecHeader( void );
         void setEndRecHeader( bool endRecHeader );
+        Response &getResponse( void );
+        Request getRequest( void ) const;
         Conf::Server const &getDefaultServer( void ) const;
         void setDefaultServer( Conf::Server const &server );
         int sendPostResponse( std::string const &message );

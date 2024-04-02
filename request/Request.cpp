@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 21:16:47 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/01 23:23:29 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -262,6 +262,7 @@ int Request::parseRequestLine( Config conf, Conf::Server & server, Conf::Server 
 	std::getline(methodStream, this->method, ' ');
 	std::getline(methodStream, this->path, ' ');
   
+    urlDecoding( this->path );
     this->url = this->path;
     std::getline(methodStream, this->httpVersion, '\r');
     // check httpVersion is valid

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 21:31:25 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 00:47:39 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,16 @@ void Client::setDefaultServer( Conf::Server const &server ) {
     this->defaultServer = server;
 }
 
+Response &Client::getResponse( void ) {
+
+    return this->response;
+}
+
+Request Client::getRequest( void ) const {
+
+    return this->request;
+}
+
 int Client::recieveRequest() {
 
     int status;
@@ -140,12 +150,14 @@ int Client::recieveRequest() {
                     return 0; // error Content-Length required
                 }
             }
-            
+   
             // invalid header *error*
-            if (recieved < SENDED && this->request.getHeader().empty()) {
-                this->response.setStatusCode( 400 );
-                return (0); // error
-            }
+            // if (recieved < SIZE && this->request.getHeader().empty()) {
+                
+            //     std::cout << "hello" << std::endl;
+            //     this->response.setStatusCode( 400 );
+            //     return (0); // error
+            // }
 
         }
         else {

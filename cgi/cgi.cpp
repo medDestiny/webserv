@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/31 12:58:59 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 00:57:01 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,6 +280,8 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & loc
 	else
 		cwd = root + location;
 
+	std::cout << "cwd: " << cwd + this->url << std::endl;
+	std::cout << "script: " << script << std::endl;
 	if (access((cwd + script).c_str(), F_OK) != 0)
 	{
 		response.setStatusCode(404);

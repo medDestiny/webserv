@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetMethod.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 23:05:33 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/03/24 21:15:17 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/04/01 22:18:28 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int Request::checkFile( Conf::Server & server, Response & response ) {
         response.setStatusCode( 404 );
         return (0);
     }
-    else if (access(this->path.c_str(), R_OK) == -1) {
+    if (access(this->path.c_str(), R_OK) == -1) {
         response.setStatusCode( 403 );
         return (0);
     }

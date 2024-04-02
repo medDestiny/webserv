@@ -3,7 +3,7 @@ server {
 	server_name test1;
 	listen	localhost:8080;
 	client_max_body_size	20000M;
-	root	/Users/del-yaag/Desktop/web-server/cgiScript/;
+	root	/;
 	upload_store /tmp;
 
 	location / {
@@ -13,11 +13,13 @@ server {
 	}
 
 	location /flexbox {
+		root	/Users/del-yaag/Desktop/server;
 		cgi_pass .sh /bin/bash;
 		cgi_pass .py /usr/bin/python;
-		index index.html;
+		# index index.html;
+		autoindex	on;
 		limit_except POST GET;
 	}
 	# return 302 https://www.google.com;
-	autoindex	on;
+	# autoindex	on;
 }

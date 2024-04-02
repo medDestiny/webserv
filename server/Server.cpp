@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 21:31:47 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 01:03:03 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -291,8 +291,16 @@ void Server::mainpoll( void ) {
           
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
-        } else
+        } else {
+            
+            itClient = clients.find( pfds[i].fd );
+            if ( itClient != clients.end() && !itClient->second.getRequest().getRecString().empty() && !itClient->second.getEndRecHeader() ) { // bad request
+
+                itClient->second.getResponse().setStatusCode( 400 );
+                pfds[i].events = POLLOUT;
+            }
             this->checkclienttimeout();
+        }
         Session::deleteSessionIdTimeOut();
     }
 }
