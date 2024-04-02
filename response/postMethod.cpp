@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 02:48:49 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:04:24 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ int  Response::createFileAndWrite( std::string const &str, Request const &reques
             bytes = write( this->fd, str.c_str(), str.size() );
             if ( bytes == -1 ) {
 
-                std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
+                std::cerr << RED << "\tERROR: open: cannot write " << path << RESET << std::endl;
                 close( this->fd );
                 this->setStatusCode( 500 );
                 return 0;
@@ -265,12 +265,6 @@ int Response::PutChunkedBodyToFile( Request const &request, Conf::Server const &
         next = chunkedBody.find( "\r\n", find );
         chunked = chunkedBody.substr( find, next - find );
         if ( chunked == request.getEndBoundary() ) { // got the end boundaries
-
-            if ( !this->bodyFlag && !this->BHFilename.size() ) {
-
-                this->setStatusCode( 501 );
-                return 1;
-            }
 
             chunked = chunkedBody.substr( 0, find - 2 );
             if ( !this->createFileAndWrite( chunked, request, server, flag ) )
@@ -444,8 +438,6 @@ int  Response::parseBoundariesBody( Request const &request, Conf::Server const &
                     return 0;
                 else if ( status == 2 )
                     return 1;
-                else if ( status == 3 ) // for database cgi
-                    return 3;
             }
         }
     } else {
@@ -557,7 +549,6 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
                 this->parseSessionsBody( request );
                 if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                     return 1; // error
-                // cgi work here
 				request.getCgi().setReady(true);
                 return 0; // send response to the client
             }
@@ -566,7 +557,6 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
             this->parseSessionsBody( request );
             if ( !this->openCgiFile( request.getCgi().getCgiInFile(), this->cgiBody ) ) // open file and put the body inside it
                 return 1; //error
-            // cgi work here
 			request.getCgi().setReady(true);
             return 0; // send response to the client
         }

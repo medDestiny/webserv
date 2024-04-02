@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 18:12:50 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:10:24 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,7 @@ int Client::recieveRequest() {
     }
     else {
 
+        this->settimeout( std::time( NULL ) ); // set time out of client
         if (recieved < SIZE)
             recievebuff[recieved] = '\0';
         this->request.setRecString( std::string(recievebuff, recieved) );
@@ -135,6 +136,7 @@ int Client::recieveRequest() {
                 // parse post body ( if body is too small )
                 this->request.setRequestBody();
                 status = this->request.parsePostBody( this->request.getBody() );
+                // std::cout << this->request.getBody() << std::endl;
                 if ( status == 2 ) {
 
                     this->response.setStatusCode( 501 );
@@ -174,13 +176,12 @@ int Client::recieveRequest() {
             
             this->request.setBody( recievebuff, recieved );
             buffer = std::string( recievebuff, recieved );
-            this->settimeout( std::time( NULL ) );
             
             status = this->request.parsePostBody( buffer );
-            
             if ( status == 2 ) {
 
-                this->response.setStatusCode( 400 );
+
+                this->response.setStatusCode( 501 );
                 return 0;
                 
             } else if ( !status ) {
@@ -197,13 +198,34 @@ int Client::recieveRequest() {
     return (1); // still read request
 }
 
+int Client::checkErrorCases( void ) {
+    
+    ssize_t sended = this->response.sendBody( this->sockfd, this->request );
+    if ( (int)sended == -1 ) {
+
+        this->response.setStatusCode( 500 );
+        return 1;
+    }
+    if ( (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+        close(this->response.getFile());
+        if (this->request.isCgi())
+            remove(this->request.getCgi().getCgiOutFile().c_str());
+        return (0);
+    }
+    if (response.getContentResponse() == response.getContentLength()) {
+        close(this->response.getFile());
+        if (this->request.isCgi())
+            remove(this->request.getCgi().getCgiOutFile().c_str());
+        return (2); // change to PULLIN
+    }
+    return (1);
+}
+
 int Client::sendresponse() {
 
     // display error
-    if (response.getStatusCode() >= 400) {
-        response.displayErrorPage(this->server, this->sockfd, this->request);
-        return (0);
-    }
+    if (response.getStatusCode() >= 400)
+        return (response.displayErrorPage(this->server, this->sockfd, this->request));
 
     // display autoIndex
     if (response.getAutoIndexing()) {
@@ -226,19 +248,20 @@ int Client::sendresponse() {
 	if (this->request.getMethod() == "GET") {
 
         if (this->response.getSendedHeader()) {
-            ssize_t sended = this->response.sendBody( this->sockfd, this->request );
-            if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-				close(this->response.getFile());
-				if (this->request.isCgi())
-					remove(this->request.getCgi().getCgiOutFile().c_str());
-                return (0);
-            }
-            if (response.getContentResponse() == response.getContentLength()) {
-				close(this->response.getFile());
-				if (this->request.isCgi())
-					remove(this->request.getCgi().getCgiOutFile().c_str());
-                return (2); // change to PULLIN
-            }
+            // ssize_t sended = this->response.sendBody( this->sockfd, this->request );
+            // if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+			// 	close(this->response.getFile());
+			// 	if (this->request.isCgi())
+			// 		remove(this->request.getCgi().getCgiOutFile().c_str());
+            //     return (0);
+            // }
+            // if (response.getContentResponse() == response.getContentLength()) {
+			// 	close(this->response.getFile());
+			// 	if (this->request.isCgi())
+			// 		remove(this->request.getCgi().getCgiOutFile().c_str());
+            //     return (2); // change to PULLIN
+            // }
+            return this->checkErrorCases();
         }
         else {
             ssize_t sended = this->response.sendHeader( this->sockfd, this->request );
@@ -259,19 +282,20 @@ int Client::sendresponse() {
 		if (this->request.isCgi())
 		{
         	if (this->response.getSendedHeader()) {
-        	    ssize_t sended = this->response.sendBody( this->sockfd, this->request );
-        	    if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-					close(this->response.getFile());
-					if (this->request.isCgi())
-						remove(this->request.getCgi().getCgiOutFile().c_str());
-        	        return (0);
-        	    }
-        	    if (response.getContentResponse() == response.getContentLength()) {
-					close(this->response.getFile());
-					if (this->request.isCgi())
-						remove(this->request.getCgi().getCgiOutFile().c_str());
-        	        return (2); // change to PULLIN
-        	    }
+        	    // ssize_t sended = this->response.sendBody( this->sockfd, this->request );
+        	    // if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+				// 	close(this->response.getFile());
+				// 	if (this->request.isCgi())
+				// 		remove(this->request.getCgi().getCgiOutFile().c_str());
+        	    //     return (0);
+        	    // }
+        	    // if (response.getContentResponse() == response.getContentLength()) {
+				// 	close(this->response.getFile());
+				// 	if (this->request.isCgi())
+				// 		remove(this->request.getCgi().getCgiOutFile().c_str());
+        	    //     return (2); // change to PULLIN
+        	    // }
+                return this->checkErrorCases();
         	}
 			return (1);
 		}
@@ -282,13 +306,14 @@ int Client::sendresponse() {
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 0;
-        }
-        else if ( status == 2 ) {
+        } else if ( status == 2 ) {
             
             if ( !this->sendPostResponse( "data uploaded successfully" ) )
                 return 1;
             std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
             return 2;
+        } else if ( status == 3 ) {
+            
         }
         else
             this->settimeout( std::time( NULL ) );
@@ -308,15 +333,26 @@ int Client::sendPostResponse( std::string const &message ) {
     std::string header;
     std::string body;
     
-    body = "<!DOCTYPE html>\n";
-    body += "<html>\n";
-    body += "<head><title> POST METHOD </title>\n";
-    body += "<style> * { background-color: #1E1E1E; font-family: Fantasy; color: #2E8B57; } </style></head>\n";
-    body += "<body>\n";
-    body += "<center><h1>" + message + "</h1></center>\n";
-    body += "</body>\n";
-    body += "</html>";
-    
+    body = "<!DOCTYPE html>\n"
+                "<html lang=\"en\">\n"
+                "<head>\n"
+                "    <title>Document</title>\n"
+                "    <style>\n"
+                "        :root{ --accent-100:#3D5A80; --text-100:#FFFFFF; --bg-100:#0F1C2E; }\n"
+                "        *{ padding: 0; margin: 0; box-sizing: border-box; font-family: Arial, sans-serif; }\n"
+                "        body{ display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--bg-100); }\n"
+                "        .container{ width: 700px; padding: 20px; text-align: center; }\n"
+                "        .container h1{ color: var(--text-100); margin-bottom: 15px; }\n"
+                "        .container p{ font-size: 20px; color: var(--accent-100); }\n"
+                "    </style>\n"
+                "</head>\n"
+                "<body>\n"
+                "    <div class=\"container\">\n"
+                "        <h1>" + message + ".</h1>\n"
+                "        <p>all data was uploaded successfully.</p>\n"
+                "    </div>\n"
+                "</body>\n"
+                "</html>\n";
     header = "HTTP/1.1 " + intToString( this->response.getStatusCode() ) + " " + this->response.getStatusMessage( this->response.getStatusCode() ) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: " + intToString( body.size() ) + "\r\n";

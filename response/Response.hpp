@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 03:46:02 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:09:44 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ class Response {
         ssize_t sendHeader( int const &sockfd, Request const & request);
         ssize_t sendBody( int const &sockfd, Request const & request);
         std::string getStatusMessage(int const & statusCode);
-        void displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
+        int displayErrorPage( Conf::Server & server, int const &sockfd, Request request );
         int displayAutoIndex( Conf::Server & server, int const &sockfd, Request request );
         std::string getErrorPage(std::map<std::string, std::string> ErrorPages);
         int deleteResource(int const sockfd, Request request);

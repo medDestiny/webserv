@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:46 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 00:47:41 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 21:44:08 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,4 +57,5 @@ class Client {
         int sendPostResponse( std::string const &message );
         int recieveRequest();
         int sendresponse();
+        int checkErrorCases( void );
 };
