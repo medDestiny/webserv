@@ -287,8 +287,7 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & loc
 
 	std::string	script = getScriptName(path);
 	std::string	cwd = getCurrentDir(root, location, this->url, script);
-
-	std::cout << cwd + script<< std::endl;
+  
 	if (access((cwd + script).c_str(), F_OK) != 0)
 	{
 		response.setStatusCode(404);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 02:40:18 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 04:00:45 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -291,7 +291,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
     // -----------open file---------- //
     if (this->file == -2) {
-        this->file = open( request.getPath().c_str(), O_RDONLY, 0777 );
+        this->file = open( request.getPath().c_str(), O_RDONLY );
         if ( this->file == -1 ) {
             std::cerr << "failed to open file" << std::endl;
             this->statusCode = 500;
@@ -318,15 +318,8 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         this->contentResponse += bytesRead;
 		std::cout << bytesRead << std::endl;
         std::string message = std::string(buffer, bytesRead);
+        sended = send( sockfd, message.c_str() , message.size(), 0 );
         
-        // std::string tmp = message;
-        while ( !message.empty() ) {
-            
-            std::string str = message.substr( 0, 1024 );
-            // std::cout << RED << "HELLO" << RESET << std::endl;
-            sended = send( sockfd, str.c_str() , str.size(), 0 );
-            message.erase( 0, 1024 );
-        }
         return (sended);
     }
     return (1);
@@ -365,11 +358,29 @@ void Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reque
     }
 
     if (errorPage.empty()) {
-        body += "<!DOCTYPE html>\n";
-        body += "<html>\n";
-        body += "<head><title>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title></head>\n";
+        body += "<!DOCTYPE html>\n"
+                "<html lang=\"en\">\n"
+                "    <head>\n"
+                "        <title>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title>\n"
+                "        <style>\n"
+                "           @import url('https://fonts.googleapis.com/css?family=Fira+Mono:400');\n"
+                "            body{ display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; margin: 0; background: #131313; color: #fff;\n"
+                "                font-size: 96px; font-family: 'Fira Mono', monospace; letter-spacing: -7px; }\n"
+                "            .error{ animation: glitch 1s linear infinite; }\n"
+                "            @media (max-width: 768px) { .error{ font-size: 50px;} }\n"
+                "            @keyframes glitch{ 2%,64%{ transform: translate(2px,0) skew(0deg); } 4%,60%{ transform: translate(-2px,0) skew(0deg); }\n"
+                "                62%{ transform: translate(0,0) skew(5deg); } }\n"
+                "            .error:before, .error:after{ content: attr(title); position: absolute; left: 0; }\n"
+                "            .error:before{ animation: glitchTop 1s linear infinite; clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%); }\n"
+                "            @keyframes glitchTop{ 2%,64%{ transform: translate(2px,-2px); } 4%,60%{ transform: translate(-2px,2px); }\n"
+                "                62%{ transform: translate(13px,-1px) skew(-13deg);  } }\n"
+                "            .error:after{ animation: glitchBotom 1.5s linear infinite; clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%); }\n"
+                "            @keyframes glitchBotom{ 2%,64%{ transform: translate(-2px,0); } 4%,60%{ transform: translate(-2px,0); } 62%{ transform: translate(-22px,5px) skew(21deg);  } }\n"
+                "        </style>\n"
+                "    </head>\n"
+                "    <body>\n";
         body += "<body>\n";
-        body += "<center><h1>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</h1></center>\n";
+        body += "<div class=\"error\" title=\"" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\">" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</div>\n";
         body += "</body>\n";
         body += "</html>";
     }
@@ -406,13 +417,14 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::string fullPath;
 
     if (request.getCheckLocation())
-        fullPath = request.getLocation().getRoot().getPath() + request.getStringLocation() + "/";
+        fullPath = request.getLocation().getRoot().getPath() + request.getUrl();
     else
         fullPath = server.getRoot().getPath() + request.getUrl();
     dir = opendir(fullPath.c_str());
     if (dir == NULL) {
-        std::cerr << "Error opening directory" << std::endl;
         this->statusCode = 500;
+        if (access(fullPath.c_str(), R_OK) == -1)
+            this->statusCode = 403;
         return (0);
     }
     while ((entry = readdir(dir)) != NULL) {
@@ -426,22 +438,62 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::string header;
     std::string message;
 
-    body += "<html>\n";
-    body += "<head><title>Index of /</title></head>\n";
-    body += "<body>\n";
-    body += "<h1>Index of /</h1><hr><pre><a href=\"../\">../</a>\n";
+    body += "<!DOCTYPE html>\n"
+        "<html lang=\"en\">\n"
+        "    <head>\n"
+        "        <meta charset=\"UTF-8\">\n"
+        "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+        "        <title>Index Of</title>\n"
+        "        <style>\n"
+        "            :root{\n"
+        "                --primary-100:#1976D2;\n"
+        "                --primary-200:#63a4ff;\n"
+        "                --primary-300:#d3ffff;\n"
+        "                --accent-100:#64B5F6;\n"
+        "                --accent-200:#005992;\n"
+        "                --text-100:#FFFFFF;\n"
+        "                --text-200:#e0e0e0;\n"
+        "                --bg-100:#121212;\n"
+        "                --bg-200:#212121;\n"
+        "                --bg-300:#383838;\n"
+        "            }\n"
+        "            *{ margin: 0; padding: 0; font-family: Verdana, Geneva, Tahoma, sans-serif; box-sizing: border-box; }\n"
+        "            body{ background-color:  var(--bg-100); }\n"
+        "            h3{ padding: 15px; background-color: var(--bg-200); color: var(--text-100); text-align: center;}\n"
+        "            span{ color: var(--primary-200); font-weight: lighter; display: block; padding-top: 10px; font-size: 15px; word-wrap: break-word; }\n"
+        "            a{ display: block; text-decoration: none; padding: 15px 20px; margin: 10px 20px; border-color: var(--primary-100);\n"
+        "                background-color: var(--bg-200); color: var(--text-200); border-radius: 5px; font-weight: bold; word-wrap: break-word; }\n"
+        "            a:hover { background-color: var(--bg-300); transform: scaleX(1.01); border: 0.2px solid var(--primary-100); transition: transform 450ms ease-in-out; }\n"
+        "            .parent { color: var(--primary-200); background-color: var(--bg-300); }\n"
+        "        </style>\n"
+        "    </head>\n"
+        "    <body>\n";
+    body += "<h3>Index Of <span>" + request.getUrl() + "</span></h3>";
+    body += "<a href=\"..\" class=\"parent\">Parent Directory..</a>\n";
     for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
-        if (request.getCheckLocation())
-            body += "<a href=" + request.getStringLocation() + "/" + *it + ">" + *it + "</a>\n";
-        else {
-            if (request.getUrl() == "/")
-                body += "<a href=\"" + request.getUrl().erase(0, 1) + "/" + *it + "\">" + *it + "</a>\n";
+        
+
+            std::string url = request.getUrl();
+            std::string root;
+                
+            if ( url.back() == '/' )
+                url.append( *it );
             else
-                body += "<a href=\"" + request.getUrl() + "/" + *it + "\">" + *it + "</a>\n";
-        }
+                url.append("/").append( *it );
+                
+            if ( request.getCheckLocation() )
+                root = request.getLocation().getRoot().getPath() + url;
+            else
+                root = server.getRoot().getPath() + url;
+            if ( isDirectory( root.c_str() ) ) {
+                
+                url.append( "/" );
+                (*it).append( "/" );
+            }
+            
+            body += "<a href=\"" + url + "\">" + *it + "</a>\n";
     }
-    body += "</pre><hr></body>\n";
-    body += "</html>";
+    body += "</body>\n</html>";
 
     if (!request.getReturnUrl().empty()) {
         this->statusCode = request.getReturnCode();

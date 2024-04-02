@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tools.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/29 01:05:31 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/29 01:06:46 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/01 22:51:15 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,3 +19,6 @@ std::string intToString(size_t num);
 size_t get_size_fd(std::string fileD);
 bool isDirectory(const char* path);
 bool isRegularFile(const char* path);
+int hexToDec( std::string hexVal );
+std::string stringToAscii( std::string const &str );
+void urlDecoding( std::string &url );

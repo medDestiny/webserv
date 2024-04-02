@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetMethod.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 23:05:33 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/04/02 02:54:52 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 03:57:20 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int Request::checkFile( Conf::Server & server, Response & response ) {
         response.setStatusCode( 404 );
         return (0);
     }
-    else if (access(this->path.c_str(), R_OK) == -1) {
+    if (access(this->path.c_str(), R_OK) == -1) {
         response.setStatusCode( 403 );
         return (0);
     }
@@ -54,12 +54,12 @@ int Request::checkFile( Conf::Server & server, Response & response ) {
     return (1);
 }
 
-int Request::checkDirectory( Conf::Server & server, Response & response ) {
+int Request::checkDirectory( Conf::Server & server, Response & response, std::string const & absolutePath ) {
 
     if (this->checkLocation)
-        this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
+        this->path = getIndex(this->location.getIndex().getIndexes(), absolutePath);
     else
-        this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
+        this->path = getIndex(server.getIndex().getIndexes(), absolutePath);
     if (this->path.empty() || isDirectory(this->path.c_str())) {
         bool checkAutoIndex = server.getAutoIndex().getToggle();
         if (this->checkLocation)

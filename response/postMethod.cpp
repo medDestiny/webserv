@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 13:01:48 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 02:48:49 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,7 +157,7 @@ int  Response::createFileAndWrite( std::string const &str, Request const &reques
                 }
             } 
 
-            this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+            this->fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
             if ( fd == -1 ) {
                 std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
                 this->setStatusCode( 500 );
@@ -213,7 +213,7 @@ int  Response::openFile( Request const &request, Conf::Server const &server ) {
         }
     }
 
-    this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+    this->fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
     if ( fd == -1 ) {
         std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
         this->setStatusCode( 500 );
@@ -469,7 +469,7 @@ int Response::parseEncodingBodyCgi( Request const &request ) {
     if ( find != std::string::npos ) {
         
         buffer = this->body.substr( 0, find );
-        lengthToRead = hexadecimalToDecimal( buffer );
+        lengthToRead = hexToDec( buffer );
         this->body.erase( 0, find + 2 );
         chunked = this->body.substr( 0, lengthToRead );
         this->cgiBody += chunked;
@@ -496,7 +496,7 @@ int Response::parseEncodingBody( Request const &request, Conf::Server const &ser
     if ( find != std::string::npos ) {
 
         buffer = this->body.substr( 0, find );
-        lengthToRead = hexadecimalToDecimal( buffer );
+        lengthToRead = hexToDec( buffer );
         this->body.erase( 0, find + 2 );
         chunked = this->body.substr( 0, lengthToRead );
         if ( chunked.find( request.getStartBoundary() ) != std::string::npos &&
@@ -583,45 +583,4 @@ int Response::execPostMethod( Request &request, Conf::Server const &server ) {
 			return 2;
     }
     return 1;
-}
-
-// ---------------------------------- //
-int hexadecimalToDecimal( std::string hexVal ) {
-
-    int len = hexVal.size();
-    int base = 1;
-    int dec_val = 0;
-
-    for (int i = len - 1; i >= 0; i--) {
-
-        if (hexVal[i] >= '0' && hexVal[i] <= '9') {
-
-            dec_val += (int(hexVal[i]) - 48) * base;
-            base = base * 16;
-            
-        } else if (hexVal[i] >= 'a' && hexVal[i] <= 'f') {
-
-            dec_val += (int(hexVal[i]) - 87) * base;
-            base = base * 16;
-        } else if (hexVal[i] >= 'A' && hexVal[i] <= 'F') {
-
-            dec_val += (int(hexVal[i]) - 55) * base;
-            base = base * 16;
-        } 
-    }
-    return dec_val;
-}
-
-std::string stringToAscii( std::string const &str ) {
-
-    std::string ascii;
-
-    for ( size_t i = 0; i < str.size(); i++ ) {
-
-        std::stringstream stream;
-        stream << static_cast<int>( str[i] );
-        ascii += stream.str();
-    }
-
-    return ascii;
 }

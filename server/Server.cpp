@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 20:47:30 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 01:03:03 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,16 +180,14 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
 
     client.setsockfd( sockfd );
     client.settimeout( std::time(NULL) );
+    client.setDefaultServer( server );
+    client.setserver( server );
+    client.setConfig( config );
 
     if ( clients.size() == 0 ) {
 
         std::cout << DMAGENTA << "\t-> add first client" << RESET << std::endl;
         clients[sockfd] = client;
-        std::map<int, Client>::iterator clientit = clients.find( sockfd );
-        if ( clientit != clients.end() ) {
-            clientit->second.setserver( server );
-            clientit->second.setConfig( config );
-		}
     } else {
 
         it = clients.find( sockfd );
@@ -197,11 +195,6 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
 
             std::cout << MAGENTA << "\t-> add more clients" << RESET << std::endl;
             clients[sockfd] = client;
-            std::map<int, Client>::iterator clientit = clients.find( sockfd );
-            if ( clientit != clients.end() ) {
-                clientit->second.setserver( server );
-                clientit->second.setConfig( config );
-            }
         }
     }
 }
@@ -298,8 +291,16 @@ void Server::mainpoll( void ) {
           
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
-        } else
+        } else {
+            
+            itClient = clients.find( pfds[i].fd );
+            if ( itClient != clients.end() && !itClient->second.getRequest().getRecString().empty() && !itClient->second.getEndRecHeader() ) { // bad request
+
+                itClient->second.getResponse().setStatusCode( 400 );
+                pfds[i].events = POLLOUT;
+            }
             this->checkclienttimeout();
+        }
         Session::deleteSessionIdTimeOut();
     }
 }

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 02:30:28 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 03:18:05 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,13 +244,13 @@ void		Request::setCgiFiles(std::string const & suffix) { cgi.setFiles(suffix); }
 bool		Request::isCgi(void) const { return (cgi.isSet()); }
 Cgi &		Request::getCgi(void) { return (cgi); }
 
-int Request::parseRequestLine( Config conf, Conf::Server & server, Response & response ) {
+int Request::parseRequestLine( Config conf, Conf::Server & server, Conf::Server & defaultServer, Response & response ) {
 
     std::string requestLine;
 	std::istringstream headerStream(this->header);
 
     std::string host = getValue("Host:");
-    server = conf.getServer(server, host);
+    server = conf.getServer(defaultServer, host);
 
     //get request line "GET / HTTP/1.1"
 	std::getline(headerStream, requestLine);
@@ -262,6 +262,7 @@ int Request::parseRequestLine( Config conf, Conf::Server & server, Response & re
 	std::getline(methodStream, this->method, ' ');
 	std::getline(methodStream, this->path, ' ');
   
+    urlDecoding( this->path );
     this->url = this->path;
     std::getline(methodStream, this->httpVersion, '\r');
     // check httpVersion is valid
@@ -309,9 +310,9 @@ int Request::setMapRequestLines( Response & response ) {
     return (1);
 }
 
-int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & response ) {
+int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Server & defaultServer, Response & response ) {
 
-    if ( !this->parseRequestLine(conf, server, response) )
+    if ( !this->parseRequestLine(conf, server, defaultServer, response) )
         return (0);
 
     // get location
@@ -390,7 +391,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
             absolutPAth = server.getRoot().getPath() + this->url;
         if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
 
-            if ( !this->checkDirectory( server, response ) )
+            if ( !this->checkDirectory( server, response, absolutPAth ) )
                 return (0);
         }
         else {

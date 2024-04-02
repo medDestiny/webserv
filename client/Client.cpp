@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 20:47:37 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 00:47:39 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Client	&Client::operator=(Client const & obj) {
         this->sockfd = obj.sockfd;
         this->timeout = obj.timeout;
         this->server = obj.server;
+        this->defaultServer = obj.defaultServer;
         this->config = obj.config;
     }
     return (*this);
@@ -83,6 +84,26 @@ void Client::setEndRecHeader( bool endRecHeader ) {
     this->endRecHeader = endRecHeader;
 }
 
+Conf::Server const &Client::getDefaultServer( void ) const {
+    
+    return this->defaultServer;
+}
+
+void Client::setDefaultServer( Conf::Server const &server ) {
+    
+    this->defaultServer = server;
+}
+
+Response &Client::getResponse( void ) {
+
+    return this->response;
+}
+
+Request Client::getRequest( void ) const {
+
+    return this->request;
+}
+
 int Client::recieveRequest() {
 
     int status;
@@ -103,7 +124,7 @@ int Client::recieveRequest() {
             
             if (this->request.setRequestHeader()) {
 				this->request.setCgiFiles(intToString(this->sockfd));
-                if ( !this->request.parseRequestHeader(this->config, this->server, this->response)) {
+                if ( !this->request.parseRequestHeader(this->config, this->server, this->defaultServer, this->response)) {
                     return (0); // error
                 }
                 
@@ -129,12 +150,14 @@ int Client::recieveRequest() {
                     return 0; // error Content-Length required
                 }
             }
-            
+   
             // invalid header *error*
-            if (recieved < SENDED && this->request.getHeader().empty()) {
-                this->response.setStatusCode( 400 );
-                return (0); // error
-            }
+            // if (recieved < SIZE && this->request.getHeader().empty()) {
+                
+            //     std::cout << "hello" << std::endl;
+            //     this->response.setStatusCode( 400 );
+            //     return (0); // error
+            // }
 
         }
         else {
