@@ -4,7 +4,7 @@ server {
 	server_name test1;
 	listen	localhost:8080;
 	client_max_body_size	20000M;
-	root	/;
+	root	/Users/del-yaag/Desktop/web-server;
 	index index.html;
 	upload_store /tmp;
 	error_page 404 /tmp/error.html;
