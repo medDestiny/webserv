@@ -7,15 +7,23 @@ server {
 	root	/;
 	index index.html;
 	upload_store /tmp;
-	error_page 404 /tp/error.html;
+	error_page 404 /tmp/error.html;
 
-	# location / {
-	# 	root /Users/del-yaag/Desktop/web-server;
-	# 	cgi_pass .sh /bin/bash;
-	# 	cgi_pass .cgi;
-	# 	cgi_pass .out;
-	# 	limit_except GET POST;
-	# }
+	location /cgiScript {
+		root /Users/del-yaag/Desktop/web-server;
+		cgi_pass .sh /bin/bash;
+		cgi_pass .cgi;
+		cgi_pass .out;
+		limit_except GET POST;
+	}
+
+	location /a.out {
+		root /Users/del-yaag/Desktop/web-server/cgiScript;
+		cgi_pass .sh /bin/bash;
+		cgi_pass .cgi;
+		cgi_pass .out;
+		limit_except GET POST;
+	}
 
 	# location /flexbox {
 	# 	root	/Users/del-yaag/Desktop/server;
