@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/01 22:49:55 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 02:48:49 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,7 +157,7 @@ int  Response::createFileAndWrite( std::string const &str, Request const &reques
                 }
             } 
 
-            this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+            this->fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
             if ( fd == -1 ) {
                 std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
                 this->setStatusCode( 500 );
@@ -213,7 +213,7 @@ int  Response::openFile( Request const &request, Conf::Server const &server ) {
         }
     }
 
-    this->fd = open( path.c_str(), O_WRONLY | O_CREAT, 0644 );
+    this->fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
     if ( fd == -1 ) {
         std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
         this->setStatusCode( 500 );

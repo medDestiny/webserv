@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:22 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/01 22:50:43 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 03:46:02 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@
 #include "../server/Colors.hpp"
 #include "../config/Location.hpp"
 
-#define SENDED 1000000
+#define SENDED 1024
 #define CHUNKED 2621440
 
 class Request;

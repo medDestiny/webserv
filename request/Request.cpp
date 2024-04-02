@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/01 23:23:29 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 03:18:05 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -389,7 +389,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Serve
             absolutPAth = server.getRoot().getPath() + this->url;
         if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
 
-            if ( !this->checkDirectory( server, response ) )
+            if ( !this->checkDirectory( server, response, absolutPAth ) )
                 return (0);
         }
         else {

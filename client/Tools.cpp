@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 23:05:58 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/04/01 22:50:01 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 01:44:13 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ size_t get_size_fd(std::string fileD) {
 	struct stat fileStat;
 
 	if (lstat(fileD.c_str(), &fileStat) != 0) {
-		std::cout << "error getSize\n";
+		// std::cout << "error getSize\n";
 		return (-1);
 	}
 	return (fileStat.st_size);
@@ -39,7 +39,7 @@ size_t get_size_fd(std::string fileD) {
 bool isDirectory(const char* path) {
     struct stat pathStat;
     if (stat(path, &pathStat) != 0) {
-		std::cout << "error isDirectory\n";
+		// std::cout << "error isDirectory\n";
         return false;
     }
     return S_ISDIR(pathStat.st_mode);

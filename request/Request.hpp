@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/01 20:53:54 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 03:18:20 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,7 +152,7 @@ class Request {
         // Get Method
         void getRange( void );
         int checkFile( Conf::Server & server, Response & response );
-        int checkDirectory( Conf::Server & server, Response & response );
+        int checkDirectory( Conf::Server & server, Response & response, std::string const & absolutePath );
 
         // ------------- POST ------------- //
         int parsePostBody( std::string const &buffer );
