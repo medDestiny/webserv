@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 23:05:33 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/03/24 21:15:17 by amoukhle         ###   ########.fr       */
+/*   Updated: 2024/04/02 02:54:52 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ int Request::checkDirectory( Conf::Server & server, Response & response ) {
         this->path = getIndex(this->location.getIndex().getIndexes(), this->location.getRoot().getPath() + this->stringLocation);
     else
         this->path = getIndex(server.getIndex().getIndexes(), server.getRoot().getPath());
-    if (this->path.empty()) {
+    if (this->path.empty() || isDirectory(this->path.c_str())) {
         bool checkAutoIndex = server.getAutoIndex().getToggle();
         if (this->checkLocation)
             checkAutoIndex = this->location.getAutoIndex().getToggle();

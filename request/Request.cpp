@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 12:58:51 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 02:30:28 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,16 +322,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
         this->checkLocation = true;
     }
 
-    // get return
-    if (this->checkLocation) {
-        this->returnCode = this->location.getReturn().getCode();
-        this->returnUrl = this->location.getReturn().getUrl();
-    }
-    else {
-        this->returnCode = server.getReturn().getCode();
-        this->returnUrl = server.getReturn().getUrl();
-    }
-
     // check method is valid !!!!!!
     if ( !this->checkMethod( response ) )
         return (0);
@@ -358,6 +348,18 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Response & 
 
     if ( this->method == "POST" )
         this->parsePostHeader();
+
+    // get return
+    if (this->checkLocation) {
+        this->returnCode = this->location.getReturn().getCode();
+        this->returnUrl = this->location.getReturn().getUrl();
+    }
+    else {
+        this->returnCode = server.getReturn().getCode();
+        this->returnUrl = server.getReturn().getUrl();
+    }
+	if (!this->returnUrl.empty())
+		return (1);
 
 	// detect cgi requests
     if (this->checkLocation && !itLocation->second.getCgiPass().empty())

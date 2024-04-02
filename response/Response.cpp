@@ -6,7 +6,7 @@
 /*   By: amoukhle <amoukhle@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 05:11:04 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 02:40:18 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,6 +251,16 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
     std::string headerResponse;
+
+    if (!request.getReturnUrl().empty()) {
+    	headerResponse += statusLine + "\r\nConnection: " + request.getConnection();
+        headerResponse += "\r\nLocation: " + request.getReturnUrl() + "\r\n\r\n";
+
+    	ssize_t sended;
+    	sended = send( sockfd, ( headerResponse.c_str() ), headerResponse.length(), 0 );
+    	return (sended);
+    }
+
     headerResponse = statusLine + "\r\nContent-Type: " + this->mimeType + "\r\nContent-Length: ";
     if (!request.getRangeStart().empty()) {
         headerResponse += intToString( request.getRangeEndNum() - request.getRangeStartNum() + 1 ) + "\r\nAccept-Ranges: bytes";
@@ -266,9 +276,6 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
     headerResponse += "\r\nConnection: " + request.getConnection();
     if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
         headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
-    }
-    else if (!request.getReturnUrl().empty()) {
-        headerResponse += "\r\nLocation: " + request.getReturnUrl();
     }
     // test
     // headerResponse += "\r\nSet-Cookie: session-id=1234";
@@ -295,6 +302,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
     char buffer[SENDED];
     char bufferS[1000000];
     ssize_t sended = 0;
+
     // --------seek the file-------- //
     if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {
         size_t bufferSize = 1000000;
@@ -304,10 +312,11 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
         this->countBytesRead += bytesRead;
     }
     else { // --------read file to send----------//
-        size_t bytesRead = read(this->file, buffer, SENDED);
+        ssize_t bytesRead = read(this->file, buffer, SENDED);
         if (bytesRead < SENDED)
             buffer[bytesRead] = '\0';
         this->contentResponse += bytesRead;
+		std::cout << bytesRead << std::endl;
         std::string message = std::string(buffer, bytesRead);
         
         // std::string tmp = message;

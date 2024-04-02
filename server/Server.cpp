@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/03/31 06:49:59 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/03/31 20:47:30 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,8 +186,10 @@ void Server::addclients( int const &sockfd, Conf::Server const &server ) {
         std::cout << DMAGENTA << "\t-> add first client" << RESET << std::endl;
         clients[sockfd] = client;
         std::map<int, Client>::iterator clientit = clients.find( sockfd );
-        if ( clientit != clients.end() )
+        if ( clientit != clients.end() ) {
             clientit->second.setserver( server );
+            clientit->second.setConfig( config );
+		}
     } else {
 
         it = clients.find( sockfd );
