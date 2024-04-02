@@ -6,12 +6,14 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:43:33 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/06 20:10:12 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 16:54:00 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PARSER_HPP
 # define PARSER_HPP
+
+# define DEFAULT_CONF "conf"
 
 #include <exception>
 #include <string>
@@ -21,7 +23,7 @@ class	Config;
 class	Parser
 {
 	public:
-		static Config	importConfig(char const *path);
+		static Config	importConfig(std::string const & path);
 
 	class	Error : public std::exception
 	{

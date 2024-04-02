@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 18:12:49 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/15 17:38:46 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 16:58:03 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,7 +217,7 @@ void	Index::addIndexes(std::vector<std::string> indexes)
 std::vector<std::string> const &	Index::getIndexes(void) const { return (_index); }
 
 /* UploadStore member functions */
-UploadStore::UploadStore(void) { _path = DEFAULT_UPLOAD_PATH; }
+UploadStore::UploadStore(void) { }
 
 UploadStore::UploadStore(UploadStore const & src) { *this = src; }
 

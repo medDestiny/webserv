@@ -20,16 +20,19 @@
 int	main(int ac, char **av)
 {
 	signal(SIGPIPE, SIG_IGN);
-	if (ac != 2)
-		return (1);
 
-	Config	config = Parser::importConfig(av[1]);
-	Server serv( config ); 
-	
-	// config.print();
+	std::string	conf = DEFAULT_CONF;
+	if (ac > 2)
+		return (1);
+	else if (ac == 2)
+		conf = av[1];
+
+	Config	config = Parser::importConfig(conf);
 	if (!config.isValid())
 		return (1);
+	config.print();
 
+	Server serv( config ); 
 	std::cout << std::endl << BLUE << "--------> servers:" << RESET <<  std::endl; 
 	serv.createServer(); 
 }
