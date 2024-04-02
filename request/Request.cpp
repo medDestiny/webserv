@@ -323,16 +323,6 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Serve
         this->checkLocation = true;
     }
 
-    // get return
-    if (this->checkLocation) {
-        this->returnCode = this->location.getReturn().getCode();
-        this->returnUrl = this->location.getReturn().getUrl();
-    }
-    else {
-        this->returnCode = server.getReturn().getCode();
-        this->returnUrl = server.getReturn().getUrl();
-    }
-
     // check method is valid !!!!!!
     if ( !this->checkMethod( response ) )
         return (0);
@@ -359,6 +349,18 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Serve
 
     if ( this->method == "POST" )
         this->parsePostHeader();
+
+    // get return
+    if (this->checkLocation) {
+        this->returnCode = this->location.getReturn().getCode();
+        this->returnUrl = this->location.getReturn().getUrl();
+    }
+    else {
+        this->returnCode = server.getReturn().getCode();
+        this->returnUrl = server.getReturn().getUrl();
+    }
+	if (!this->returnUrl.empty())
+		return (1);
 
 	// detect cgi requests
     if (this->checkLocation && !itLocation->second.getCgiPass().empty())

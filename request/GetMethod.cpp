@@ -60,7 +60,7 @@ int Request::checkDirectory( Conf::Server & server, Response & response, std::st
         this->path = getIndex(this->location.getIndex().getIndexes(), absolutePath);
     else
         this->path = getIndex(server.getIndex().getIndexes(), absolutePath);
-    if (this->path.empty()) {
+    if (this->path.empty() || isDirectory(this->path.c_str())) {
         bool checkAutoIndex = server.getAutoIndex().getToggle();
         if (this->checkLocation)
             checkAutoIndex = this->location.getAutoIndex().getToggle();

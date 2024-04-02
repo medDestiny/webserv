@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 00:57:01 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 01:49:34 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,6 +260,18 @@ void				Cgi::launch(std::string const & sessionId, std::string const & cookie)
 	_started = true;
 }
 
+std::string	getCurrentDir(std::string const & root, std::string location, std::string const & url, std::string const & script)
+{
+	std::string	cwd;
+
+	if (location.back() == '/')
+		location.pop_back();
+	cwd = root + location + url;
+	cwd = cwd.substr(0, cwd.find(script));
+
+	return (cwd);
+}
+
 bool	Request::handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response)
 {
 	if (this->method == "DELETE")
@@ -274,14 +286,8 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & loc
 	}
 
 	std::string	script = getScriptName(path);
-	std::string	cwd;
-	if (!isDirectory(location.c_str()))
-		cwd = root + '/';
-	else
-		cwd = root + location;
-
-	std::cout << "cwd: " << cwd + this->url << std::endl;
-	std::cout << "script: " << script << std::endl;
+	std::string	cwd = getCurrentDir(root, location, this->url, script);
+  
 	if (access((cwd + script).c_str(), F_OK) != 0)
 	{
 		response.setStatusCode(404);
