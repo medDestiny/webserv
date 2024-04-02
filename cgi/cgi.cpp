@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 01:49:34 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 16:00:06 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,9 +266,9 @@ std::string	getCurrentDir(std::string const & root, std::string location, std::s
 
 	if (location.back() == '/')
 		location.pop_back();
-	cwd = root + location + url;
+	cwd = root + url; // still need some tests **
 	cwd = cwd.substr(0, cwd.find(script));
-
+	
 	return (cwd);
 }
 
