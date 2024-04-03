@@ -3,6 +3,7 @@ server {
 	listen localhost;
 	
 	location / {
+		root /Users/mmisskin/goinfre;
 		cgi_pass .sh /bin/bash;
 		cgi_pass .py /usr/bin/python3;
 		cgi_pass .cgi;
