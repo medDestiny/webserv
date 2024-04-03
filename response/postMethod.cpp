@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 22:04:24 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 23:03:30 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,14 +224,14 @@ int  Response::openFile( Request const &request, Conf::Server const &server ) {
 
 int Response::openCgiFile( std::string const &path, std::string const &body ) {
 
-    int fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
+    this->fd = open( path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644 );
     if ( fd == -1 ) {
 
         std::cerr << RED << "\tERROR: open: cannot open " << path << RESET << std::endl;
         this->setStatusCode( 500 );
         return 0;
     }
-    int bytes = write( fd, body.c_str(), body.size() );
+    int bytes = write( this->fd, body.c_str(), body.size() );
     if ( bytes == -1 ) {
 
         close( fd );

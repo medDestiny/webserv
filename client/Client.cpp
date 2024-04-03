@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 22:10:24 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/03 01:18:47 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,6 +203,9 @@ int Client::checkErrorCases( void ) {
     ssize_t sended = this->response.sendBody( this->sockfd, this->request );
     if ( (int)sended == -1 ) {
 
+        close(this->response.getFile());
+        if (this->request.isCgi())
+            remove(this->request.getCgi().getCgiOutFile().c_str());
         this->response.setStatusCode( 500 );
         return 1;
     }
