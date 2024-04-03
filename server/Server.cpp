@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 20:56:13 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/03 01:24:12 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,6 +250,7 @@ void Server::mainpoll( void ) {
     this->pollwithtimeout();
     for ( size_t i = 0; i < pfds.size(); i++ ) {
         it = serverfds.find( pfds[i].fd );
+        itClient = clients.find( pfds[i].fd );
         if ( pfds[i].revents == POLLIN ) {
             if ( it != serverfds.end() ) {
                 if ( this->acceptconnections( pfds[i].fd, it->second ) == -1 )
@@ -257,8 +258,6 @@ void Server::mainpoll( void ) {
             } else {
 
                 // POLLIN revent int the clients side
-                itClient = clients.find( pfds[i].fd );
-                // itClient->second.settimeout( std::time(NULL) );
                 if ( itClient->second.recieveRequest() == 0 ) {
                     pfds[i].events = POLLOUT;
                 }
@@ -271,7 +270,6 @@ void Server::mainpoll( void ) {
             } else {
                 // POLLOUT revents in the clients side
                 int var;
-                itClient = clients.find( pfds[i].fd );
                 itClient->second.settimeout( std::time(NULL) );
                 var = itClient->second.sendresponse();
                 if ( !var ) {
@@ -289,11 +287,15 @@ void Server::mainpoll( void ) {
             }
         } else if ( pfds[i].revents == POLLHUP ) {
           
+            close(itClient->second.getResponse().getFile());
+            
+            // if (itClient->second.getRequest().isCgi())
+            //     remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
+                
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
         } else {
             
-            itClient = clients.find( pfds[i].fd );
             if ( itClient != clients.end() && !itClient->second.getRequest().getRecString().empty() && !itClient->second.getEndRecHeader() ) { // bad request
 
                 itClient->second.getResponse().setStatusCode( 400 );
@@ -320,6 +322,7 @@ void Server::checkclienttimeout( void ) {
             if ( diff >= 10 ) {
 
                 this->searchandremovepollclient( it->second.getsockfd() );
+                close(it->second.getResponse().getFile());
                 clients.erase( it );
                 // std::cout << clients.size() << " " << pfds.size();
                 printinvalidopt( "-> client has been deleted " );
