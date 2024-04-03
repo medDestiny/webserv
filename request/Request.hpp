@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 03:18:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:42:58 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ class Request {
         void    setCookie( std::string const cookie );
 
 		/* cgi functions */
-		bool		handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response);
+		bool		handleCgiRequest(std::string const & root, std::string const & cgi, Response & response);
 		void		setCgiFiles(std::string const & suffix);
 		bool		isCgi(void) const;
 		Cgi &		getCgi(void);

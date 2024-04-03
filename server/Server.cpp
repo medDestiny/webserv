@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 20:56:13 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:57:36 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -289,6 +289,7 @@ void Server::mainpoll( void ) {
             }
         } else if ( pfds[i].revents == POLLHUP ) {
           
+			std::cout <<pfds[i].fd<<std::endl;
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
         } else {
