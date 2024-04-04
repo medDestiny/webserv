@@ -19,6 +19,7 @@
 
 int	main(int ac, char **av)
 {
+
 	signal(SIGPIPE, SIG_IGN);
 
 	std::string	conf = DEFAULT_CONF;

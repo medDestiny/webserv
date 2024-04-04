@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 00:03:33 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 00:41:23 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,6 +167,10 @@ void Server::addpollservers( void ) {
 
 void Server::addpollclients( int const &fd ) {
 
+    std::vector<struct pollfd>::iterator it = this->pfds.begin();
+    for ( ; it != pfds.end(); it++ )
+        if ( it->fd == fd )
+            return ;
     struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLIN;
@@ -248,6 +252,8 @@ void Server::mainpoll( void ) {
     std::map<int, Client>::iterator itClient;
     
     this->pollwithtimeout();
+    // std::cout << "poll: " << pfds.size() << std::endl;
+    // std::cout << "client: " << clients.size() << std::endl;
     for ( size_t i = 0; i < pfds.size(); i++ ) {
         it = serverfds.find( pfds[i].fd );
         itClient = clients.find( pfds[i].fd );
