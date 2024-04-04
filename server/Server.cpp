@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 00:41:23 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 02:51:34 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -296,7 +296,13 @@ void Server::mainpoll( void ) {
             close(itClient->second.getResponse().getFile());
             
            if (itClient->second.getRequest().isCgi())
-               remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
+		   {
+				remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
+				if (itClient->second.getRequest().getMethod() == "POST") {
+					remove(itClient->second.getRequest().getCgi().getCgiInFile().c_str());
+					close(itClient->second.getRequest().getCgi().getCgiStdErr());
+				}
+		   }
                 
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
