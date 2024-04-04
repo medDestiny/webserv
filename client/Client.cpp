@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 03:11:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 18:40:50 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,30 +198,30 @@ int Client::recieveRequest() {
 	return (1); // still read request
 }
 
-int Client::checkErrorCases( void ) {
-	
-	ssize_t sended = this->response.sendBody( this->sockfd, this->request );
-	if ( (int)sended == -1 ) {
+int Client::sendFileChunks( void ) {
+    
+    ssize_t sended = this->response.sendBody( this->sockfd, this->request );
+    if ( (int)sended == -1 ) {
 
-		close(this->response.getFile());
-		if (this->request.isCgi())
-			remove(this->request.getCgi().getCgiOutFile().c_str());
-		this->response.setStatusCode( 500 );
-		return 1;
-	}
-	if ( (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-		close(this->response.getFile());
-		if (this->request.isCgi())
-			remove(this->request.getCgi().getCgiOutFile().c_str());
-		return (0);
-	}
-	if (response.getContentResponse() == response.getContentLength()) {
-		close(this->response.getFile());
-		if (this->request.isCgi())
-			remove(this->request.getCgi().getCgiOutFile().c_str());
-		return (2); // change to PULLIN
-	}
-	return (1);
+        close(this->response.getFile());
+        if (this->request.isCgi())
+            remove(this->request.getCgi().getCgiOutFile().c_str());
+        this->response.setStatusCode( 500 );
+        return 1;
+    }
+    if ( (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+        close(this->response.getFile());
+        if (this->request.isCgi())
+            remove(this->request.getCgi().getCgiOutFile().c_str());
+        return (0);
+    }
+    if (response.getContentResponse() == response.getContentLength()) {
+        close(this->response.getFile());
+        if (this->request.isCgi())
+            remove(this->request.getCgi().getCgiOutFile().c_str());
+        return (2); // change to PULLIN
+    }
+    return (1);
 }
 
 int Client::sendresponse() {
@@ -250,33 +250,20 @@ int Client::sendresponse() {
 
 	if (this->request.getMethod() == "GET") {
 
-		if (this->response.getSendedHeader()) {
-			// ssize_t sended = this->response.sendBody( this->sockfd, this->request );
-			// if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-			// 	close(this->response.getFile());
-			// 	if (this->request.isCgi())
-			// 		remove(this->request.getCgi().getCgiOutFile().c_str());
-			//     return (0);
-			// }
-			// if (response.getContentResponse() == response.getContentLength()) {
-			// 	close(this->response.getFile());
-			// 	if (this->request.isCgi())
-			// 		remove(this->request.getCgi().getCgiOutFile().c_str());
-			//     return (2); // change to PULLIN
-			// }
-			return this->checkErrorCases();
-		}
-		else {
-			ssize_t sended = this->response.sendHeader( this->sockfd, this->request );
-			if ( (int)sended == -1) {
-				response.setStatusCode( 500 );
-				return (1); // remove client and fd
-			}
-			else
-				response.setSendedHeader( true );
-		}
-	}
-	else if (this->request.getMethod() == "POST") {
+        if (this->response.getSendedHeader()) {
+            return this->sendFileChunks();
+        }
+        else {
+            ssize_t sended = this->response.sendHeader( this->sockfd, this->request );
+            if ( (int)sended == -1) {
+                response.setStatusCode( 500 );
+                return (1); // remove client and fd
+            }
+            else
+                response.setSendedHeader( true );
+        }
+    }
+    else if (this->request.getMethod() == "POST") {
 
 		int status = -1;
 	   	if (!this->response.getSendedHeader())
@@ -284,22 +271,9 @@ int Client::sendresponse() {
 
 		if (this->request.isCgi())
 		{
-			if (this->response.getSendedHeader()) {
-				// ssize_t sended = this->response.sendBody( this->sockfd, this->request );
-				// if ((int)sended == -1 || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
-				// 	close(this->response.getFile());
-				// 	if (this->request.isCgi())
-				// 		remove(this->request.getCgi().getCgiOutFile().c_str());
-				//     return (0);
-				// }
-				// if (response.getContentResponse() == response.getContentLength()) {
-				// 	close(this->response.getFile());
-				// 	if (this->request.isCgi())
-				// 		remove(this->request.getCgi().getCgiOutFile().c_str());
-				//     return (2); // change to PULLIN
-				// }
-				return this->checkErrorCases();
-			}
+        	if (this->response.getSendedHeader()) {
+            	return this->sendFileChunks();
+        	}
 			return (1);
 		}
 
