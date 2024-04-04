@@ -134,7 +134,7 @@ class Request {
 		void    setCookie( std::string const cookie );
 
 		/* cgi functions */
-		bool		handleCgiRequest(std::string const & root, std::string const & location, std::string const & cgi, Response & response);
+		bool		handleCgiRequest(std::string const & root, std::string const & cgi, Response & response);
 		void		setCgiFiles(std::string const & suffix);
 		bool		isCgi(void) const;
 		Cgi &		getCgi(void);

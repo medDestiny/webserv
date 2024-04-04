@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 15:55:57 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/02 18:15:58 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,7 @@ void	ParseServerName(ServerName & server_name, std::vector<Token> & Tokens)
 		throw Parser::Error("invalid number of arguments in server_name");
 }
 
-void	ParseErrorPage(ErrorPage &error_pages, std::vector<Token> & Tokens)
+void	ParseErrorPage(ErrorPage & error_pages, std::vector<Token> & Tokens)
 {
 	std::string		code;
 	std::string		path;
@@ -609,9 +609,12 @@ bool	Parse(Config & config, std::vector<Token> & Tokens)
 		}
 		else
 		{
-			std::cerr << "unknown directive in main context: " 
+			std::cerr << RED
+			<< "[emerg] unknown directive in main context: " 
 			<< Tokens.front().content() << " (line: "
-			<< Tokens.front().line() << ")"<< std::endl;
+			<< Tokens.front().line() << ")"
+			<< RESET
+			<< std::endl;
 			return (false);
 		}
 	}
@@ -684,23 +687,23 @@ std::vector<Token>	Tokenize(std::ifstream & configFile)
 	return (Tokens);
 }
 
-Config	Parser::importConfig(char const *path)
+Config	Parser::importConfig(std::string const & path)
 {
 	Config			config;
 	std::ifstream	configFile(path);
 
 	if (configFile.is_open() == false)
+	{
+		std::cerr << "webserv: failed to open config file: " << path << std::endl;
 		return (config);
+	}
 
 	std::vector<Token>	Tokens = Tokenize(configFile);
-	/* for (std::vector<Token>::iterator it = Tokens.begin(); it != Tokens.end(); it++) */
-	/* { */
-	/* 	std::cout << it->content() << std::endl; */
-	/* } */
-	/* exit(0); */
 	if (!Parse(config, Tokens))
 		return (config);
 
-	config.setAsValid();
-	return (config);
+	if (!config.getServers().size())
+		config.addServer(Server());
+
+	return (config.setAsValid(), config);
 }

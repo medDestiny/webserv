@@ -7,75 +7,14 @@ server {
 	upload_store /tmp;
 	error_page 404 /tmp/index.html;
 
-	location /cgiScript {
-		root /Users/del-yaag/Desktop/web-server;
+
+	listen localhost;
+	
+	location / {
+		root /Users/mmisskin/goinfre;
 		cgi_pass .sh /bin/bash;
+		cgi_pass .py /usr/bin/python3;
 		cgi_pass .cgi;
-		cgi_pass .out;
-		limit_except GET POST;
 	}
-
-	location /a.out {
-		root /Users/del-yaag/Desktop/web-server/cgiScript;
-		cgi_pass .sh /bin/bash;
-		cgi_pass .cgi;
-		cgi_pass .out;
-		limit_except GET POST;
-	}
-
-	# location /flexbox {
-	# 	root	/Users/del-yaag/Desktop/server;
-	# 	cgi_pass .sh /bin/bash;
-	# 	cgi_pass .py /usr/bin/python;
-	# 	# index index.html;
-	# 	autoindex	on;
-	# }
-
-	# location /hh {
-
-	# 	return 302  https://www.google.com;
-	# }
-	# return 302 https://www.google.com;
-	autoindex	on;
+	autoindex on;
 }
-
-# server {
-# 	server_name test1;
-# 	listen	0.0.0.0:8080;
-# 	client_max_body_size	20000M;
-# 	root	/;
-# 	index index.html;
-# 	upload_store /tmp;
-# 	error_page 404 /tmp/index.html;
-
-# 	location /cgiScript {
-# 		root /Users/del-yaag/Desktop/web-server;
-# 		cgi_pass .sh /bin/bash;
-# 		cgi_pass .cgi;
-# 		cgi_pass .out;
-# 		limit_except GET POST;
-# 	}
-
-# 	location /a.out {
-# 		root /Users/del-yaag/Desktop/web-server/cgiScript;
-# 		cgi_pass .sh /bin/bash;
-# 		cgi_pass .cgi;
-# 		cgi_pass .out;
-# 		limit_except GET POST;
-# 	}
-
-# 	# location /flexbox {
-# 	# 	root	/Users/del-yaag/Desktop/server;
-# 	# 	cgi_pass .sh /bin/bash;
-# 	# 	cgi_pass .py /usr/bin/python;
-# 	# 	# index index.html;
-# 	# 	autoindex	on;
-# 	# }
-
-# 	# location /hh {
-
-# 	# 	return 302  https://www.google.com;
-# 	# }
-# 	# return 302 https://www.google.com;
-# 	autoindex	on;
-# }
