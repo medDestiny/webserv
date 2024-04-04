@@ -212,6 +212,10 @@ std::string Request::getCookie( void ) const {
 	
 	return (this->cookie);
 }
+
+std::string const &Request::getAbsolutePath(void) const {
+	return (this->absolutPath);
+}
 void    Request::setCookie( std::string const cookie ) {
 	
 	this->cookie = cookie;
@@ -370,45 +374,42 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Serve
 
 		if (extension != std::string::npos)
 			cgiExtension = this->path.substr(extension, this->path.find_first_of("?/", extension) - extension);
-		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
 		if (itLocation->second.getCgiPass().found(cgiExtension))
 		{
 			if (!handleCgiRequest(itLocation->second.getRoot().getPath(), itLocation->second.getCgiPass().getCgi(cgiExtension), response))
 				return (0);
-			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
 			this->cgi.enable();
 			return (1);
 		}
 	}
 
-	if (this->method == "GET") {
-		// check path is valid !!!!!
-		this->path.erase(0, 1);
-		std::string absolutPAth;
-		if (this->checkLocation)
-			absolutPAth = this->location.getRoot().getPath() + this->url;
-		else
-			absolutPAth = server.getRoot().getPath() + this->url;
-		if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
+    if (this->method == "GET") {
+        // check path is valid !!!!!
+        this->path.erase(0, 1);
+        if (this->checkLocation)
+            this->absolutPath = this->location.getRoot().getPath() + this->url;
+        else
+            this->absolutPath = server.getRoot().getPath() + this->url;
+        if (this->path.empty() || isDirectory(absolutPath.c_str())) {
 
-			if ( !this->checkDirectory( server, response, absolutPAth ) )
-				return (0);
-		}
-		else {
-			if ( !this->checkFile( server, response ) )
-				return (0);
-		}
+            if ( !this->checkDirectory( server, response ) )
+                return (0);
+        }
+        else {
+            if ( !this->checkFile( server, response ) )
+                return (0);
+        }
 
-		// get content length
-		response.setContentLength( get_size_fd(this->path) );
+        // get content length
+        response.setContentLength( get_size_fd(this->path) );
 
-		//get Range
-		this->getRange();
-	}
-	else if (this->method == "DELETE") {
-		this->path.erase(0, 1);
-		if ( !this->checkFile( server, response ) )
-				return (0);
+        //get Range
+        this->getRange();
+    }
+    else if (this->method == "DELETE") {
+        this->path.erase(0, 1);
+        if ( !this->checkFile( server, response ) )
+                return (0);
 	}
 
 	return (1);

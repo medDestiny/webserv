@@ -6,11 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2024/04/04 03:12:26 by del-yaag         ###   ########.fr       */
-=======
-/*   Updated: 2024/04/02 22:56:38 by mmisskin         ###   ########.fr       */
->>>>>>> d9b8f05e4bc1b3ce5a6c72a682207ec1be5b2542
+/*   Updated: 2024/04/04 02:57:37 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +18,7 @@
 
 # define CGIIN "/tmp/.cgiInput"
 # define CGIOUT "/tmp/.cgiOutput"
+# define CGI_TIMEOUT 15
 
 /* ********************************************* utility functions *************************************** */
 std::string	getIdentifier(std::string header)
@@ -223,11 +220,9 @@ void				Cgi::launch(std::string const & sessionId, std::string const & cookie)
 
 		char **av = Convert(_argv);
 
-		/* std::cerr << "before" << std::endl; */
 		close(end[0]);
 		dup2(end[1], STDERR_FILENO);
 		close(end[1]);
-		/* std::cerr << "after" << std::endl; */
 
 		if (_post)
 		{
@@ -304,14 +299,15 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & cgi
 int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 {
 	Cgi		cgi = request.getCgi();
-	char	tmp[1025] = {0};
-	int		err = read(cgi.getCgiStdErr(), tmp, 1024);
 
 	if (!cgi.isStarted())
 	{
 		response.setStatusCode(500);
 		return (1);
 	}
+
+	char	tmp[1025] = {0};
+	int		err = read(cgi.getCgiStdErr(), tmp, 1024);
 
 	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
 	{
@@ -324,7 +320,7 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 		else
 			response.setSendedHeader( true );
 	}
-	else if (std::time(NULL) - cgi.getCgiTime() >= 15 || err > 0)
+	else if (std::time(NULL) - cgi.getCgiTime() >= CGI_TIMEOUT || err > 0)
 	{
 		close(cgi.getCgiStdErr());
 		kill(cgi.getPid(), SIGTERM);

@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 03:05:56 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 01:00:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,54 +234,54 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
 
 ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
-	std::string statusLine;
+    std::string statusLine;
+	std::string absolutPath = request.getAbsolutePath();
 
-	// ----------status line----------- //
-	if (!request.getRangeStart().empty()) {
-		this->statusCode = 206;
-	}
-	std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
-	if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
-		this->statusCode = 302;
-	}
-	else if (!request.getReturnUrl().empty()) {
-		this->statusCode = request.getReturnCode();
-	}
+    // ----------status line----------- //
+    if (!request.getRangeStart().empty()) {
+        this->statusCode = 206;
+    }
 
-	statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
+    if (absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
+        this->statusCode = 301;
+    }
+    else if (!request.getReturnUrl().empty()) {
+        this->statusCode = request.getReturnCode();
+    }
 
-	std::string headerResponse;
+    statusLine = request.getHttpVersion() + " " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode);
 
-	if (!request.getReturnUrl().empty()) {
-		headerResponse += statusLine + "\r\nConnection: " + request.getConnection();
-		headerResponse += "\r\nLocation: " + request.getReturnUrl() + "\r\n\r\n";
+    std::string headerResponse;
 
-		ssize_t sended;
-		sended = send( sockfd, ( headerResponse.c_str() ), headerResponse.length(), 0 );
-		return (sended);
-	}
+    if (!request.getReturnUrl().empty()) {
+    	headerResponse += statusLine + "\r\nConnection: " + request.getConnection();
+        headerResponse += "\r\nLocation: " + request.getReturnUrl() + "\r\n\r\n";
 
-	headerResponse = statusLine + "\r\nContent-Type: " + this->mimeType + "\r\nContent-Length: ";
-	if (!request.getRangeStart().empty()) {
-		headerResponse += intToString( request.getRangeEndNum() - request.getRangeStartNum() + 1 ) + "\r\nAccept-Ranges: bytes";
-		headerResponse += "\r\nContent-Range: bytes " + request.getRangeStart() + "-" + request.getRangeEnd() + "/" + intToString( this->contentLength );
-		this->contentLength = request.getRangeEndNum() - request.getRangeStartNum() + 1;
-	}
-	else
-	{
-		headerResponse += intToString( this->contentLength );
-		if (mimeType.substr(0, mimeType.find('/')) == "video" || mimeType.substr(0, mimeType.find('/')) == "audio")
-			headerResponse += "\r\nAccept-Ranges: bytes";
-	}
-	headerResponse += "\r\nConnection: " + request.getConnection();
-	if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
-		headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
-	}
-	headerResponse += "\r\n\r\n";
+    	ssize_t sended;
+    	sended = send( sockfd, ( headerResponse.c_str() ), headerResponse.length(), 0 );
+    	return (sended);
+    }
 
-	ssize_t sended;
-	sended = send( sockfd, ( headerResponse.c_str() ), headerResponse.length(), 0 );
-	return (sended);
+    headerResponse = statusLine + "\r\nContent-Type: " + this->mimeType + "\r\nContent-Length: ";
+    if (!request.getRangeStart().empty()) {
+        headerResponse += intToString( request.getRangeEndNum() - request.getRangeStartNum() + 1 ) + "\r\nAccept-Ranges: bytes";
+        headerResponse += "\r\nContent-Range: bytes " + request.getRangeStart() + "-" + request.getRangeEnd() + "/" + intToString( this->contentLength );
+        this->contentLength = request.getRangeEndNum() - request.getRangeStartNum() + 1;
+    }
+    else
+    {
+        headerResponse += intToString( this->contentLength );
+        if (mimeType.substr(0, mimeType.find('/')) == "video" || mimeType.substr(0, mimeType.find('/')) == "audio")
+            headerResponse += "\r\nAccept-Ranges: bytes";
+    }
+    headerResponse += "\r\nConnection: " + request.getConnection();
+    if (absolutPath.back() != '/' && isDirectory(absolutPath.c_str()))
+        headerResponse += "\r\nLocation: " + request.getUrl() + "/";
+    headerResponse += "\r\n\r\n";
+
+    ssize_t sended;
+    sended = send( sockfd, ( headerResponse.c_str() ), headerResponse.length(), 0 );
+    return (sended);
 }
 
 ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
@@ -426,107 +426,107 @@ int Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reques
 
 int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Request request ) {
 
-	std::vector<std::string> fileNames;
-	DIR* dir;
-	struct dirent* entry;
-	std::string fullPath;
+    std::vector<std::string> fileNames;
+    DIR* dir;
+    struct dirent* entry;
+    std::string fullPath = request.getAbsolutePath();
 
-	if (request.getCheckLocation())
-		fullPath = request.getLocation().getRoot().getPath() + request.getUrl();
-	else
-		fullPath = server.getRoot().getPath() + request.getUrl();
-	dir = opendir(fullPath.c_str());
-	if (dir == NULL) {
-		this->statusCode = 500;
-		if (access(fullPath.c_str(), R_OK) == -1)
-			this->statusCode = 403;
-		return (0);
-	}
-	while ((entry = readdir(dir)) != NULL) {
-		std::string str = std::string(entry->d_name);
-			if (str != "." && str != "..")
-				fileNames.push_back( str );
-	}
-	closedir(dir);
+    dir = opendir(fullPath.c_str());
+    if (dir == NULL) {
+        this->statusCode = 500;
+        if (access(fullPath.c_str(), R_OK) == -1)
+            this->statusCode = 403;
+        return (0);
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        std::string str = std::string(entry->d_name);
+            if (str != "." && str != "..")
+                fileNames.push_back( str );
+    }
+    closedir(dir);
 
-	std::string body;
-	std::string header;
-	std::string message;
+    std::string body;
+    std::string header;
+    std::string message;
 
-	body += "<!DOCTYPE html>\n"
-		"<html lang=\"en\">\n"
-		"    <head>\n"
-		"        <meta charset=\"UTF-8\">\n"
-		"        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-		"        <title>Index Of</title>\n"
-		"        <style>\n"
-		"            :root{\n"
-		"                --primary-100:#1F3A5F;\n"
-		"                --primary-300:#acc2ef;\n"
-		"                --accent-100:#3D5A80;\n"
-		"                --accent-200:#cee8ff;\n"
-		"                --text-100:#FFFFFF;\n"
-		"                --text-200:#e0e0e0;\n"
-		"                --bg-100:#0F1C2E;\n"
-		"                --bg-200:#1f2b3e;\n"
-		"            }\n"
-		"            *{ margin: 0; padding: 0; font-family: Verdana, Geneva, Tahoma, sans-serif; box-sizing: border-box; }\n"
-		"            body{ background-color:  var(--bg-100); }\n"
-		"            h3{ padding: 15px; background-color: var(--bg-200); color: var(--text-100); text-align: center;}\n"
-		"            span{ color: var(--accent-200); font-weight: lighter; display: block; padding-top: 10px; font-size: 15px; word-wrap: break-word; }\n"
-		"            a{ display: block; text-decoration: none; padding: 15px 20px; margin: 10px 20px; border-color: var(--primary-100);\n"
-		"                background-color: var(--bg-200); color: var(--accent-200); border-radius: 5px; font-weight: bold; word-wrap: break-word; }\n"
-		"            a:hover { background-color: var(--primary-100); transform: scaleX(1.01); border: 0.2px solid var(--accent-200); transition: transform 450ms ease-in-out; }\n"
-		"            .parent { color: var(--text-200); background-color: var(--primary-100); }\n"
-		"        </style>\n"
-		"    </head>\n"
-		"    <body>\n";
-	body += "<h3>Index Of <span>" + request.getUrl() + "</span></h3>";
-	body += "<a href=\"..\" class=\"parent\">Parent Directory..</a>\n";
-	for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
-		
+    body += "<!DOCTYPE html>\n"
+        "<html lang=\"en\">\n"
+        "    <head>\n"
+        "        <meta charset=\"UTF-8\">\n"
+        "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+        "        <title>Index Of</title>\n"
+        "        <style>\n"
+        "            :root{\n"
+        "                --primary-100:#1F3A5F;\n"
+        "                --primary-300:#acc2ef;\n"
+        "                --accent-100:#3D5A80;\n"
+        "                --accent-200:#cee8ff;\n"
+        "                --text-100:#FFFFFF;\n"
+        "                --text-200:#e0e0e0;\n"
+        "                --bg-100:#0F1C2E;\n"
+        "                --bg-200:#1f2b3e;\n"
+        "            }\n"
+        "            *{ margin: 0; padding: 0; font-family: Verdana, Geneva, Tahoma, sans-serif; box-sizing: border-box; }\n"
+        "            body{ background-color:  var(--bg-100); }\n"
+        "            h3{ padding: 15px; background-color: var(--bg-200); color: var(--text-100); text-align: center;}\n"
+        "            span{ color: var(--accent-200); font-weight: lighter; display: block; padding-top: 10px; font-size: 15px; word-wrap: break-word; }\n"
+        "            a{ display: block; text-decoration: none; padding: 15px 20px; margin: 10px 20px; border-color: var(--primary-100);\n"
+        "                background-color: var(--bg-200); color: var(--accent-200); border-radius: 5px; font-weight: bold; word-wrap: break-word; }\n"
+        "            a:hover { background-color: var(--primary-100); transform: scaleX(1.01); border: 0.2px solid var(--accent-200); transition: transform 450ms ease-in-out; }\n"
+        "            .parent { color: var(--text-200); background-color: var(--primary-100); }\n"
+        "        </style>\n"
+        "    </head>\n"
+        "    <body>\n";
+    body += "<h3>Index Of <span>" + request.getUrl() + "</span></h3>";
+    body += "<a href=\"..\" class=\"parent\">Parent Directory..</a>\n";
+    for (std::vector<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
+        
 
-			std::string url = request.getUrl();
-			std::string root;
-				
-			if ( url.back() == '/' )
-				url.append( *it );
-			else
-				url.append("/").append( *it );
-				
-			if ( request.getCheckLocation() )
-				root = request.getLocation().getRoot().getPath() + url;
-			else
-				root = server.getRoot().getPath() + url;
-			if ( isDirectory( root.c_str() ) ) {
-				
-				url.append( "/" );
-				(*it).append( "/" );
-			}
-			
-			body += "<a href=\"" + url + "\">" + *it + "</a>\n";
-	}
-	body += "</body>\n</html>";
+            std::string url = request.getUrl();
+            std::string root;
+                
+            if ( url.back() == '/' )
+                url.append( *it );
+            else
+                url.append("/").append( *it );
+                
+            if ( request.getCheckLocation() )
+                root = request.getLocation().getRoot().getPath() + url;
+            else
+                root = server.getRoot().getPath() + url;
+            if ( isDirectory( root.c_str() ) ) {
+                
+                url.append( "/" );
+                (*it).append( "/" );
+            }
+            
+            body += "<a href=\"" + url + "\">" + *it + "</a>\n";
+    }
+    body += "</body>\n</html>";
 
-	if (!request.getReturnUrl().empty()) {
-		this->statusCode = request.getReturnCode();
-	}
-	header = "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
-	header += "Content-Type: text/html\r\n";
-	header += "Content-Length: " + intToString(body.length());
-	header += "\r\nConnection: " + request.getConnection();
-	if (!request.getReturnUrl().empty()) {
-		header += "\r\nLocation: " + request.getReturnUrl();
-	}
-	header += "\r\n\r\n";
+    if (!request.getReturnUrl().empty()) {
+        this->statusCode = request.getReturnCode();
+    }
+	else if (fullPath.back() != '/')
+        this->statusCode = 301;
+    header = "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
+    header += "Content-Type: text/html\r\n";
+    header += "Content-Length: " + intToString(body.length());
+    header += "\r\nConnection: " + request.getConnection();
+    if (!request.getReturnUrl().empty()) {
+        header += "\r\nLocation: " + request.getReturnUrl();
+    }
+	else if (fullPath.back() != '/')
+        header += "\r\nLocation: " + request.getUrl() + '/';
+    header += "\r\n\r\n";
 
-	message = header + body;
-	ssize_t sended = send( sockfd, message.c_str(), message.length(), 0);
-	if (sended == -1) {
-		this->statusCode = 500;
-		return (0); // error
-	}
-	return (1);
+    message = header + body;
+    ssize_t sended = send( sockfd, message.c_str(), message.length(), 0);
+    if (sended == -1) {
+        this->statusCode = 500;
+        return (0); // error
+    }
+    return (1);
 }
 
 int Response::deleteResource(int const sockfd, Request request) {

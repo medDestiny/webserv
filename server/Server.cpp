@@ -248,96 +248,101 @@ void Server::pollwithtimeout( void ) {
 
 void Server::mainpoll( void ) {
 
-	std::map<int, Conf::Server>::iterator it;
-	std::map<int, Client>::iterator itClient;
-	
-	this->pollwithtimeout();
-	// std::cout << "poll: " << pfds.size() << std::endl;
-	// std::cout << "client: " << clients.size() << std::endl;
-	for ( size_t i = 0; i < pfds.size(); i++ ) {
-		it = serverfds.find( pfds[i].fd );
-		itClient = clients.find( pfds[i].fd );
-		if ( pfds[i].revents == POLLIN ) {
-			if ( it != serverfds.end() ) {
-				if ( this->acceptconnections( pfds[i].fd, it->second ) == -1 )
-					continue;
-			} else {
+    std::map<int, Conf::Server>::iterator it;
+    std::map<int, Client>::iterator itClient;
+    
+    this->pollwithtimeout();
+    // std::cout << "poll: " << pfds.size() << std::endl;
+    // std::cout << "client: " << clients.size() << std::endl;
+    for ( size_t i = 0; i < pfds.size(); i++ ) {
+        it = serverfds.find( pfds[i].fd );
+        itClient = clients.find( pfds[i].fd );
+        if ( pfds[i].revents == POLLIN ) {
+            if ( it != serverfds.end() ) {
+                if ( this->acceptconnections( pfds[i].fd, it->second ) == -1 )
+                    continue;
+            } else {
 
-				// POLLIN revent int the clients side
-				if ( itClient->second.recieveRequest() == 0 ) {
-					pfds[i].events = POLLOUT;
+                // POLLIN revent int the clients side
+                if ( itClient->second.recieveRequest() == 0 ) {
+                    pfds[i].events = POLLOUT;
+                }
+            }
+        } else if ( pfds[i].revents == POLLOUT ) {
+
+            if ( it != serverfds.end() ) {
+
+                // POLLOUT revent in the server side
+            } else {
+                // POLLOUT revents in the clients side
+                int var;
+                itClient->second.settimeout( std::time(NULL) );
+                var = itClient->second.sendresponse();
+                if ( !var ) {
+                  
+                    this->removeclient( pfds[i].fd );
+                    this->removepollclient( i );
+                }
+                else if (var == 2) {
+                  
+                    pfds[i].events = POLLIN;
+                    Client client(itClient->second);
+                    this->removeclient( pfds[i].fd );
+                    clients[pfds[i].fd] = client;
+                }
+            }
+        } else if ( pfds[i].revents == POLLHUP ) {
+          
+            close(itClient->second.getResponse().getFile());
+            
+           if (itClient->second.getRequest().isCgi())
+		   {
+				remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
+				if (itClient->second.getRequest().getMethod() == "POST") {
+					remove(itClient->second.getRequest().getCgi().getCgiInFile().c_str());
+					close(itClient->second.getRequest().getCgi().getCgiStdErr());
 				}
-			}
-		} else if ( pfds[i].revents == POLLOUT ) {
+		   }
+                
+            this->removeclient( pfds[i].fd );
+            this->removepollclient( i );
+        } else {
+            
+            if ( itClient != clients.end() && !itClient->second.getRequest().getRecString().empty() && !itClient->second.getEndRecHeader() ) { // bad request
 
-			if ( it != serverfds.end() ) {
-
-				// POLLOUT revent in the server side
-			} else {
-				// POLLOUT revents in the clients side
-				int var;
-				itClient->second.settimeout( std::time(NULL) );
-				var = itClient->second.sendresponse();
-				if ( !var ) {
-				  
-					this->removeclient( pfds[i].fd );
-					this->removepollclient( i );
-				}
-				else if (var == 2) {
-				  
-					pfds[i].events = POLLIN;
-					Client client(itClient->second);
-					this->removeclient( pfds[i].fd );
-					clients[pfds[i].fd] = client;
-				}
-			}
-		} else if ( pfds[i].revents == POLLHUP ) {
-		  
-			close(itClient->second.getResponse().getFile());
-			
-			// if (itClient->second.getRequest().isCgi())
-			//     remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
-				
-			this->removeclient( pfds[i].fd );
-			this->removepollclient( i );
-		} else {
-			
-			if ( itClient != clients.end() && !itClient->second.getRequest().getRecString().empty() && !itClient->second.getEndRecHeader() ) { // bad request
-
-				itClient->second.getResponse().setStatusCode( 400 );
-				pfds[i].events = POLLOUT;
-			}
-			this->checkclienttimeout();
-		}
-		Session::deleteSessionIdTimeOut();
-	}
+                itClient->second.getResponse().setStatusCode( 400 );
+                pfds[i].events = POLLOUT;
+            }
+            this->checkclienttimeout();
+        }
+        Session::deleteSessionIdTimeOut();
+    }
 }
 
 void Server::checkclienttimeout( void ) {
 
-	if ( !clients.empty() ) {
+    if ( !clients.empty() ) {
 
-		std::map<int, Client>::iterator it = clients.begin();
-		std::time_t now = std::time(NULL);
-		std::time_t diff;
-		std::time_t start;
-		for ( ; it != clients.end(); ++it ) {
+        std::map<int, Client>::iterator it = clients.begin();
+        std::time_t now = std::time(NULL);
+        std::time_t diff;
+        std::time_t start;
+        for ( ; it != clients.end(); ++it ) {
 
-			start = it->second.gettimeout();
-			diff = now - start;
-			if ( diff >= 10 ) {
+            start = it->second.gettimeout();
+            diff = now - start;
+            if ( diff >= 10 ) {
 
-				this->searchandremovepollclient( it->second.getsockfd() );
-				close(it->second.getResponse().getFile());
-				clients.erase( it );
-				// std::cout << clients.size() << " " << pfds.size();
-				printinvalidopt( "-> client has been deleted " );
-				if ( clients.empty() )
-					break;
-				it = clients.begin();
-			}
-		}
-	}
+                this->searchandremovepollclient( it->second.getsockfd() );
+                close(it->second.getResponse().getFile());
+                clients.erase( it );
+                printinvalidopt( "-> client has been deleted " );
+                if ( clients.empty() )
+                    break;
+                it = clients.begin();
+            }
+        }
+    }
 }
 
 void Server::searchandremovepollclient( int const &sockfd ) {

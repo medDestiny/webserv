@@ -1,20 +1,12 @@
 server {
-	server_name test1;
-	listen	localhost:8080;
-	client_max_body_size	100M;
-	root	/;
-	index index.html;
-	upload_store /tmp;
-	error_page 404 /tmp/index.html;
+	root /;
+	error_page	403 /Users/mmisskin/goinfre/server/abelfany.html;
 
-
-	listen localhost;
-	
-	location / {
-		root /Users/mmisskin/goinfre;
-		cgi_pass .sh /bin/bash;
-		cgi_pass .py /usr/bin/python3;
-		cgi_pass .cgi;
+	location /a.out {
+		cgi_pass	.out;
+	}
+	location /test.sh {
+		cgi_pass	.sh /bin/bash;
 	}
 	autoindex on;
 }
