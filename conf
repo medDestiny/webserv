@@ -1,10 +1,78 @@
 server {
 	root /Users/del-yaag/;
+	listen localhost:8080;
 
 	location / {
 		cgi_pass	.sh /bin/bash;
 		cgi_pass	.out;
 		cgi_pass	.cgi;
+		cgi_pass	.php /usr/bin/php;
+		cgi_pass	.py /usr/bin/python3;
+	}
+
+	location /a.out {
+		cgi_pass	.out;
+		root /Users/del-yaag/Desktop/web-server/cgiScript;
+	}
+	client_max_body_size	200M;
+	upload_store	/tmp;
+
+	autoindex on;
+}
+
+server {
+	root /Users/del-yaag/;
+	listen 10.11.6.6:8080;
+
+	location / {
+		cgi_pass	.sh /bin/bash;
+		cgi_pass	.out;
+		cgi_pass	.cgi;
+		cgi_pass	.php /usr/bin/php;
+		cgi_pass	.py /usr/bin/python3;
+	}
+
+	location /a.out {
+		cgi_pass	.out;
+		root /Users/del-yaag/Desktop/web-server/cgiScript;
+	}
+	client_max_body_size	200M;
+	upload_store	/tmp;
+
+	autoindex on;
+}
+server {
+	root /Users/del-yaag/;
+	listen 10.11.6.6:8080;
+
+	location / {
+		cgi_pass	.sh /bin/bash;
+		cgi_pass	.out;
+		cgi_pass	.cgi;
+		cgi_pass	.php /usr/bin/php;
+		cgi_pass	.py /usr/bin/python3;
+	}
+
+	location /a.out {
+		cgi_pass	.out;
+		root /Users/del-yaag/Desktop/web-server/cgiScript;
+	}
+	client_max_body_size	200M;
+	upload_store	/tmp;
+
+	autoindex on;
+}
+server {
+	root /Users/del-yaag/;
+	listen 10.11.6.6:8080;
+	server_name hello;
+
+	location / {
+		cgi_pass	.sh /bin/bash;
+		cgi_pass	.out;
+		cgi_pass	.cgi;
+		cgi_pass	.php /usr/bin/php;
+		cgi_pass	.py /usr/bin/python3;
 	}
 
 	location /a.out {

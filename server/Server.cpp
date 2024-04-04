@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 20:03:03 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 22:12:08 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,10 +36,10 @@ void Server::getInfoaddr( std::string const &host, std::string const &port ) {
 	status = getaddrinfo( host.c_str(), port.c_str(), &hints, &addrInfo );
 	if ( status == -1 ) {
 
-		std::cout << "error: getaddrinfo: " << gai_strerror( status ) << std::endl;
+		std::cerr << RED << "error: getaddrinfo: " << gai_strerror( status ) << RESET << std::endl;
 		exit( EXIT_FAILURE );
 	}
-	printvalidoption( "getaddrinfo" );
+	// printvalidoption( "getaddrinfo" );
 }
 
 int Server::createsocket( int &listener ) {
@@ -47,24 +47,24 @@ int Server::createsocket( int &listener ) {
 	listener = socket( newinfo->ai_family, newinfo->ai_socktype, newinfo->ai_protocol );
 	if ( listener == -1 ) {
 
-		std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
+		std::cerr << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
 		return -1;
 	}
-	printvalidoption( "socket" );
+	// printvalidoption( "socket" );
 
 	if ( fcntl( listener, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
-		std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
+		std::cerr << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
 		return -1;
 	}
-	printvalidoption( "fcntl" );
+	// printvalidoption( "fcntl" );
 
 	if ( setsockopt( listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof( int ) ) == -1 ) {
 
-		std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
+		std::cerr << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
 		return -1;
 	}
-	printvalidoption( "setsockopt" );
+	// printvalidoption( "setsockopt" );
 
 	return 0;
 }
@@ -80,10 +80,10 @@ int Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator &
 		if ( bind( listener, newinfo->ai_addr, newinfo->ai_addrlen ) < 0 ) {
 
 			close( listener );
-			std::cout << RED << "\t==> ERROR: " << strerror( errno ) << RESET << std::endl;
+			std::cerr << RED << "\t==> ERROR: " << strerror( errno ) << RESET << std::endl;
 			continue;
 		}
-		printvalidoption( "bind" );
+		// printvalidoption( "bind" );
 		break;
 	}
 	freeaddrinfo( addrInfo );
@@ -98,10 +98,13 @@ int Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator &
 		return 0;
 	}
 
-	if ( listen( listener, BACKLOG ) == -1 )
-		std::cout << RED << "\t==> ERROR: " << strerror( errno ) << RESET << std::endl; // listen error
-	else
-		printvalidoption( "listen" ); // valid listen
+	if ( listen( listener, BACKLOG ) == -1 ) {
+		
+		std::cerr << RED << "\t==> ERROR: " << strerror( errno ) << RESET << std::endl; // listen error
+		exit( EXIT_FAILURE );
+	}
+	// else
+	// 	printvalidoption( "listen" ); // valid listen
 	serverfds[listener] = *it;
 	return 1;
 }
@@ -213,17 +216,17 @@ int Server::acceptconnections( int const &sockfd, Conf::Server server ) {
 
 		if ( errno == ECONNABORTED || errno == EAGAIN ) {
 
-			std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
+			std::cerr << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
 			return -1;
 		}
-		std::cout << RED << "accept fail" << RESET << std::endl;
+		std::cerr << RED << "accept fail" << RESET << std::endl;
 		return (-1);
 	} else {
 
 		if ( fcntl( sockfd, F_SETFL, O_NONBLOCK, FD_CLOEXEC ) == -1 ) {
 
-			std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
-			std::cout << RED << "fcntl fail" << RESET << std::endl;
+			std::cerr << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
+			std::cerr << RED << "fcntl fail" << RESET << std::endl;
 			return (-1);
 		}
 		this->addpollclients( newfd );
@@ -240,7 +243,7 @@ void Server::pollwithtimeout( void ) {
 	status = poll( pfds.data(), pfds.size(), TIMEOUT );
 	if ( status == -1 ) {
 
-		std::cout << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
+		std::cerr << RED << "==> ERROR: " << strerror( errno ) << RESET << std::endl;
 		exit( EXIT_FAILURE );
 	} else if ( !status )
 		this->checkclienttimeout();
@@ -384,7 +387,7 @@ void printvalidoption( std::string const &str ) {
 
 void printinvalidopt( std::string const &str ) {
 
-	std::cout << RED << "\t" << str << RESET << std::endl;
+	std::cerr << RED << "\t" << str << RESET << std::endl;
 }
 
 void Server::printConeectedaddr ( Conf::Server const &server, int const &sockfd ) {
