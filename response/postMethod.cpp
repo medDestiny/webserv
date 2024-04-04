@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 23:03:30 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 18:38:17 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -377,13 +377,19 @@ int Response::parseSessionsBody( Request &request ) {
                     return 0; // error
                 }
             }
-            else if ( !this->getBHFilename().empty() ) { // ignore files
+            else if ( (this->BHName.empty() && this->BHFilename.empty()) || !this->getBHFilename().empty() ) { // ignore files
                 
                 this->sessionId = "";
                 request.setCookie( "" );
                 return 0; // error
             }
         }
+		else {
+			this->sessionId = "";
+			request.setCookie( "" );
+			return 0; // error
+		}
+
     }
     if ( !Session::findSessionId( request.getCookie() ) ) { // not find cookie's id in the sessions
     
