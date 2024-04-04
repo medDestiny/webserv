@@ -1,12 +1,17 @@
 server {
-	root /;
-	error_page	403 /Users/mmisskin/goinfre/server/abelfany.html;
-
+	root /Users/mmisskin/goinfre/server;
+	error_page	300	/fafa;
+	location / {
+		cgi_pass	.sh /bin/bash;
+		cgi_pass	.out;
+		cgi_pass	.cgi;
+	}
 	location /a.out {
 		cgi_pass	.out;
+		root /Users/mmisskin/goinfre/server;
 	}
-	location /test.sh {
-		cgi_pass	.sh /bin/bash;
-	}
+	client_max_body_size	200M;
+	upload_store	/tmp;
+
 	autoindex on;
 }

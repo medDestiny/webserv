@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 01:06:39 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 03:06:42 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 18:38:17 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,69 +331,75 @@ int Response::generateSessionId( std::string &login, std::string &password, bool
 }
 
 int Response::parseSessionsBody( Request &request ) {
-	
-	std::string buffer;
-	std::string chunked;
-	std::string login;
-	std::string password;
-	size_t find;
-	bool loginFlag = false;
-	bool passFlag = false;
+    
+    std::string buffer;
+    std::string chunked;
+    std::string login;
+    std::string password;
+    size_t find;
+    bool loginFlag = false;
+    bool passFlag = false;
 
-	this->cgiBody = this->body;
-	while ( !this->body.empty() ) {
-		
-		find = this->body.find( "\r\n" );
-		if ( find != std::string::npos ) {
-			
-			buffer = this->body.substr( 0, find );
-			
-			if ( buffer == request.getEndBoundary() ) { // end of the body
+    this->cgiBody = this->body;
+    while ( !this->body.empty() ) {
+        
+        find = this->body.find( "\r\n" );
+        if ( find != std::string::npos ) {
+            
+            buffer = this->body.substr( 0, find );
+            
+            if ( buffer == request.getEndBoundary() ) { // end of the body
 
-				if ( !loginFlag || !passFlag ) {
-					
-					request.setCookie( "" );
-					this->sessionId = "";
-					return 0;
-				}
-				break;
-			} else if ( buffer == request.getStartBoundary() ) { // get body header
+                if ( !loginFlag || !passFlag ) {
+                    
+                    request.setCookie( "" );
+                    this->sessionId = "";
+                    return 0;
+                }
+                break;
+            } else if ( buffer == request.getStartBoundary() ) { // get body header
 
-				this->body.erase( 0, find + std::strlen( "\r\n" ) );
-				find = this->body.find( "\r\n\r\n" );
-				if ( find != std::string::npos ) { // get header.
+                this->body.erase( 0, find + std::strlen( "\r\n" ) );
+                find = this->body.find( "\r\n\r\n" );
+                if ( find != std::string::npos ) { // get header.
 
-					chunked = this->body.substr( 0, find );
-					this->parsePostBodyHeader( chunked ); // parse the header body
-				}
-				this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
-			}
-			if ( !this->BHName.empty() && this->BHFilename.empty() ) { // get the login or password
-					
-				if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
+                    chunked = this->body.substr( 0, find );
+                    this->parsePostBodyHeader( chunked ); // parse the header body
+                }
+                this->body.erase( 0, find + std::strlen( "\r\n\r\n" ) );
+            }
+            if ( !this->BHName.empty() && this->BHFilename.empty() ) { // get the login or password
+                    
+                if ( !this->generateSessionId( login, password, loginFlag, passFlag ) ) { // generate the session id
 
-					this->sessionId = "";
-					request.setCookie( "" );
-					return 0; // error
-				}
-			}
-			else if ( !this->getBHFilename().empty() ) { // ignore files
-				
-				this->sessionId = "";
-				request.setCookie( "" );
-				return 0; // error
-			}
+                    this->sessionId = "";
+                    request.setCookie( "" );
+                    return 0; // error
+                }
+            }
+            else if ( (this->BHName.empty() && this->BHFilename.empty()) || !this->getBHFilename().empty() ) { // ignore files
+                
+                this->sessionId = "";
+                request.setCookie( "" );
+                return 0; // error
+            }
+        }
+		else {
+			this->sessionId = "";
+			request.setCookie( "" );
+			return 0; // error
 		}
-	}
-	if ( !Session::findSessionId( request.getCookie() ) ) { // not find cookie's id in the sessions
-	
-		Session::addSession( this->sessionId );
-		request.setCookie( "" );
-	} else { // found cookie's id in the sessions
-	
-		this->sessionId = "";
-	}
-	return 1;
+
+    }
+    if ( !Session::findSessionId( request.getCookie() ) ) { // not find cookie's id in the sessions
+    
+        Session::addSession( this->sessionId );
+        request.setCookie( "" );
+    } else { // found cookie's id in the sessions
+    
+        this->sessionId = "";
+    }
+    return 1;
 }
 
 int  Response::parseBoundariesBody( Request const &request, Conf::Server const &server ) {
