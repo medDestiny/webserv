@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:55:40 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 18:20:39 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 20:03:03 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ int Server::bindlistensock( int &listener, std::vector<Conf::Server>::iterator &
 	if ( !newinfo ) {
 
 		std::string error = strerror( errno );
-		printinvalidopt(    "==> ERROR: " "socket '" + std::to_string( listener ) +
+		printinvalidopt(    "==> ERROR: " "socket '" + intToString( listener ) +
 							"' didn't get bound with '" + it->getListen().getHost() +
 							":" + it->getListen().getPort() + "' because: " + error ); // not bound address error
 		this->notBound++;
