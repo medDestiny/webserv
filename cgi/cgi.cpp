@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 22:56:38 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/03 18:11:48 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,14 +300,15 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & cgi
 int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 {
 	Cgi		cgi = request.getCgi();
-	char	tmp[1025] = {0};
-	int		err = read(cgi.getCgiStdErr(), tmp, 1024);
 
 	if (!cgi.isStarted())
 	{
 		response.setStatusCode(500);
 		return (1);
 	}
+
+	char	tmp[1025] = {0};
+	int		err = read(cgi.getCgiStdErr(), tmp, 1024);
 
 	if (cgi.getPid() == waitpid(cgi.getPid(), NULL, WNOHANG))
 	{

@@ -212,6 +212,10 @@ std::string Request::getCookie( void ) const {
     
     return (this->cookie);
 }
+
+std::string const &Request::getAbsolutePath(void) const {
+	return (this->absolutPath);
+}
 void    Request::setCookie( std::string const cookie ) {
     
     this->cookie = cookie;
@@ -384,14 +388,13 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Serve
     if (this->method == "GET") {
         // check path is valid !!!!!
         this->path.erase(0, 1);
-        std::string absolutPAth;
         if (this->checkLocation)
-            absolutPAth = this->location.getRoot().getPath() + this->url;
+            this->absolutPath = this->location.getRoot().getPath() + this->url;
         else
-            absolutPAth = server.getRoot().getPath() + this->url;
-        if (this->path.empty() || isDirectory(absolutPAth.c_str())) {
+            this->absolutPath = server.getRoot().getPath() + this->url;
+        if (this->path.empty() || isDirectory(absolutPath.c_str())) {
 
-            if ( !this->checkDirectory( server, response, absolutPAth ) )
+            if ( !this->checkDirectory( server, response ) )
                 return (0);
         }
         else {

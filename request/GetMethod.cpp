@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 23:05:33 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/04/02 03:57:20 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 01:02:18 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,12 +54,12 @@ int Request::checkFile( Conf::Server & server, Response & response ) {
     return (1);
 }
 
-int Request::checkDirectory( Conf::Server & server, Response & response, std::string const & absolutePath ) {
+int Request::checkDirectory( Conf::Server & server, Response & response ) {
 
     if (this->checkLocation)
-        this->path = getIndex(this->location.getIndex().getIndexes(), absolutePath);
+        this->path = getIndex(this->location.getIndex().getIndexes(), this->absolutPath);
     else
-        this->path = getIndex(server.getIndex().getIndexes(), absolutePath);
+        this->path = getIndex(server.getIndex().getIndexes(), this->absolutPath);
     if (this->path.empty() || isDirectory(this->path.c_str())) {
         bool checkAutoIndex = server.getAutoIndex().getToggle();
         if (this->checkLocation)

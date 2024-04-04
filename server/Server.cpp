@@ -295,8 +295,8 @@ void Server::mainpoll( void ) {
           
             close(itClient->second.getResponse().getFile());
             
-            // if (itClient->second.getRequest().isCgi())
-            //     remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
+           if (itClient->second.getRequest().isCgi())
+               remove(itClient->second.getRequest().getCgi().getCgiOutFile().c_str());
                 
             this->removeclient( pfds[i].fd );
             this->removepollclient( i );
@@ -330,7 +330,6 @@ void Server::checkclienttimeout( void ) {
                 this->searchandremovepollclient( it->second.getsockfd() );
                 close(it->second.getResponse().getFile());
                 clients.erase( it );
-                // std::cout << clients.size() << " " << pfds.size();
                 printinvalidopt( "-> client has been deleted " );
                 if ( clients.empty() )
                     break;
