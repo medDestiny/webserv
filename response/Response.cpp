@@ -16,148 +16,148 @@
 
 Response::Response( void ) {
 
-    this->receivedcontent = 0;
-    this->statusCode = 200;
-    this->sendedHeader = false;
-    this->displayError = false;
-    this->autoIndexing = false;
-    this->file = -2;
-    this->countBytesRead = 0;
-    this->contentResponse = 0;
+	this->receivedcontent = 0;
+	this->statusCode = 200;
+	this->sendedHeader = false;
+	this->displayError = false;
+	this->autoIndexing = false;
+	this->file = -2;
+	this->countBytesRead = 0;
+	this->contentResponse = 0;
 
-    // ---- post ---- //
-    this->bodyFlag = false;
+	// ---- post ---- //
+	this->bodyFlag = false;
 }
 
 Response::~Response( void ) { }
 
 int Response::getreceivedcontent( void ) const {
 
-    return this->receivedcontent;
+	return this->receivedcontent;
 }
 
 void Response::setreceivedcontent( int const &receivedcontent ) {
 
-    this->receivedcontent = receivedcontent;
+	this->receivedcontent = receivedcontent;
 }
 
 void Response::setStatusCode( int const & statusCode ) {
 
-    this->statusCode = statusCode;
+	this->statusCode = statusCode;
 }
 int Response::getStatusCode( void ) const {
 
-    return (this->statusCode);
+	return (this->statusCode);
 }
 
 void Response::setSendedHeader( bool const & sendedHeader ) {
 
-    this->sendedHeader = sendedHeader;
+	this->sendedHeader = sendedHeader;
 }
 bool Response::getSendedHeader( void ) const {
 
-    return (this->sendedHeader);
+	return (this->sendedHeader);
 }
 
 void Response::setDisplayError( bool const & displayError ) {
 
-    this->displayError = displayError;
+	this->displayError = displayError;
 }
 bool Response::getDisplayError( void ) const {
 
-    return (this->displayError);
+	return (this->displayError);
 }
 
 void Response::setContentLength( size_t const & contentLength ) {
 
-    this->contentLength = contentLength;
+	this->contentLength = contentLength;
 }
 size_t Response::getContentLength( void ) const {
 
-    return (this->contentLength);
+	return (this->contentLength);
 }
 
 void Response::setFile( int const & file ) {
 
-    this->file = file;
+	this->file = file;
 }
 int Response::getFile( void ) const {
 
-    return (this->file);
+	return (this->file);
 }
 
 void Response::setCountBytesRead( size_t const & countBytesRead ) {
 
-    this->countBytesRead = countBytesRead;
+	this->countBytesRead = countBytesRead;
 }
 size_t Response::getCountBytesRead( void ) const {
 
-    return (this->countBytesRead);
+	return (this->countBytesRead);
 }
 
 void Response::setContentResponse( size_t const & contentResponse ) {
 
-    this->contentResponse = contentResponse;
+	this->contentResponse = contentResponse;
 }
 size_t Response::getContentResponse( void ) const {
 
-    return (this->contentResponse);
+	return (this->contentResponse);
 }
 
 void Response::setAutoIndexing( bool const & autoIndexing ) {
 
-    this->autoIndexing = autoIndexing;
+	this->autoIndexing = autoIndexing;
 }
 bool Response::getAutoIndexing( void ) const {
 
-    return (this->autoIndexing);
+	return (this->autoIndexing);
 }
 
 std::string Response::getType( void ) const {
 
-    return (this->type);
+	return (this->type);
 }
 void Response::setType( std::string const & type ) {
 
-    this->type = type;
+	this->type = type;
 }
 std::string Response::getMimeType( void ) const {
 
-    return (this->mimeType);
+	return (this->mimeType);
 }
 void Response::setMimeType( std::string const & mimetype ){
 
-    this->mimeType = mimetype;
+	this->mimeType = mimetype;
 }
 
 std::string Response::getStatusMessage(int const & statusCode) {
-    std::map<int, std::string> statusMessages;
-    statusMessages[200] = "OK";
-    statusMessages[204] = "No Content";
-    statusMessages[206] = "Partial Content";
-    statusMessages[301] = "Moved Permanently";
-    statusMessages[302] = "Found";
-    statusMessages[303] = "See Other";
-    statusMessages[307] = "Temporary Redirect";
-    statusMessages[308] = "Permanent Redirect";
-    statusMessages[400] = "Bad Request";
-    statusMessages[403] = "Forbidden";
-    statusMessages[404] = "Not Found";
-    statusMessages[405] = "Method Not Allowed";
-    statusMessages[411] = "Length Required";
-    statusMessages[413] = "Payload Too Large";
-    statusMessages[415] = "Unsupported Media Type";
-    statusMessages[500] = "Internal Server Error";
-    statusMessages[501] = "Not Implemented"; // The request method is not supported
-    statusMessages[504] = "Gateway Timeout";
-    statusMessages[505] = "HTTP Version Not Supported";
+	std::map<int, std::string> statusMessages;
+	statusMessages[200] = "OK";
+	statusMessages[204] = "No Content";
+	statusMessages[206] = "Partial Content";
+	statusMessages[301] = "Moved Permanently";
+	statusMessages[302] = "Found";
+	statusMessages[303] = "See Other";
+	statusMessages[307] = "Temporary Redirect";
+	statusMessages[308] = "Permanent Redirect";
+	statusMessages[400] = "Bad Request";
+	statusMessages[403] = "Forbidden";
+	statusMessages[404] = "Not Found";
+	statusMessages[405] = "Method Not Allowed";
+	statusMessages[411] = "Length Required";
+	statusMessages[413] = "Payload Too Large";
+	statusMessages[415] = "Unsupported Media Type";
+	statusMessages[500] = "Internal Server Error";
+	statusMessages[501] = "Not Implemented"; // The request method is not supported
+	statusMessages[504] = "Gateway Timeout";
+	statusMessages[505] = "HTTP Version Not Supported";
 
-    std::map<int, std::string>::iterator it = statusMessages.find(statusCode);
-    if (it != statusMessages.end()) {
-        return it->second;
-    } else {
-        return "Unknown Status Code";
-    }
+	std::map<int, std::string>::iterator it = statusMessages.find(statusCode);
+	if (it != statusMessages.end()) {
+		return it->second;
+	} else {
+		return "Unknown Status Code";
+	}
 }
 
 ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
@@ -227,8 +227,8 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
 	char	buff[static_cast<size_t>(currentPos)];
 	read(this->file, buff, currentPos);
 
-    ssize_t sended;
-    sended = send( sockfd, cgiHeader.c_str(), cgiHeader.length(), 0 );
+	ssize_t sended;
+	sended = send( sockfd, cgiHeader.c_str(), cgiHeader.length(), 0 );
 	return (sended);
 }
 
@@ -286,142 +286,142 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
 ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 
-    // -----------open file---------- //
-    if (this->file == -2) {
-        this->file = open( request.getPath().c_str(), O_RDONLY );
-        if ( this->file == -1 ) {
-            std::cerr << "failed to open file" << std::endl;
-            this->statusCode = 500;
-            return (1); // error
-        }
-    }
+	// -----------open file---------- //
+	if (this->file == -2) {
+		this->file = open( request.getPath().c_str(), O_RDONLY );
+		if ( this->file == -1 ) {
+			std::cerr << "failed to open file" << std::endl;
+			this->statusCode = 500;
+			return (1); // error
+		}
+	}
 
-    char buffer[SENDED];
-    char bufferS[1000000];
-    ssize_t sended = 0;
+	char buffer[SENDED];
+	char bufferS[1000000];
+	ssize_t sended = 0;
 
-    // --------seek the file-------- //
-    if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {
-        size_t bufferSize = 1000000;
-        if (request.getRangeStartNum() - this->countBytesRead < 1000000)
-            bufferSize = request.getRangeStartNum() - this->countBytesRead;
-        ssize_t bytesRead = read(this->file, bufferS, bufferSize);
-        if ( bytesRead == -1 )
-            return -1;
-        this->countBytesRead += bytesRead;
-    }
-    else { // --------read file to send----------//
-        ssize_t bytesRead = read(this->file, buffer, SENDED);
-        if ( bytesRead == -1 )
-            return -1;
-        if (bytesRead < SENDED)
-            buffer[bytesRead] = '\0';
-        this->contentResponse += bytesRead;
-        std::string message = std::string(buffer, bytesRead);
-        sended = send( sockfd, message.c_str() , message.size(), 0 );
-        
-        return (sended); // !!what
-    }
-    return (1);
+	// --------seek the file-------- //
+	if ( !request.getRangeStart().empty() && this->countBytesRead < request.getRangeStartNum() ) {
+		size_t bufferSize = 1000000;
+		if (request.getRangeStartNum() - this->countBytesRead < 1000000)
+			bufferSize = request.getRangeStartNum() - this->countBytesRead;
+		ssize_t bytesRead = read(this->file, bufferS, bufferSize);
+		if ( bytesRead == -1 )
+			return -1;
+		this->countBytesRead += bytesRead;
+	}
+	else { // --------read file to send----------//
+		ssize_t bytesRead = read(this->file, buffer, SENDED);
+		if ( bytesRead == -1 )
+			return -1;
+		if (bytesRead < SENDED)
+			buffer[bytesRead] = '\0';
+		this->contentResponse += bytesRead;
+		std::string message = std::string(buffer, bytesRead);
+		sended = send( sockfd, message.c_str() , message.size(), 0 );
+		
+		return (sended); // !!what
+	}
+	return (1);
 }
 
 std::string Response::getErrorPage(std::map<std::string, std::string> ErrorPages) {
 
-    std::map<std::string, std::string>::iterator it = ErrorPages.find(intToString(this->statusCode));
-    if (it != ErrorPages.end())
-        return (it->second);
-    return ("");
+	std::map<std::string, std::string>::iterator it = ErrorPages.find(intToString(this->statusCode));
+	if (it != ErrorPages.end())
+		return (it->second);
+	return ("");
 }
 
 void checkSlash( std::string &errorPage ) {
-    
-    if ( errorPage.front() != '/' )
-        errorPage = '/' + errorPage;
+	
+	if ( errorPage.front() != '/' )
+		errorPage = '/' + errorPage;
 }
 
 int Response::displayErrorPage( Conf::Server & server, int const &sockfd, Request request) {
 
-    std::string header;
-    std::string message;
-    std::string body;
+	std::string header;
+	std::string message;
+	std::string body;
 
-    std::string errorPage;
-    if (request.getCheckLocation())
-        errorPage = getErrorPage(request.getLocation().getErrorPage().getErrorPages());
-    else
-        errorPage = getErrorPage(server.getErrorPage().getErrorPages());
+	std::string errorPage;
+	if (request.getCheckLocation())
+		errorPage = getErrorPage(request.getLocation().getErrorPage().getErrorPages());
+	else
+		errorPage = getErrorPage(server.getErrorPage().getErrorPages());
 
-    if (!errorPage.empty()) {
-        checkSlash( errorPage );
-        if (request.getCheckLocation())
-            errorPage = request.getLocation().getRoot().getPath() + errorPage;
-        else
-            errorPage = server.getRoot().getPath() + errorPage;
-        if (access(errorPage.c_str(), F_OK) == -1) {
-            errorPage = "";
-        }
-    }
-    
-    if (errorPage.empty()) {
-        body += "<!DOCTYPE html>\n"
-                "<html lang=\"en\">\n"
-                "    <head>\n"
-                "        <title>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title>\n"
-                "        <style>\n"
-                "           @import url('https://fonts.googleapis.com/css?family=Fira+Mono:400');\n"
-                "            body{ display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; margin: 0; background: #0F1C2E; color: #fff;\n"
-                "                font-size: 96px; font-family: 'Fira Mono', monospace; letter-spacing: -7px; }\n"
-                "            .error{ animation: glitch 1s linear infinite; }\n"
-                "            @media (max-width: 992px) { .error{ font-size: 50px;} }\n"
-                "            @keyframes glitch{ 2%,64%{ transform: translate(2px,0) skew(0deg); } 4%,60%{ transform: translate(-2px,0) skew(0deg); }\n"
-                "                62%{ transform: translate(0,0) skew(5deg); } }\n"
-                "            .error:before, .error:after{ content: attr(title); position: absolute; left: 0; }\n"
-                "            .error:before{ animation: glitchTop 1s linear infinite; clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%); }\n"
-                "            @keyframes glitchTop{ 2%,64%{ transform: translate(2px,-2px); } 4%,60%{ transform: translate(-2px,2px); }\n"
-                "                62%{ transform: translate(13px,-1px) skew(-13deg);  } }\n"
-                "            .error:after{ animation: glitchBotom 1.5s linear infinite; clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%); }\n"
-                "            @keyframes glitchBotom{ 2%,64%{ transform: translate(-2px,0); } 4%,60%{ transform: translate(-2px,0); } 62%{ transform: translate(-22px,5px) skew(21deg);  } }\n"
-                "        </style>\n"
-                "    </head>\n"
-                "    <body>\n";
-        body += "<body>\n";
-        body += "<div class=\"error\" title=\"" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\">" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</div>\n";
-        body += "</body>\n";
-        body += "</html>";
-    }
-    else {
-        std::ifstream streamFile;
-        std::string tmp;
-        streamFile.open(errorPage);
-        if ( !streamFile.is_open() ) {
-            
-            this->setStatusCode( 500 );
-            return 1;
-        }
-        while (std::getline( streamFile, tmp)) {
-            body += tmp;
-            body += '\n';
-        }
-        streamFile.close();
-    }
+	if (!errorPage.empty()) {
+		checkSlash( errorPage );
+		if (request.getCheckLocation())
+			errorPage = request.getLocation().getRoot().getPath() + errorPage;
+		else
+			errorPage = server.getRoot().getPath() + errorPage;
+		if (access(errorPage.c_str(), F_OK) == -1) {
+			errorPage = "";
+		}
+	}
+	
+	if (errorPage.empty()) {
+		body += "<!DOCTYPE html>\n"
+				"<html lang=\"en\">\n"
+				"    <head>\n"
+				"        <title>" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</title>\n"
+				"        <style>\n"
+				"           @import url('https://fonts.googleapis.com/css?family=Fira+Mono:400');\n"
+				"            body{ display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; margin: 0; background: #0F1C2E; color: #fff;\n"
+				"                font-size: 96px; font-family: 'Fira Mono', monospace; letter-spacing: -7px; }\n"
+				"            .error{ animation: glitch 1s linear infinite; }\n"
+				"            @media (max-width: 992px) { .error{ font-size: 50px;} }\n"
+				"            @keyframes glitch{ 2%,64%{ transform: translate(2px,0) skew(0deg); } 4%,60%{ transform: translate(-2px,0) skew(0deg); }\n"
+				"                62%{ transform: translate(0,0) skew(5deg); } }\n"
+				"            .error:before, .error:after{ content: attr(title); position: absolute; left: 0; }\n"
+				"            .error:before{ animation: glitchTop 1s linear infinite; clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%); }\n"
+				"            @keyframes glitchTop{ 2%,64%{ transform: translate(2px,-2px); } 4%,60%{ transform: translate(-2px,2px); }\n"
+				"                62%{ transform: translate(13px,-1px) skew(-13deg);  } }\n"
+				"            .error:after{ animation: glitchBotom 1.5s linear infinite; clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%); }\n"
+				"            @keyframes glitchBotom{ 2%,64%{ transform: translate(-2px,0); } 4%,60%{ transform: translate(-2px,0); } 62%{ transform: translate(-22px,5px) skew(21deg);  } }\n"
+				"        </style>\n"
+				"    </head>\n"
+				"    <body>\n";
+		body += "<body>\n";
+		body += "<div class=\"error\" title=\"" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\">" + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "</div>\n";
+		body += "</body>\n";
+		body += "</html>";
+	}
+	else {
+		std::ifstream streamFile;
+		std::string tmp;
+		streamFile.open(errorPage);
+		if ( !streamFile.is_open() ) {
+			
+			this->setStatusCode( 500 );
+			return 1;
+		}
+		while (std::getline( streamFile, tmp)) {
+			body += tmp;
+			body += '\n';
+		}
+		streamFile.close();
+	}
 
-    header += "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
-    header += "Content-Type: text/html\r\n";
-    header += "Content-Length: ";
-    if (errorPage.empty())
-        header += intToString(body.length());
-    else
-        header += intToString( get_size_fd(errorPage) );
-    header += "\r\nConnection: close\r\n\r\n";
+	header += "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
+	header += "Content-Type: text/html\r\n";
+	header += "Content-Length: ";
+	if (errorPage.empty())
+		header += intToString(body.length());
+	else
+		header += intToString( get_size_fd(errorPage) );
+	header += "\r\nConnection: close\r\n\r\n";
 
-    message = header + body;
-    ssize_t bytesSended = send( sockfd, message.c_str(), message.length(), 0);
-    if ( bytesSended == -1 ) {
+	message = header + body;
+	ssize_t bytesSended = send( sockfd, message.c_str(), message.length(), 0);
+	if ( bytesSended == -1 ) {
 
-        this->setStatusCode( 500 );
-        return 1;
-    }
-    return 0;
+		this->setStatusCode( 500 );
+		return 1;
+	}
+	return 0;
 }
 
 int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Request request ) {
@@ -530,26 +530,26 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
 }
 
 int Response::deleteResource(int const sockfd, Request request) {
-    if ( isDirectory( request.getPath().c_str()) ) {
-        if ( rmdir( request.getPath().c_str() ) ) {
-            this->statusCode = 500;
-            return (0); //error
-        }
-    }
-    else
-        if ( remove( request.getPath().c_str() ) ) {
-            this->statusCode = 500;
-            return (0); //error
-        }
-    std::string header;
+	if ( isDirectory( request.getPath().c_str()) ) {
+		if ( rmdir( request.getPath().c_str() ) ) {
+			this->statusCode = 500;
+			return (0); //error
+		}
+	}
+	else
+		if ( remove( request.getPath().c_str() ) ) {
+			this->statusCode = 500;
+			return (0); //error
+		}
+	std::string header;
 
-    header = "HTTP/1.1 " + intToString(204) + " " + getStatusMessage(204) + "\r\n";
-    header += "Connection: " + request.getConnection() + "\r\n\r\n";
+	header = "HTTP/1.1 " + intToString(204) + " " + getStatusMessage(204) + "\r\n";
+	header += "Connection: " + request.getConnection() + "\r\n\r\n";
 
-    ssize_t sended = send( sockfd, header.c_str(), header.length(), 0);
-    if (sended == -1) {
-        this->statusCode = 500;
-        return (0); // error
-    }
-    return (1);
+	ssize_t sended = send( sockfd, header.c_str(), header.length(), 0);
+	if (sended == -1) {
+		this->statusCode = 500;
+		return (0); // error
+	}
+	return (1);
 }
