@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 01:01:40 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 03:10:49 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,9 +43,9 @@
 
 enum bodyType {
 
-    LENGTH,
-    ENCODING,
-    BOUNDARIES
+	LENGTH,
+	ENCODING,
+	BOUNDARIES
 };
 
 class Response;

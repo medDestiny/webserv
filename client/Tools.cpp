@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 23:05:58 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/04/04 00:47:35 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 03:11:11 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,21 +37,21 @@ size_t get_size_fd(std::string fileD) {
 }
 
 bool isDirectory(const char* path) {
-    struct stat pathStat;
-    if (stat(path, &pathStat) != 0) {
+	struct stat pathStat;
+	if (stat(path, &pathStat) != 0) {
 		// std::cout << "error isDirectory\n";
-        return false;
-    }
-    return S_ISDIR(pathStat.st_mode);
+		return false;
+	}
+	return S_ISDIR(pathStat.st_mode);
 }
 
 bool isRegularFile(const char* path) {
-    struct stat pathStat;
-    if (stat(path, &pathStat) != 0) {
+	struct stat pathStat;
+	if (stat(path, &pathStat) != 0) {
 		std::cout << "error isFile\n";
-        return false;
-    }
-    return S_ISREG(pathStat.st_mode);
+		return false;
+	}
+	return S_ISREG(pathStat.st_mode);
 }
 
 void urlDecoding( std::string &url ) {
@@ -74,40 +74,40 @@ void urlDecoding( std::string &url ) {
 
 int hexToDec( std::string hexVal ) {
 
-    int len = hexVal.size();
-    int base = 1;
-    int dec_val = 0;
+	int len = hexVal.size();
+	int base = 1;
+	int dec_val = 0;
 
-    for (int i = len - 1; i >= 0; i--) {
+	for (int i = len - 1; i >= 0; i--) {
 
-        if (hexVal[i] >= '0' && hexVal[i] <= '9') {
+		if (hexVal[i] >= '0' && hexVal[i] <= '9') {
 
-            dec_val += (int(hexVal[i]) - 48) * base;
-            base = base * 16;
-            
-        } else if (hexVal[i] >= 'a' && hexVal[i] <= 'f') {
+			dec_val += (int(hexVal[i]) - 48) * base;
+			base = base * 16;
+			
+		} else if (hexVal[i] >= 'a' && hexVal[i] <= 'f') {
 
-            dec_val += (int(hexVal[i]) - 87) * base;
-            base = base * 16;
-        } else if (hexVal[i] >= 'A' && hexVal[i] <= 'F') {
+			dec_val += (int(hexVal[i]) - 87) * base;
+			base = base * 16;
+		} else if (hexVal[i] >= 'A' && hexVal[i] <= 'F') {
 
-            dec_val += (int(hexVal[i]) - 55) * base;
-            base = base * 16;
-        } 
-    }
-    return dec_val;
+			dec_val += (int(hexVal[i]) - 55) * base;
+			base = base * 16;
+		} 
+	}
+	return dec_val;
 }
 
 std::string stringToAscii( std::string const &str ) {
 
-    std::string ascii;
+	std::string ascii;
 
-    for ( size_t i = 0; i < str.size(); i++ ) {
+	for ( size_t i = 0; i < str.size(); i++ ) {
 
-        std::stringstream stream;
-        stream << static_cast<int>( str[i] );
-        ascii += stream.str();
-    }
+		std::stringstream stream;
+		stream << static_cast<int>( str[i] );
+		ascii += stream.str();
+	}
 
-    return ascii;
+	return ascii;
 }
