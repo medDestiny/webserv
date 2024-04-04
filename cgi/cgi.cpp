@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/03 18:11:48 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 02:57:37 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 
 # define CGIIN "/tmp/.cgiInput"
 # define CGIOUT "/tmp/.cgiOutput"
+# define CGI_TIMEOUT 15
 
 /* ********************************************* utility functions *************************************** */
 std::string	getIdentifier(std::string header)
@@ -219,11 +220,9 @@ void				Cgi::launch(std::string const & sessionId, std::string const & cookie)
 
 		char **av = Convert(_argv);
 
-		/* std::cerr << "before" << std::endl; */
 		close(end[0]);
 		dup2(end[1], STDERR_FILENO);
 		close(end[1]);
-		/* std::cerr << "after" << std::endl; */
 
 		if (_post)
 		{
@@ -321,7 +320,7 @@ int	monitorCgiProcess(Request & request, Response & response, int const sockfd)
 		else
 			response.setSendedHeader( true );
 	}
-	else if (std::time(NULL) - cgi.getCgiTime() >= 15 || err > 0)
+	else if (std::time(NULL) - cgi.getCgiTime() >= CGI_TIMEOUT || err > 0)
 	{
 		close(cgi.getCgiStdErr());
 		kill(cgi.getPid(), SIGTERM);

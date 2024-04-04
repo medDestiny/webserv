@@ -1,1 +1,12 @@
+server {
+	root /;
+	error_page	403 /Users/mmisskin/goinfre/server/abelfany.html;
 
+	location /a.out {
+		cgi_pass	.out;
+	}
+	location /test.sh {
+		cgi_pass	.sh /bin/bash;
+	}
+	autoindex on;
+}
