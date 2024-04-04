@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 03:10:55 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 22:18:16 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,7 +228,7 @@ int Request::setRequestHeader( void ) {
 	size_t found = recString.find(subString);
 	if (found != std::string::npos) {
 		this->header = recString.substr(0, found + subString.length());
-		std::cout << BLUE << this->header << RESET << std::endl;
+		// std::cout << BLUE << this->header << RESET << std::endl;
 		return (1);
 	}
 	else
@@ -269,6 +269,8 @@ int Request::parseRequestLine( Config conf, Conf::Server & server, Conf::Server 
 	urlDecoding( this->path );
 	this->url = this->path;
 	std::getline(methodStream, this->httpVersion, '\r');
+
+	std::cout << GREEN  << std::endl << "\t" << this->method << "\t" << this->path << "\t" << this->httpVersion <<  RESET << std::endl;
 	// check httpVersion is valid
 	if (this->httpVersion != "HTTP/1.1") {
 		response.setStatusCode( 505 );

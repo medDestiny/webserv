@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 01:00:43 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 22:12:48 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,6 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
 	cgiHeader += "\r\nConnection: " + request.getConnection();
 	cgiHeader += "\r\n\r\n";
 	cgiFile.close();
-	std::cout << GREEN << cgiHeader << RESET << std::endl;
 
 	/* open the file for later body reading */
 	this->file = open( request.getCgi().getCgiOutFile().c_str(), O_RDONLY );

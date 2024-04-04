@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 18:40:50 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 22:14:09 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,6 @@ int Client::recieveRequest() {
 				// parse post body ( if body is too small )
 				this->request.setRequestBody();
 				status = this->request.parsePostBody( this->request.getBody() );
-				// std::cout << this->request.getBody() << std::endl;
 				if ( status == 2 ) {
 
 					this->response.setStatusCode( 501 );
@@ -152,15 +151,6 @@ int Client::recieveRequest() {
 					return 0; // error Content-Length required
 				}
 			}
-   
-			// invalid header *error*
-			// if (recieved < SIZE && this->request.getHeader().empty()) {
-				
-			//     std::cout << "hello" << std::endl;
-			//     this->response.setStatusCode( 400 );
-			//     return (0); // error
-			// }
-
 		}
 		else {
 			
