@@ -6,7 +6,7 @@
 /*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/01 11:21:11 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/03/13 17:48:41 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/02 16:58:08 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 # define DEFAULT_HOST "0.0.0.0"
 # define DEFAULT_PORT "8080"
 # define DEFAULT_BODY_SIZE 1048576 // 1M in bytes
-# define DEFAULT_UPLOAD_PATH "/"
 
 class	Directive
 {

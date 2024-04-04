@@ -373,7 +373,7 @@ int Request::parseRequestHeader( Config conf, Conf::Server & server, Conf::Serve
 		std::cout << GREEN << "-------> " << cgiExtension << RESET << std::endl;
 		if (itLocation->second.getCgiPass().found(cgiExtension))
 		{
-			if (!handleCgiRequest(itLocation->second.getRoot().getPath(), itLocation->first, itLocation->second.getCgiPass().getCgi(cgiExtension), response))
+			if (!handleCgiRequest(itLocation->second.getRoot().getPath(), itLocation->second.getCgiPass().getCgi(cgiExtension), response))
 				return (0);
 			std::cout << CYAN << "found cgi: [" << cgiExtension << "] -> " << itLocation->second.getCgiPass().getCgi(cgiExtension) << RESET <<std::endl;
 			this->cgi.enable();
