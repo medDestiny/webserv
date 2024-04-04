@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/02 22:42:58 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 01:01:40 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ class Request {
         std::string rangeEnd;
         std::string httpVersion;
         std::string url;
+        std::string absolutPath;
         std::string cookie;
         size_t		rangeStartNum;
         size_t 		rangeEndNum;
@@ -132,6 +133,7 @@ class Request {
         void        setReturnUrl( std::string const & returnUrl );
         std::string getCookie( void ) const;
         void    setCookie( std::string const cookie );
+		std::string const &getAbsolutePath(void) const;
 
 		/* cgi functions */
 		bool		handleCgiRequest(std::string const & root, std::string const & cgi, Response & response);
@@ -152,7 +154,7 @@ class Request {
         // Get Method
         void getRange( void );
         int checkFile( Conf::Server & server, Response & response );
-        int checkDirectory( Conf::Server & server, Response & response, std::string const & absolutePath );
+        int checkDirectory( Conf::Server & server, Response & response );
 
         // ------------- POST ------------- //
         int parsePostBody( std::string const &buffer );

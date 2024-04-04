@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/03 00:44:06 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 01:00:43 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,14 +235,15 @@ ssize_t	Response::sendCgiHeader( int const sockfd, Request & request ) {
 ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
 
     std::string statusLine;
+	std::string absolutPath = request.getAbsolutePath();
 
     // ----------status line----------- //
     if (!request.getRangeStart().empty()) {
         this->statusCode = 206;
     }
-    std::string absolutPath = request.getLocation().getRoot().getPath() + request.getUrl();
-    if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
-        this->statusCode = 302;
+
+    if (absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
+        this->statusCode = 301;
     }
     else if (!request.getReturnUrl().empty()) {
         this->statusCode = request.getReturnCode();
@@ -274,9 +275,8 @@ ssize_t Response::sendHeader( int const &sockfd, Request const & request ) {
             headerResponse += "\r\nAccept-Ranges: bytes";
     }
     headerResponse += "\r\nConnection: " + request.getConnection();
-    if (request.getCheckLocation() && absolutPath.back() != '/' && isDirectory(absolutPath.c_str())) {
-        headerResponse += "\r\nLocation: " + request.getStringLocation() + "/";
-    }
+    if (absolutPath.back() != '/' && isDirectory(absolutPath.c_str()))
+        headerResponse += "\r\nLocation: " + request.getUrl() + "/";
     headerResponse += "\r\n\r\n";
 
     ssize_t sended;
@@ -429,12 +429,8 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     std::vector<std::string> fileNames;
     DIR* dir;
     struct dirent* entry;
-    std::string fullPath;
+    std::string fullPath = request.getAbsolutePath();
 
-    if (request.getCheckLocation())
-        fullPath = request.getLocation().getRoot().getPath() + request.getUrl();
-    else
-        fullPath = server.getRoot().getPath() + request.getUrl();
     dir = opendir(fullPath.c_str());
     if (dir == NULL) {
         this->statusCode = 500;
@@ -511,6 +507,8 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     if (!request.getReturnUrl().empty()) {
         this->statusCode = request.getReturnCode();
     }
+	else if (fullPath.back() != '/')
+        this->statusCode = 301;
     header = "HTTP/1.1 " + intToString(this->statusCode) + " " + getStatusMessage(this->statusCode) + "\r\n";
     header += "Content-Type: text/html\r\n";
     header += "Content-Length: " + intToString(body.length());
@@ -518,6 +516,8 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
     if (!request.getReturnUrl().empty()) {
         header += "\r\nLocation: " + request.getReturnUrl();
     }
+	else if (fullPath.back() != '/')
+        header += "\r\nLocation: " + request.getUrl() + '/';
     header += "\r\n\r\n";
 
     message = header + body;

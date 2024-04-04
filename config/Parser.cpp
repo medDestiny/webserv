@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:45:59 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 18:15:58 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/04 01:26:29 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,18 +203,25 @@ void	ParseClientMaxBodySize(ClientMaxBodySize & max_size, std::vector<Token> & T
 	if (!Tokens.empty() && Tokens.front().type() == DIRECTIVE)
 	{
 		std::string	token = Tokens.front().content();
-		size_t		unit = token.find_first_not_of("0123456789", 0);
+		size_t		unitPos = token.find_first_not_of("0123456789", 0);
 
-		if (unit == std::string::npos) // case of a size without a unit (client... 1024;)
+		if (unitPos == std::string::npos) // case of a size without a unit (client... 1024;)
 			throw Parser::Error("missing unit for ", "client_max_body_size", Tokens.front().line());
 
 		std::stringstream	ss;
 		size_t				size;
 
-		ss << token.substr(0, unit);
+		ss << token.substr(0, unitPos);
 		if (!(ss >> size) || ss.peek() != EOF)
 			throw Parser::Error("invalid body size ", token, Tokens.front().line());
-		token = token.substr(unit);
+		token = token.substr(unitPos);
+
+		if (token.size() != 1 || token.find_first_of("kKmMgG") == std::string::npos)
+			throw Parser::Error("invalid unit in ", "client_max_body_size", Tokens.front().line());
+
+		/* make sure size is lower within 200 GB */
+		if (((token == "G" || token == "g") && size > 200) || ((token == "M" || token == "m") && size > 204800) || ((token == "K" || token == "k") && size > 209715200))
+			throw Parser::Error("size too large in ", "client_max_body_size", Tokens.front().line());
 
 		/* Convert the size to bytes */
 		if (token == "k" || token == "K")
@@ -223,8 +230,6 @@ void	ParseClientMaxBodySize(ClientMaxBodySize & max_size, std::vector<Token> & T
 			size *= 1048576;
 		else if (token == "g" || token == "G")
 			size *= 1073741824;
-		else
-			throw Parser::Error("invalid unit in ", "client_max_body_size", Tokens.front().line());
 
 		max_size.setSize(size);
 		Tokens.erase(Tokens.begin()); // delete client_max_body_size value token
@@ -699,6 +704,7 @@ Config	Parser::importConfig(std::string const & path)
 	}
 
 	std::vector<Token>	Tokens = Tokenize(configFile);
+	configFile.close();
 	if (!Parse(config, Tokens))
 		return (config);
 
