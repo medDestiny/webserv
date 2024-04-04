@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:11:40 by amoukhle          #+#    #+#             */
-/*   Updated: 2024/03/31 21:35:06 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/04 03:12:04 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ int main( void ) {
 
 	std::string login;
 	std::string password;
-    std::string tmp;
+	std::string tmp;
 	std::string buffer;
 	ParseData parser;
 	std::string sessionId = std::string( getenv("X_ID"));
@@ -165,7 +165,6 @@ int main( void ) {
 				dataFd.close();
 			}
 		}
-		
 	}
 	return (0);
 }
