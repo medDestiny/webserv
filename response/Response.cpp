@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/05 00:32:34 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/05 01:34:12 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ Response::Response( void ) {
 
 	// ---- post ---- //
 	this->bodyFlag = false;
+	this->fd = -2;
 }
 
 Response::~Response( void ) { }

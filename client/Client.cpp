@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/05 00:34:02 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/05 01:34:50 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,8 +283,6 @@ int Client::sendresponse() {
 				return 1;
 			std::cout << BLUE << "\tPOST done." << std::endl << std::endl;
 			return 2;
-		} else if ( status == 3 ) {
-			
 		}
 		else
 			this->settimeout( std::time( NULL ) );
