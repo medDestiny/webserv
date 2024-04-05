@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:42 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 22:14:09 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/05 00:34:02 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,10 @@ int Client::recieveRequest() {
 		this->response.setStatusCode( 500 );
 		return (0); // error
 	}
+	else if ( !recieved && this->getRequest().getRecString().empty() ) {
+		this->response.setStatusCode( 400 );
+		return (0); // error
+	}
 	else {
 
 		this->settimeout( std::time( NULL ) ); // set time out of client
@@ -191,7 +195,7 @@ int Client::recieveRequest() {
 int Client::sendFileChunks( void ) {
     
     ssize_t sended = this->response.sendBody( this->sockfd, this->request );
-    if ( (int)sended == -1 ) {
+    if ( sended == -1 ) {
 
         close(this->response.getFile());
         if (this->request.isCgi())
@@ -199,7 +203,7 @@ int Client::sendFileChunks( void ) {
         this->response.setStatusCode( 500 );
         return 1;
     }
-    if ( (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
+    if ( !sended || (response.getContentResponse() == response.getContentLength() && request.getConnection() == "close")) {
         close(this->response.getFile());
         if (this->request.isCgi())
             remove(this->request.getCgi().getCgiOutFile().c_str());
@@ -245,7 +249,7 @@ int Client::sendresponse() {
         }
         else {
             ssize_t sended = this->response.sendHeader( this->sockfd, this->request );
-            if ( (int)sended == -1) {
+            if ( sended <= 0) {
                 response.setStatusCode( 500 );
                 return (1); // remove client and fd
             }
@@ -320,14 +324,14 @@ int Client::sendPostResponse( std::string const &message ) {
 				"    </div>\n"
 				"</body>\n"
 				"</html>\n";
-	header = "HTTP/1.1 " + intToString( this->response.getStatusCode() ) + " " + this->response.getStatusMessage( this->response.getStatusCode() ) + "\r\n";
+	header = "HTTP/1.1 " + intToString( 201 ) + " " + this->response.getStatusMessage( 201 ) + "\r\n";
 	header += "Content-Type: text/html\r\n";
 	header += "Content-Length: " + intToString( body.size() ) + "\r\n";
 	header += "Connection: " + request.getConnection() + "\r\n\r\n";
 	header += body;
 	
 	bytes = send( this->sockfd, header.c_str(), header.size(), 0 ); // send response
-	if ( bytes == -1 ) {
+	if ( bytes <= 0 ) {
 
 		this->response.setStatusCode( 500 );
 		return 0;

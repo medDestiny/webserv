@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:19 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 22:12:48 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/05 00:32:34 by mmisskin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,7 @@ void Response::setMimeType( std::string const & mimetype ){
 std::string Response::getStatusMessage(int const & statusCode) {
 	std::map<int, std::string> statusMessages;
 	statusMessages[200] = "OK";
+	statusMessages[201] = "Created";
 	statusMessages[204] = "No Content";
 	statusMessages[206] = "Partial Content";
 	statusMessages[301] = "Moved Permanently";
@@ -319,7 +320,7 @@ ssize_t Response::sendBody( int const &sockfd, Request const & request ) {
 		std::string message = std::string(buffer, bytesRead);
 		sended = send( sockfd, message.c_str() , message.size(), 0 );
 		
-		return (sended); // !!what
+		return (sended);
 	}
 	return (1);
 }
@@ -415,7 +416,7 @@ int Response::displayErrorPage( Conf::Server & server, int const &sockfd, Reques
 
 	message = header + body;
 	ssize_t bytesSended = send( sockfd, message.c_str(), message.length(), 0);
-	if ( bytesSended == -1 ) {
+	if ( bytesSended <= 0 ) {
 
 		this->setStatusCode( 500 );
 		return 1;
@@ -521,7 +522,7 @@ int Response::displayAutoIndex( Conf::Server & server, int const &sockfd, Reques
 
     message = header + body;
     ssize_t sended = send( sockfd, message.c_str(), message.length(), 0);
-    if (sended == -1) {
+    if (sended <= 0) {
         this->statusCode = 500;
         return (0); // error
     }
@@ -546,7 +547,7 @@ int Response::deleteResource(int const sockfd, Request request) {
 	header += "Connection: " + request.getConnection() + "\r\n\r\n";
 
 	ssize_t sended = send( sockfd, header.c_str(), header.length(), 0);
-	if (sended == -1) {
+	if (sended <= 0) {
 		this->statusCode = 500;
 		return (0); // error
 	}
