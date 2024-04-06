@@ -1,4 +1,4 @@
-# web-server
+# webserv
 
 ## RESOURCES
 * [Web Server (notion)](https://guttural-reading-544.notion.site/Web-Server-813693d02e71453d9eb9cef4fc84b1b1)
