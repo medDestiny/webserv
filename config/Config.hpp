@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmisskin <mmisskin@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:46:56 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/02 16:53:01 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/05 01:46:19 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,6 @@ class	Config
 		Config(void);
 		Config(Config const & src);
 		Config	&operator=(Config const & right);
-
-		void	print(void) const;		// for debugging
 
 		/* Useful server lookup utility */
 		Conf::Server							getServer(Conf::Server const & default_server, std::string server_name);

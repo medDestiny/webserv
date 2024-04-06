@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 02:15:25 by mmisskin          #+#    #+#             */
-/*   Updated: 2024/04/04 23:40:33 by mmisskin         ###   ########.fr       */
+/*   Updated: 2024/04/06 01:55:39 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ std::vector<std::string>	buildArgv(std::string const & cgi, std::string const & 
 	return (argv);
 }
 
-std::vector<std::string>	buildEnv(std::map<std::string, std::string> & req, std::string const & method, std::string const & protocol, std::string const & url)
+std::vector<std::string>	buildEnv(std::map<std::string, std::string> & req, std::string const & method, std::string const & protocol, std::string const & url, std::string const & query)
 {
 	/* setup meta-variables */
 	std::map<std::string, std::string>::iterator	it;
@@ -61,16 +61,8 @@ std::vector<std::string>	buildEnv(std::map<std::string, std::string> & req, std:
 
 	environment.push_back("REQUEST_METHOD=" + method);
 	environment.push_back("SERVER_PROTOCOL=" + protocol);
-	if (url.find('?') != std::string::npos)
-	{
-		environment.push_back("QUERY_STRING=" + url.substr(url.find('?') + 1));
-		environment.push_back("PATH_INFO=" + url.substr(0, url.find('?')));
-	}
-	else
-	{
-		environment.push_back("QUERY_STRING");
-		environment.push_back("PATH_INFO=" + url);
-	}
+	environment.push_back("QUERY_STRING=" + query);
+	environment.push_back("PATH_INFO=" + url);
 	if ((it = req.find("Content-Type:")) != req.end())
 		environment.push_back("CONTENT_TYPE=" + it->second);
 
@@ -284,7 +276,7 @@ bool	Request::handleCgiRequest(std::string const & root, std::string const & cgi
 
 	this->cgi.setScriptName(script);
 	this->cgi.setCwd(cwd);
-	this->cgi.setEnv(buildEnv(this->linesRequest, this->method, this->httpVersion, this->url));
+	this->cgi.setEnv(buildEnv(this->linesRequest, this->method, this->httpVersion, this->url, this->queryString));
 	this->cgi.setArgv(buildArgv(cgi, script));
 
 	return (true);
