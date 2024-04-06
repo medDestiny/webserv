@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:32 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 03:10:49 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/06 01:48:55 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ class Request {
         std::string	recString;
         std::string method;
         std::string path;
+		std::string queryString;
         std::string connection;
         std::string header;
         std::string body;

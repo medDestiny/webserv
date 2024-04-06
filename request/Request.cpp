@@ -6,7 +6,7 @@
 /*   By: del-yaag <del-yaag@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 15:54:29 by del-yaag          #+#    #+#             */
-/*   Updated: 2024/04/04 22:18:16 by del-yaag         ###   ########.fr       */
+/*   Updated: 2024/04/06 01:53:49 by del-yaag         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,6 +266,12 @@ int Request::parseRequestLine( Config conf, Conf::Server & server, Conf::Server 
 	std::getline(methodStream, this->method, ' ');
 	std::getline(methodStream, this->path, ' ');
   
+	size_t find = this->path.find( "?" );
+	if ( find != std::string::npos ) {
+		
+		this->queryString = this->path.substr( find + 1 ); // store query string
+		this->path = this->path.substr( 0, find ); // remove
+	}
 	urlDecoding( this->path );
 	this->url = this->path;
 	std::getline(methodStream, this->httpVersion, '\r');
